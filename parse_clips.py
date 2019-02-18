@@ -11,9 +11,9 @@ def is_relevant_scene(frame, confidence_threshold = 0.7):
         #boolean denoting whether input image is something we want in an extracted clip
     return DetectorAPI.get_human_count(frame, confidence_threshold) > 0
 
-def extract_relevant_clips(video_file_path):
+def extract_relevant_clips(source="", dest=""):
     timeFromMilliseconds = lambda x: str(datetime.timedelta(milliseconds=x))
-    vid = cv2.VideoCapture(video_file_path)
+    vid = cv2.VideoCapture(source)
     input_fps = vid.get(cv2.CAP_PROP_FPS)
     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)  
     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -35,7 +35,6 @@ def extract_relevant_clips(video_file_path):
     #######################################################################
     ### Initializing sub-region specific dimensions and recording flag
     #######################################################################
-    new_clip_name = "./extracted_clips/clip_69.avi"
     clip_info = dict()
     clip_info["bottom_left"] = dict()
     clip_info["bottom_left"]["width"] = 550
@@ -101,7 +100,7 @@ def extract_relevant_clips(video_file_path):
                     if (not recording_clip):
                         #if we aren't yet recording we'd like to set the recording flag
                             #and initialize the new clip
-                        new_clip_name = "./extracted_clips/clip_{}_{}.avi".format(subregion, clip_num)
+                        new_clip_name = dest + "/clip_{}_{}.avi".format(subregion, clip_num)
                         cur_dims = (sub_width, sub_height)
                         subregion_info["clip"] = cv2.VideoWriter(new_clip_name, fourcc, input_fps, cur_dims)
                         subregion_info["recording"] = True
@@ -124,5 +123,5 @@ def extract_relevant_clips(video_file_path):
     vid.release()
 
 #TODO: update so file can be passed as cmd line arg
-extract_relevant_clips("ridtydz2.mp4")
+extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
 # extract_relevant_clips("./extracted_clips/clip_0.avi")
