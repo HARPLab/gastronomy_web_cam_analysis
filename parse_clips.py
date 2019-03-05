@@ -16,6 +16,8 @@ def extract_relevant_clips(source="", dest=""):
     timeFromMilliseconds = lambda x: str(datetime.timedelta(milliseconds=x))
     vid = cv2.VideoCapture(source)
     input_fps = vid.get(cv2.CAP_PROP_FPS)
+    ## print input_fps
+    input_fps = 30 #the input fps is far higher than it actually is, have to change it manually
     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)  
     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
     input_dims = (int(width), int(height))
@@ -29,7 +31,8 @@ def extract_relevant_clips(source="", dest=""):
     clip_num = 0
 
     # Define the codec and create VideoWriter object
-    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    #fourcc = cv2.cv.CV_FOURCC(*'XVID')
 
 
     #######################################################################
@@ -126,9 +129,9 @@ def extract_relevant_clips(source="", dest=""):
 base = "/mnt/harpdata/gastronomy_clips"
 now = datetime.datetime.now()
 log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now.day, now.hour, now.minute))
-log_file = open(log, 'w+')
 for f in os.listdir(base):
     if (f.endswith(".ts")):
+	log_file = open(log, 'a+')
         dst=os.path.join(base, "extracted_clips", f[:f.find(".ts")])
 	if not os.path.exists(dst):
 	    os.makedirs(dst)
@@ -138,5 +141,6 @@ for f in os.listdir(base):
 	extract_relevant_clips(source=next_vid_path, dest=dst)
         print "Finished for {}!\n".format(f)
         log_file.write("Finished parsing {}\n".format(next_vid_path))
+	log_file.close()
 #extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
 # extract_relevant_clips("./extracted_clips/clip_0.avi")
