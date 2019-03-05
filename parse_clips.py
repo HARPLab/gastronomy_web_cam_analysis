@@ -129,7 +129,7 @@ log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now
 log_file = open(log, 'w+')
 for f in os.listdir(base):
     if (f.endswith(".ts")):
-        dst=os.path.join(os.getcwd(), "extracted_clips", f[:f.find(".ts")])
+        dst=os.path.join(base, "extracted_clips", f[:f.find(".ts")])
 	if not os.path.exists(dst):
 	    os.makedirs(dst)
         next_vid_path = os.path.join(base, f)
