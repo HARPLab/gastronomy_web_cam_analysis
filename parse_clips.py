@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from tensorflow_human_detection import DetectorAPI
-import datetime
+import datetime, os
 
 
 def is_relevant_scene(frame, confidence_threshold = 0.7):
@@ -12,12 +12,12 @@ def is_relevant_scene(frame, confidence_threshold = 0.7):
     return DetectorAPI.get_human_count(frame, confidence_threshold) > 0
 
 def extract_relevant_clips(source="", dest=""):
+    print (source, dest)
     timeFromMilliseconds = lambda x: str(datetime.timedelta(milliseconds=x))
     vid = cv2.VideoCapture(source)
     input_fps = vid.get(cv2.CAP_PROP_FPS)
     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)  
     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    print(width, height)
     input_dims = (int(width), int(height))
     # variable denoting the number of frames we want to skip before performing
         #our 'relevant_scene' check
@@ -60,8 +60,6 @@ def extract_relevant_clips(source="", dest=""):
 
     while (vid.isOpened()):
         valid, frame = vid.read()
-        time_string = timeFromMilliseconds(vid.get(cv2.CAP_PROP_POS_MSEC))
-        print "at frame {}, {}, {}".format(i, valid, time_string)
         if (not valid): break
 
         # print "showing frame {}".format(i)
@@ -71,6 +69,8 @@ def extract_relevant_clips(source="", dest=""):
             subregion_info = clip_info[subregion]
             recording_clip = subregion_info["recording"]
             if (recording_clip):
+                time_string = timeFromMilliseconds(vid.get(cv2.CAP_PROP_POS_MSEC))
+                print "recording frame {}, {}, {}".format(i, valid, time_string)
                 # add frame to clip
                 clip_obj = subregion_info["clip"]
                 x0, y0 = subregion_info["x0"], subregion_info["y0"]
@@ -123,5 +123,20 @@ def extract_relevant_clips(source="", dest=""):
     vid.release()
 
 #TODO: update so file can be passed as cmd line arg
-extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
+base = "/mnt/harpdata/gastronomy_clips"
+now = datetime.datetime.now()
+log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now.day, now.hour, now.minute))
+log_file = open(log, 'w+')
+for f in os.listdir(base):
+    if (f.endswith(".ts")):
+        dst=os.path.join(os.getcwd(), "extracted_clips", f[:f.find(".ts")])
+	if not os.path.exists(dst):
+	    os.makedirs(dst)
+        next_vid_path = os.path.join(base, f)
+        log_file.write("Started parsing {}\n".format(next_vid_path))
+        print "Started for {}!\n".format(f)
+	extract_relevant_clips(source=next_vid_path, dest=dst)
+        print "Finished for {}!\n".format(f)
+        log_file.write("Finished parsing {}\n".format(next_vid_path))
+#extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
 # extract_relevant_clips("./extracted_clips/clip_0.avi")
