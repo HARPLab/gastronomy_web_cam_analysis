@@ -62,6 +62,7 @@ def extract_relevant_clips(source="", dest=""):
 
     next_region="middle_over"
     x0 = 1565; y0 = 570; width=340; height=450
+    clip_info[next_region] = dict()
     clip_info[next_region]["width"] = width
     clip_info[next_region]["height"] = height
     clip_info[next_region]["x0"] = x0
@@ -72,6 +73,7 @@ def extract_relevant_clips(source="", dest=""):
 
 
     next_region="middle"
+    clip_info[next_region] = dict()
     x0 = 575; y0 = 250; width=250; height=545
     clip_info[next_region]["width"] = width
     clip_info[next_region]["height"] = height
@@ -201,6 +203,7 @@ def play(fname):
 
     cap.release()
     cv2.destroyAllWindows()
+parse_dirs()
 # play("ridtydz2.mp4")
 # extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
 # extract_relevant_clips("./extracted_clips/clip_0.avi")
