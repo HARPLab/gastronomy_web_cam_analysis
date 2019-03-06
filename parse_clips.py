@@ -131,21 +131,19 @@ now = datetime.datetime.now()
 log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now.day, now.hour, now.minute))
 openface_dir = os.path.join("~/dev/OpenFace/build")
 execute_instr = os.path.join(openface_dir, "bin/FaceLandmarkVid")
-#./bin/FaceLandmarkVid -f "../samples/changeLighting.wmv" -f "../samples/2015-10-15-15-14.avi"
 print execute_instr
-for f in os.listdir(base):
-#~/dev/OpenFace/build/bin/FaceLandmarkVid -f "~/dev/OpenFace/samples/changeLighting.wmv"
-    subprocess.call('~/dev/OpenFace/build/bin/FaceLandmarkVid -f "/home/rkaufman/dev/OpenFace/samples/changeLighting.wmv"', shell=True)
-#    subprocess.call([execute_instr, "-f", '"~/dev/OpenFace/samples/changeLighting.wmv"'], shell=True)
-    break
-    if (f.endswith(".ts")):
-        dst=os.path.join(base, "extracted_clips", f[:f.find(".ts")])
-	if not os.path.exists(dst):
-            print "{} does not exist!"
-        else:
-	     print "in {}:".format(dst)
-	     for vid in os.listdir(dst):
-	         print "\t{}".format(os.path.join(dst,vid))
+#for f in os.listdir(base):
+while True:
+    inp = raw_input("Next Video pls:\n\t-->")
+    subprocess.call('~/dev/OpenFace/build/bin/FaceLandmarkVid -f "{}"'.format(inp), shell=True)
+    #if (f.endswith(".ts")):
+    #    dst=os.path.join(base, "extracted_clips", f[:f.find(".ts")])
+#	if not os.path.exists(dst):
+#            print "{} does not exist!"
+#        else:
+#	     print "in {}:".format(dst)
+#	     for vid in os.listdir(dst):
+#	         print "\t{}".format(os.path.join(dst,vid))
 #./bin/FaceLandmarkVid -f "../samples/changeLighting.wmv" -f "../samples/2015-10-15-15-14.avi"
 
 #for f in os.listdir(base):
