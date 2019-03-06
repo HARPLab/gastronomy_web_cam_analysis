@@ -39,24 +39,47 @@ def extract_relevant_clips(source="", dest=""):
     ### Initializing sub-region specific dimensions and recording flag
     #######################################################################
     clip_info = dict()
-    clip_info["bottom_left"] = dict()
-    clip_info["bottom_left"]["width"] = 550
-    clip_info["bottom_left"]["height"] = 580
-    clip_info["bottom_left"]["x0"] = 220
-    clip_info["bottom_left"]["y0"] = 500
-    clip_info["bottom_left"]["recording"] = False
-    clip_info["bottom_left"]["clip"] = None
-    clip_info["bottom_left"]["clip_num"] = 0
+    # initiliaze_region(x0=220, y0=500, width=)
+    x0 = 1665; y0 = 570; width=240; height=450
+    # clip_info["bottom_left"] = dict()
+    # clip_info["bottom_left"]["width"] = 550
+    # clip_info["bottom_left"]["height"] = 580
+    # clip_info["bottom_left"]["x0"] = 220
+    # clip_info["bottom_left"]["y0"] = 500
+    # clip_info["bottom_left"]["recording"] = False
+    # clip_info["bottom_left"]["clip"] = None
+    # clip_info["bottom_left"]["clip_num"] = 0
 
 
-    clip_info["middle_right"] = dict()
-    clip_info["middle_right"]["width"] = 400
-    clip_info["middle_right"]["height"] = 450
-    clip_info["middle_right"]["x0"] = 1300
-    clip_info["middle_right"]["y0"] = 450
-    clip_info["middle_right"]["recording"] = False
-    clip_info["middle_right"]["clip"] = None
-    clip_info["middle_right"]["clip_num"] = 0
+    # clip_info["middle_right"] = dict()
+    # clip_info["middle_right"]["width"] = 400
+    # clip_info["middle_right"]["height"] = 450
+    # clip_info["middle_right"]["x0"] = 1300
+    # clip_info["middle_right"]["y0"] = 450
+    # clip_info["middle_right"]["recording"] = False
+    # clip_info["middle_right"]["clip"] = None
+    # clip_info["middle_right"]["clip_num"] = 0
+
+    next_region="middle_over"
+    x0 = 1565; y0 = 570; width=340; height=450
+    clip_info[next_region]["width"] = width
+    clip_info[next_region]["height"] = height
+    clip_info[next_region]["x0"] = x0
+    clip_info[next_region]["y0"] = y0
+    clip_info[next_region]["recording"] = False
+    clip_info[next_region]["clip"] = None
+    clip_info[next_region]["clip_num"] = 0
+
+
+    next_region="middle"
+    x0 = 575; y0 = 250; width=250; height=545
+    clip_info[next_region]["width"] = width
+    clip_info[next_region]["height"] = height
+    clip_info[next_region]["x0"] = x0
+    clip_info[next_region]["y0"] = y0
+    clip_info[next_region]["recording"] = False
+    clip_info[next_region]["clip"] = None
+    clip_info[next_region]["clip_num"] = 0
     # counter representing the frame number we're on
     i = 0
 
@@ -124,40 +147,60 @@ def extract_relevant_clips(source="", dest=""):
         if subregion_info["clip"] != None:
             subregion_info["clip"].release()
     vid.release()
-import subprocess
-#TODO: update so file can be passed as cmd line arg
-base = "/mnt/harpdata/gastronomy_clips"
-now = datetime.datetime.now()
-log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now.day, now.hour, now.minute))
-openface_dir = os.path.join("~/dev/OpenFace/build")
-execute_instr = os.path.join(openface_dir, "bin/FaceLandmarkVid")
-print execute_instr
-#for f in os.listdir(base):
-while True:
-    inp = raw_input("Next Video pls:\n\t-->")
-    subprocess.call('~/dev/OpenFace/build/bin/FaceLandmarkVid -f "{}"'.format(inp), shell=True)
-    #if (f.endswith(".ts")):
-    #    dst=os.path.join(base, "extracted_clips", f[:f.find(".ts")])
-#	if not os.path.exists(dst):
-#            print "{} does not exist!"
-#        else:
-#	     print "in {}:".format(dst)
-#	     for vid in os.listdir(dst):
-#	         print "\t{}".format(os.path.join(dst,vid))
-#./bin/FaceLandmarkVid -f "../samples/changeLighting.wmv" -f "../samples/2015-10-15-15-14.avi"
+# import subprocess
+# #TODO: update so file can be passed as cmd line arg
+# openface_dir = os.path.join("~/dev/OpenFace/build")
+# execute_instr = os.path.join(openface_dir, "bin/FaceLandmarkVid")
+# print execute_instr
+def view_clips(base="/mnt/harpdata/gastronomy_clips"):
+    while True:
+        inp = raw_input("Next Video pls:\n\t-->")
+        subprocess.call('~/dev/OpenFace/build/bin/FaceLandmarkVid -f "{}"'.format(inp), shell=True)
 
-#for f in os.listdir(base):
-#    if (f.endswith(".ts")):
-#	log_file = open(log, 'a+')
-#        dst=os.path.join(base, "extracted_clips", f[:f.find(".ts")])
-#	if not os.path.exists(dst):
-#	    os.makedirs(dst)
-#        next_vid_path = os.path.join(base, f)
-#        log_file.write("Started parsing {}\n".format(next_vid_path))
-#        print "Started for {}!\n".format(f)
-#	extract_relevant_clips(source=next_vid_path, dest=dst)
-       # print "Finished for {}!\n".format(f)
-       # log_file.write("Finished parsing {}\n".format(next_vid_path))
-#	log_file.close()
-#extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
+def list_clips(base="/mnt/harpdata/gastronomy_clips"):
+    for f in os.listdir(base):
+        if (f.endswith(".ts")):
+            dst=os.path.join(base, "extracted_clips", f[:f.find(".ts")])
+            if not os.path.exists(dst):
+                print "{} does not exist!"
+            else:
+                print "in {}:".format(dst)
+                for vid in os.listdir(dst):
+                    print "\t{}".format(os.path.join(dst,vid))
+#./bin/FaceLandmarkVid -f "../samples/changeLighting.wmv" -f "../samples/2015-10-15-15-14.avi"
+def parse_dirs(base="/mnt/harpdata/gastronomy_clips"):
+    # base = "/mnt/harpdata/gastronomy_clips"
+    now = datetime.datetime.now()
+    log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now.day, now.hour, now.minute))
+    for f in os.listdir(base):
+        if (f.endswith(".ts")):
+            log_file = open(log, 'a+')
+            dst=os.path.join(base, "extracted_clips", f[:f.find(".ts")])
+            if not os.path.exists(dst):
+                os.makedirs(dst)
+            next_vid_path = os.path.join(base, f)
+            log_file.write("Started parsing {}\n".format(next_vid_path))
+            print "Started for {}!\n".format(f)
+            extract_relevant_clips(source=next_vid_path, dest=dst)
+            print "Finished for {}!\n".format(f)
+            log_file.write("Finished parsing {}\n".format(next_vid_path))
+            log_file.close()
+def play(fname):
+    cap = cv2.VideoCapture(fname)
+    # x0 = 1565; y0 = 570; width=340; height=450
+    x0 = 575; y0 = 250; width=250; height=545
+    while(cap.isOpened()):
+        ret, frame = cap.read()
+        sub_frame = frame[y0:(y0 + height), x0:(x0 + width)]
+
+        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        cv2.imshow('frame', sub_frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+# play("ridtydz2.mp4")
+# extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
 # extract_relevant_clips("./extracted_clips/clip_0.avi")
