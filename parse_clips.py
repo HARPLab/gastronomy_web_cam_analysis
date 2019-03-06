@@ -124,23 +124,42 @@ def extract_relevant_clips(source="", dest=""):
         if subregion_info["clip"] != None:
             subregion_info["clip"].release()
     vid.release()
-
+import subprocess
 #TODO: update so file can be passed as cmd line arg
 base = "/mnt/harpdata/gastronomy_clips"
 now = datetime.datetime.now()
 log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now.day, now.hour, now.minute))
+openface_dir = os.path.join("~/dev/OpenFace/build")
+execute_instr = os.path.join(openface_dir, "bin/FaceLandmarkVid")
+#./bin/FaceLandmarkVid -f "../samples/changeLighting.wmv" -f "../samples/2015-10-15-15-14.avi"
+print execute_instr
 for f in os.listdir(base):
+#~/dev/OpenFace/build/bin/FaceLandmarkVid -f "~/dev/OpenFace/samples/changeLighting.wmv"
+    subprocess.call('~/dev/OpenFace/build/bin/FaceLandmarkVid -f "/home/rkaufman/dev/OpenFace/samples/changeLighting.wmv"', shell=True)
+#    subprocess.call([execute_instr, "-f", '"~/dev/OpenFace/samples/changeLighting.wmv"'], shell=True)
+    break
     if (f.endswith(".ts")):
-	log_file = open(log, 'a+')
         dst=os.path.join(base, "extracted_clips", f[:f.find(".ts")])
 	if not os.path.exists(dst):
-	    os.makedirs(dst)
-        next_vid_path = os.path.join(base, f)
-        log_file.write("Started parsing {}\n".format(next_vid_path))
-        print "Started for {}!\n".format(f)
-	extract_relevant_clips(source=next_vid_path, dest=dst)
-        print "Finished for {}!\n".format(f)
-        log_file.write("Finished parsing {}\n".format(next_vid_path))
-	log_file.close()
+            print "{} does not exist!"
+        else:
+	     print "in {}:".format(dst)
+	     for vid in os.listdir(dst):
+	         print "\t{}".format(os.path.join(dst,vid))
+#./bin/FaceLandmarkVid -f "../samples/changeLighting.wmv" -f "../samples/2015-10-15-15-14.avi"
+
+#for f in os.listdir(base):
+#    if (f.endswith(".ts")):
+#	log_file = open(log, 'a+')
+#        dst=os.path.join(base, "extracted_clips", f[:f.find(".ts")])
+#	if not os.path.exists(dst):
+#	    os.makedirs(dst)
+#        next_vid_path = os.path.join(base, f)
+#        log_file.write("Started parsing {}\n".format(next_vid_path))
+#        print "Started for {}!\n".format(f)
+#	extract_relevant_clips(source=next_vid_path, dest=dst)
+       # print "Finished for {}!\n".format(f)
+       # log_file.write("Finished parsing {}\n".format(next_vid_path))
+#	log_file.close()
 #extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
 # extract_relevant_clips("./extracted_clips/clip_0.avi")
