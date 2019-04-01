@@ -11,7 +11,7 @@ def is_relevant_scene(frame, confidence_threshold = 0.7):
         #boolean denoting whether input image is something we want in an extracted clip
     return DetectorAPI.get_human_count(frame, confidence_threshold) > 0
 
-def initialize_region(clip_info_dict, region_name, width, height, x0, y0):
+def initialize_region(clip_info, region_name, width, height, x0, y0):
     clip_info[region_name] = dict()
     clip_info[region_name]["width"] = width
     clip_info[region_name]["height"] = height
@@ -48,7 +48,7 @@ def extract_relevant_clips(source="", dest=""):
     #fourcc = cv2.cv.CV_FOURCC(*'XVID')
 
     diners_file_dst = os.path.join(dest, 'diner_nums.txt')
-    num_diners_file = open(, 'w')
+    num_diners_file = open(diners_file_dst, 'w')
     print "now writing the number of diners corresponding to each parsed clip into {}".format(diners_file_dst)
 
     #######################################################################
@@ -71,7 +71,7 @@ def extract_relevant_clips(source="", dest=""):
     initialize_region(clip_info, 
         region_name="middle_right",
         width=400, height=450,
-        x0=1300; y0=450)
+        x0=1300, y0=450)
     # clip_info["middle_right"]["width"] = 400
     # clip_info["middle_right"]["height"] = 450
     # clip_info["middle_right"]["x0"] = 1300
@@ -85,7 +85,7 @@ def extract_relevant_clips(source="", dest=""):
     initialize_region(clip_info, 
         region_name="middle_over",
         width=340, height=450,
-        x0=1565; y0=570)
+        x0=1565, y0=570)
     #clip_info[next_region] = dict()
     #clip_info[next_region]["width"] = width
     #clip_info[next_region]["height"] = height
@@ -100,7 +100,7 @@ def extract_relevant_clips(source="", dest=""):
     initialize_region(clip_info, 
         region_name="central",
         width=290, height=240,
-        x0=0; y0=200)
+        x0=0, y0=200)
 
     #next_region="middle"
     #clip_info[next_region] = dict()
