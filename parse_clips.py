@@ -11,6 +11,20 @@ def is_relevant_scene(frame, confidence_threshold = 0.7):
         #boolean denoting whether input image is something we want in an extracted clip
     return DetectorAPI.get_human_count(frame, confidence_threshold) > 0
 
+def initialize_region(clip_info_dict, region_name, width, height, x0, y0):
+    clip_info[region_name] = dict()
+    clip_info[region_name]["width"] = width
+    clip_info[region_name]["height"] = height
+    clip_info[region_name]["x0"] = x0
+    clip_info[region_name]["y0"] = y0
+    clip_info[region_name]["recording"] = False
+    clip_info[region_name]["clip"] = None
+    clip_info[region_name]["clip_num"] = 0
+    #info to help with documenting number of diners in scene
+    clip_info[region_name]["people_in_scene"] = 0
+    clip_info[region_name]["times_checked"] = 0
+    return
+
 def extract_relevant_clips(source="", dest=""):
     timeFromMilliseconds = lambda x: str(datetime.timedelta(milliseconds=x))
     vid = cv2.VideoCapture(source)
@@ -33,6 +47,9 @@ def extract_relevant_clips(source="", dest=""):
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     #fourcc = cv2.cv.CV_FOURCC(*'XVID')
 
+    diners_file_dst = os.path.join(dest, 'diner_nums.txt')
+    num_diners_file = open(, 'w')
+    print "now writing the number of diners corresponding to each parsed clip into {}".format(diners_file_dst)
 
     #######################################################################
     ### Initializing sub-region specific dimensions and recording flag
@@ -51,6 +68,10 @@ def extract_relevant_clips(source="", dest=""):
 
 
     # clip_info["middle_right"] = dict()
+    initialize_region(clip_info, 
+        region_name="middle_right",
+        width=400, height=450,
+        x0=1300; y0=450)
     # clip_info["middle_right"]["width"] = 400
     # clip_info["middle_right"]["height"] = 450
     # clip_info["middle_right"]["x0"] = 1300
@@ -61,6 +82,10 @@ def extract_relevant_clips(source="", dest=""):
 
     #next_region="middle_over"
     #x0 = 1565; y0 = 570; width=340; height=450
+    initialize_region(clip_info, 
+        region_name="middle_over",
+        width=340, height=450,
+        x0=1565; y0=570)
     #clip_info[next_region] = dict()
     #clip_info[next_region]["width"] = width
     #clip_info[next_region]["height"] = height
@@ -70,16 +95,12 @@ def extract_relevant_clips(source="", dest=""):
     #clip_info[next_region]["clip"] = None
     #clip_info[next_region]["clip_num"] = 0
 
-    next_region="central"
-    x0 = 0; y0 = 200; width=290; height=240
-    clip_info[next_region] = dict()
-    clip_info[next_region]["width"] = width
-    clip_info[next_region]["height"] = height
-    clip_info[next_region]["x0"] = x0
-    clip_info[next_region]["y0"] = y0
-    clip_info[next_region]["recording"] = False
-    clip_info[next_region]["clip"] = None
-    clip_info[next_region]["clip_num"] = 0
+    # next_region="central"
+    # x0 = 0; y0 = 200; width=290; height=240
+    initialize_region(clip_info, 
+        region_name="central",
+        width=290, height=240,
+        x0=0; y0=200)
 
     #next_region="middle"
     #clip_info[next_region] = dict()
@@ -118,6 +139,7 @@ def extract_relevant_clips(source="", dest=""):
 
 
 
+        confidence_threshold = 0.9 # for use in the ppl counter
         if (i % frames_to_skip == 0):
             time_string = timeFromMilliseconds(vid.get(cv2.CAP_PROP_POS_MSEC))
             print('frame {} completed; time (hh:mm:ss): {}'.format(i, time_string))
@@ -130,10 +152,11 @@ def extract_relevant_clips(source="", dest=""):
                 clip_num = subregion_info["clip_num"]
 
                 recording_clip = subregion_info["recording"]
-
-                if (is_relevant_scene(sub_frame)):
+                people_count = DetectorAPI.get_human_count(sub_frame, confidence_threshold)
+                if (people_count > 0):
                     #if scene is to be recorded, you either want to start a new clip
                         # or add to existing clip, depending on whether you're recording
+
                     if (not recording_clip):
                         #if we aren't yet recording we'd like to set the recording flag
                             #and initialize the new clip
@@ -141,10 +164,15 @@ def extract_relevant_clips(source="", dest=""):
                         cur_dims = (sub_width, sub_height)
                         subregion_info["clip"] = cv2.VideoWriter(new_clip_name, fourcc, input_fps, cur_dims)
                         subregion_info["recording"] = True
+                    #either way, we want to update num diners in scene info
+                    subregion_info["people_in_scene"] += people_count
+                    subregion_info["times_checked"] += 1
                 elif (recording_clip):
                     #if the frame isn't relevant and we are currently recording, we want
                         #to stop recording and save it
-                    print("clip {} completed for region: {}".format(clip_num, subregion))
+                    avg_num_diners = subregion_info["people_in_scene"] / subregion_info["times_checked"]
+                    print("clip {} completed for region: {}\n\t avg number of diners was: {}".format(clip_num, subregion, avg_num_diners))
+                    num_diners_file.write("{}\t{}".format(os.path.join(dest, "clip_{}_{}.avi".format(subregion, subregion_info["clip_num"])), avg_num_diners))
                     subregion_info["recording"] = False
                     subregion_info["clip_num"] += 1
 
@@ -158,6 +186,7 @@ def extract_relevant_clips(source="", dest=""):
         if subregion_info["clip"] != None:
             subregion_info["clip"].release()
     vid.release()
+    num_diners_file.close()
 import subprocess
 # #TODO: update so file can be passed as cmd line arg
 # openface_dir = os.path.join("~/dev/OpenFace/build")
@@ -259,10 +288,11 @@ def sharpen(fname=None):
     cap.release()
     out_vid.release()
     cv2.destroyAllWindows()
-play()
+# play()
 # play("ridtydz2.mp4")
 #play("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0_sharpened.avi")
 #sharpen("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0.avi")
 # extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
 #extract_relevant_clips(source="/home/rkaufman/Downloads/vid3.mp4", dest="/mnt/harpdata/gastronomy_clips/tmp_demo")
 # extract_relevant_clips("./extracted_clips/clip_0.avi")
+parse_dirs()
