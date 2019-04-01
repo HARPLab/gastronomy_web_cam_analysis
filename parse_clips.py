@@ -12,11 +12,9 @@ def is_relevant_scene(frame, confidence_threshold = 0.7):
     return DetectorAPI.get_human_count(frame, confidence_threshold) > 0
 
 def extract_relevant_clips(source="", dest=""):
-    print (source, dest)
     timeFromMilliseconds = lambda x: str(datetime.timedelta(milliseconds=x))
     vid = cv2.VideoCapture(source)
     input_fps = vid.get(cv2.CAP_PROP_FPS)
-    ## print input_fps
     input_fps = 30 #the input fps is far higher than it actually is, have to change it manually
     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)  
     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -31,6 +29,7 @@ def extract_relevant_clips(source="", dest=""):
     clip_num = 0
 
     # Define the codec and create VideoWriter object
+    #fourcc = cv2.VideoWriter_fourcc(*'MJPG')
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     #fourcc = cv2.cv.CV_FOURCC(*'XVID')
 
@@ -60,8 +59,19 @@ def extract_relevant_clips(source="", dest=""):
     # clip_info["middle_right"]["clip"] = None
     # clip_info["middle_right"]["clip_num"] = 0
 
-    next_region="middle_over"
-    x0 = 1565; y0 = 570; width=340; height=450
+    #next_region="middle_over"
+    #x0 = 1565; y0 = 570; width=340; height=450
+    #clip_info[next_region] = dict()
+    #clip_info[next_region]["width"] = width
+    #clip_info[next_region]["height"] = height
+    #clip_info[next_region]["x0"] = x0
+    #clip_info[next_region]["y0"] = y0
+    #clip_info[next_region]["recording"] = False
+    #clip_info[next_region]["clip"] = None
+    #clip_info[next_region]["clip_num"] = 0
+
+    next_region="central"
+    x0 = 0; y0 = 200; width=290; height=240
     clip_info[next_region] = dict()
     clip_info[next_region]["width"] = width
     clip_info[next_region]["height"] = height
@@ -71,17 +81,16 @@ def extract_relevant_clips(source="", dest=""):
     clip_info[next_region]["clip"] = None
     clip_info[next_region]["clip_num"] = 0
 
-
-    next_region="middle"
-    clip_info[next_region] = dict()
-    x0 = 575; y0 = 250; width=250; height=545
-    clip_info[next_region]["width"] = width
-    clip_info[next_region]["height"] = height
-    clip_info[next_region]["x0"] = x0
-    clip_info[next_region]["y0"] = y0
-    clip_info[next_region]["recording"] = False
-    clip_info[next_region]["clip"] = None
-    clip_info[next_region]["clip_num"] = 0
+    #next_region="middle"
+    #clip_info[next_region] = dict()
+    #x0 = 575; y0 = 250; width=250; height=545
+    #clip_info[next_region]["width"] = width
+    #clip_info[next_region]["height"] = height
+    #clip_info[next_region]["x0"] = x0
+    #clip_info[next_region]["y0"] = y0
+    #clip_info[next_region]["recording"] = False
+    #clip_info[next_region]["clip"] = None
+    #clip_info[next_region]["clip_num"] = 0
     # counter representing the frame number we're on
     i = 0
 
@@ -149,7 +158,7 @@ def extract_relevant_clips(source="", dest=""):
         if subregion_info["clip"] != None:
             subregion_info["clip"].release()
     vid.release()
-# import subprocess
+import subprocess
 # #TODO: update so file can be passed as cmd line arg
 # openface_dir = os.path.join("~/dev/OpenFace/build")
 # execute_instr = os.path.join(openface_dir, "bin/FaceLandmarkVid")
@@ -157,21 +166,34 @@ def extract_relevant_clips(source="", dest=""):
 def view_clips(base="/mnt/harpdata/gastronomy_clips"):
     while True:
         inp = raw_input("Next Video pls:\n\t-->")
-        subprocess.call('~/dev/OpenFace/build/bin/FaceLandmarkVid -f "{}"'.format(inp), shell=True)
+        mode = raw_input("\tSingle or Double? -->").lower()
+        #single face
+        print "processing {}!".format(mode)
+        if (mode=="single"):
+            subprocess.call('~/dev/OpenFace/build/bin/FaceLandmarkVid -f "{}"'.format(inp), shell=True)
+        elif(mode == "double"):
+            #multiple faces
+            subprocess.call('~/dev/OpenFace/build/bin/FaceLandmarkVidMulti -f "{}" -out_dir ~/Downloads -of good_one_8_remote.avi -tracked -vis-track -wild'.format(inp), shell=True)
+        else:
+            print "Sorry, mode '{}' is not recognized! Please try again"
+#~/dev/OpenFace/build/bin/FaceLandmarkVidMulti -f "/mnt/harpdata/gastronomy_clips/extracted_clips/3-3_15:0/clip_middle_0.avi" -out_dir ~/Downloads -of good_one_7_remote.avi -tracked -vis-track -wild
+
+
 
 def list_clips(base="/mnt/harpdata/gastronomy_clips"):
     for f in os.listdir(base):
-        if (f.endswith(".ts")):
+        if (f.endswith(".ts") ):
             dst=os.path.join(base, "extracted_clips", f[:f.find(".ts")])
             if not os.path.exists(dst):
                 print "{} does not exist!"
             else:
                 print "in {}:".format(dst)
                 for vid in os.listdir(dst):
-                    print "\t{}".format(os.path.join(dst,vid))
-#./bin/FaceLandmarkVid -f "../samples/changeLighting.wmv" -f "../samples/2015-10-15-15-14.avi"
+                    is_middle_over = "middle_over" in vid
+                    is_middle = ("middle" in vid) and (not ("middle_over" in vid)) and (not ("middle_right" in vid))
+                    if (is_middle or is_middle_over):
+                        print "\t{}".format(os.path.join(dst,vid))
 def parse_dirs(base="/mnt/harpdata/gastronomy_clips"):
-    # base = "/mnt/harpdata/gastronomy_clips"
     now = datetime.datetime.now()
     log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now.day, now.hour, now.minute))
     for f in os.listdir(base):
@@ -187,23 +209,60 @@ def parse_dirs(base="/mnt/harpdata/gastronomy_clips"):
             print "Finished for {}!\n".format(f)
             log_file.write("Finished parsing {}\n".format(next_vid_path))
             log_file.close()
-def play(fname):
+def play(fname=None):
+    if (fname==None):
+        fname=raw_input("What file would you like to play?\n\t-->")
     cap = cv2.VideoCapture(fname)
-    # x0 = 1565; y0 = 570; width=340; height=450
-    x0 = 575; y0 = 250; width=250; height=545
+    #x0 = 0; y0 = 200; width=445; height=320
+    #x0 = 0; y0 = 200; width=445; height=240
+    #x0 = 0; y0 = 200; width=290; height=240
+    print "playing {}".format(fname)
     while(cap.isOpened()):
         ret, frame = cap.read()
-        sub_frame = frame[y0:(y0 + height), x0:(x0 + width)]
+        #sub_frame = frame[y0:(y0 + height), x0:(x0 + width)]
 
         # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        cv2.imshow('frame', sub_frame)
+        cv2.imshow('frame', frame)
+        #cv2.imshow('sub_frame', sub_frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    print "done playing {}!".format(fname)
+
+    cap.release()
+    cv2.destroyAllWindows()
+def sharpen(fname=None):
+    if (fname==None):
+        fname=raw_input("What file would you like to sharpen?\n\t-->")
+    cap = cv2.VideoCapture(fname)
+    # x0 = 1565; y0 = 570; width=340; height=450
+    base, tail = os.path.split(fname)
+    codec = cv2.VideoWriter_fourcc('M','J','P','G')
+    outfile_name = os.path.join(base,tail[:tail.find('.avi')] + "_sharpened" + ".avi")
+    input_fps = 30
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    print "Writing to {}".format(outfile_name)
+    out_vid = cv2.VideoWriter(outfile_name, codec, input_fps, (width, height))
+    while(cap.isOpened()):
+        ret, frame = cap.read()
+        k = np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
+        sharper = cv2.filter2D(frame, -1, k)
+        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        out_vid.write(sharper)
+
+        cv2.imshow('frame', frame)
+        cv2.imshow('sharper?', sharper)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     cap.release()
+    out_vid.release()
     cv2.destroyAllWindows()
-parse_dirs()
+play()
 # play("ridtydz2.mp4")
+#play("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0_sharpened.avi")
+#sharpen("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0.avi")
 # extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
+#extract_relevant_clips(source="/home/rkaufman/Downloads/vid3.mp4", dest="/mnt/harpdata/gastronomy_clips/tmp_demo")
 # extract_relevant_clips("./extracted_clips/clip_0.avi")
