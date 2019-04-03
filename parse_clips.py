@@ -2,9 +2,17 @@ import cv2
 import numpy as np
 from tensorflow_human_detection import DetectorAPI
 import datetime, os
+from OPwrapper import OP #openpose wrapper for convenience
 
 
 NUM_DINERS_INFO_PATH = "/mnt/harpdata/gastronomy_clips/extracted_clips"
+diners_file_dst = os.path.join(NUM_DINERS_INFO_PATH, 'diner_nums.txt')
+
+def get_num_people(frame, openpose_wrapper=None):
+    if(openpose_wrapper==None):
+        openpose_wrapper = OP()
+    d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
+    return d.poseKeypoints.shape[0]
 
 def is_relevant_scene(frame, confidence_threshold = 0.7):
     #input:
@@ -49,9 +57,8 @@ def extract_relevant_clips(source="", dest=""):
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     #fourcc = cv2.cv.CV_FOURCC(*'XVID')
 
-    diners_file_dst = os.path.join(NUM_DINERS_INFO_PATH, 'diner_nums.txt')
-    num_diners_file = open(, 'w')
-    print "now writing the number of diners corresponding to each parsed clip into {}".format(diners_file_dst)
+    num_diners_file = open(diners_file_dst, 'a+')
+    print("now writing the number of diners corresponding to each parsed clip into {}".format(diners_file_dst))
 
     #######################################################################
     ### Initializing sub-region specific dimensions and recording flag
@@ -59,14 +66,18 @@ def extract_relevant_clips(source="", dest=""):
     clip_info = dict()
     # initiliaze_region(x0=220, y0=500, width=)
     x0 = 1665; y0 = 570; width=240; height=450
-    # clip_info["bottom_left"] = dict()
-    # clip_info["bottom_left"]["width"] = 550
-    # clip_info["bottom_left"]["height"] = 580
-    # clip_info["bottom_left"]["x0"] = 220
-    # clip_info["bottom_left"]["y0"] = 500
-    # clip_info["bottom_left"]["recording"] = False
-    # clip_info["bottom_left"]["clip"] = None
-    # clip_info["bottom_left"]["clip_num"] = 0
+    #clip_info["bottom_left"] = dict()
+    #clip_info["bottom_left"]["width"] = 550
+    #clip_info["bottom_left"]["height"] = 580
+    #clip_info["bottom_left"]["x0"] = 220
+    #clip_info["bottom_left"]["y0"] = 500
+    #clip_info["bottom_left"]["recording"] = False
+    #clip_info["bottom_left"]["clip"] = None
+    #clip_info["bottom_left"]["clip_num"] = 0
+    initialize_region(clip_info, 
+        region_name="bottom_left",
+        width=550, height=580,
+        x0=220, y0=500)
 
 
     # clip_info["middle_right"] = dict()
@@ -99,10 +110,10 @@ def extract_relevant_clips(source="", dest=""):
 
     # next_region="central"
     # x0 = 0; y0 = 200; width=290; height=240
-    initialize_region(clip_info, 
-        region_name="central",
-        width=290, height=240,
-        x0=0, y0=200)
+#    initialize_region(clip_info, 
+#        region_name="central",
+#        width=290, height=240,
+#        x0=0, y0=200)
 
     #next_region="middle"
     #clip_info[next_region] = dict()
@@ -117,7 +128,8 @@ def extract_relevant_clips(source="", dest=""):
     # counter representing the frame number we're on
     i = 0
 
-
+    #initialize openpose_wrapper for determining number of people in frame
+    openpose_wrapper = OP()
     while (vid.isOpened()):
         valid, frame = vid.read()
         if (not valid): break
@@ -130,7 +142,7 @@ def extract_relevant_clips(source="", dest=""):
             recording_clip = subregion_info["recording"]
             if (recording_clip):
                 time_string = timeFromMilliseconds(vid.get(cv2.CAP_PROP_POS_MSEC))
-                print "recording frame {}, {}, {}".format(i, valid, time_string)
+                print("recording frame {}, {}, {}".format(i, valid, time_string))
                 # add frame to clip
                 clip_obj = subregion_info["clip"]
                 x0, y0 = subregion_info["x0"], subregion_info["y0"]
@@ -141,7 +153,7 @@ def extract_relevant_clips(source="", dest=""):
 
 
 
-        confidence_threshold = 0.9 # for use in the ppl counter
+        confidence_threshold = 0.7 # for use in the ppl counter
         if (i % frames_to_skip == 0):
             time_string = timeFromMilliseconds(vid.get(cv2.CAP_PROP_POS_MSEC))
             print('frame {} completed; time (hh:mm:ss): {}'.format(i, time_string))
@@ -154,7 +166,8 @@ def extract_relevant_clips(source="", dest=""):
                 clip_num = subregion_info["clip_num"]
 
                 recording_clip = subregion_info["recording"]
-                people_count = DetectorAPI.get_human_count(sub_frame, confidence_threshold)
+                people_count = get_num_people(sub_frame, openpose_wrapper)
+                #people_count = DetectorAPI.get_human_count(sub_frame, confidence_threshold)
                 if (people_count > 0):
                     #if scene is to be recorded, you either want to start a new clip
                         # or add to existing clip, depending on whether you're recording
@@ -172,9 +185,9 @@ def extract_relevant_clips(source="", dest=""):
                 elif (recording_clip):
                     #if the frame isn't relevant and we are currently recording, we want
                         #to stop recording and save it
-                    avg_num_diners = subregion_info["people_in_scene"] / subregion_info["times_checked"]
+                    avg_num_diners = float(subregion_info["people_in_scene"]) / float(subregion_info["times_checked"])
                     print("clip {} completed for region: {}\n\t avg number of diners was: {}".format(clip_num, subregion, avg_num_diners))
-                    num_diners_file.write("{}\t{}".format(os.path.join(dest, "clip_{}_{}.avi".format(subregion, subregion_info["clip_num"])), avg_num_diners))
+                    num_diners_file.write("{}\n\t{}\n".format(os.path.join(dest, "clip_{}_{}.avi".format(subregion, subregion_info["clip_num"])), avg_num_diners))
                     subregion_info["recording"] = False
                     subregion_info["clip_num"] += 1
 
@@ -199,16 +212,15 @@ def view_clips(base="/mnt/harpdata/gastronomy_clips"):
         inp = raw_input("Next Video pls:\n\t-->")
         mode = raw_input("\tSingle or Double? -->").lower()
         #single face
-        print "processing {}!".format(mode)
+        print("processing {}!".format(mode))
         if (mode=="single"):
             subprocess.call('~/dev/OpenFace/build/bin/FaceLandmarkVid -f "{}"'.format(inp), shell=True)
         elif(mode == "double"):
             #multiple faces
             subprocess.call('~/dev/OpenFace/build/bin/FaceLandmarkVidMulti -f "{}" -out_dir ~/Downloads -of good_one_8_remote.avi -tracked -vis-track -wild'.format(inp), shell=True)
         else:
-            print "Sorry, mode '{}' is not recognized! Please try again"
+            print("Sorry, mode '{}' is not recognized! Please try again")
 #~/dev/OpenFace/build/bin/FaceLandmarkVidMulti -f "/mnt/harpdata/gastronomy_clips/extracted_clips/3-3_15:0/clip_middle_0.avi" -out_dir ~/Downloads -of good_one_7_remote.avi -tracked -vis-track -wild
-
 
 
 def list_clips(base="/mnt/harpdata/gastronomy_clips"):
@@ -216,14 +228,14 @@ def list_clips(base="/mnt/harpdata/gastronomy_clips"):
         if (f.endswith(".ts") ):
             dst=os.path.join(base, "extracted_clips", f[:f.find(".ts")])
             if not os.path.exists(dst):
-                print "{} does not exist!"
+                print("{} does not exist!")
             else:
-                print "in {}:".format(dst)
+                print("in {}:".format(dst))
                 for vid in os.listdir(dst):
                     is_middle_over = "middle_over" in vid
                     is_middle = ("middle" in vid) and (not ("middle_over" in vid)) and (not ("middle_right" in vid))
                     if (is_middle or is_middle_over):
-                        print "\t{}".format(os.path.join(dst,vid))
+                        print("\t{}".format(os.path.join(dst,vid)))
 def parse_dirs(base="/mnt/harpdata/gastronomy_clips"):
     now = datetime.datetime.now()
     log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now.day, now.hour, now.minute))
@@ -235,30 +247,36 @@ def parse_dirs(base="/mnt/harpdata/gastronomy_clips"):
                 os.makedirs(dst)
             next_vid_path = os.path.join(base, f)
             log_file.write("Started parsing {}\n".format(next_vid_path))
-            print "Started for {}!\n".format(f)
+            print("Started for {}!\n".format(f))
             extract_relevant_clips(source=next_vid_path, dest=dst)
-            print "Finished for {}!\n".format(f)
+            print("Finished for {}!\n".format(f))
             log_file.write("Finished parsing {}\n".format(next_vid_path))
             log_file.close()
 def play(fname=None):
-    if (fname==None):
-        fname=raw_input("What file would you like to play?\n\t-->")
-    cap = cv2.VideoCapture(fname)
+    openpose_wrapper = OP()
+    while(True):
+        #fname=raw_input("What file would you like to play?\n\t-->")
+        fname=input("What file would you like to play?\n\t-->")
+        cap = cv2.VideoCapture(fname)
     #x0 = 0; y0 = 200; width=445; height=320
     #x0 = 0; y0 = 200; width=445; height=240
     #x0 = 0; y0 = 200; width=290; height=240
-    print "playing {}".format(fname)
-    while(cap.isOpened()):
-        ret, frame = cap.read()
+        print("playing {}".format(fname))
+        while(cap.isOpened()):
+            ret, frame = cap.read()
         #sub_frame = frame[y0:(y0 + height), x0:(x0 + width)]
 
         # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        cv2.imshow('frame', frame)
+            d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
+            print("{} people in frame".format(d.poseKeypoints.shape[0]))
+            #print(d.poseKeypoints3D)
+            #print(d)
+            cv2.imshow('frame', frame)
+            cv2.imshow('openpose_frame', d.cvOutputData)
         #cv2.imshow('sub_frame', sub_frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-    print "done playing {}!".format(fname)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        print("done playing {}!".format(fname))
 
     cap.release()
     cv2.destroyAllWindows()
@@ -273,7 +291,7 @@ def sharpen(fname=None):
     input_fps = 30
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    print "Writing to {}".format(outfile_name)
+    print("Writing to {}".format(outfile_name))
     out_vid = cv2.VideoWriter(outfile_name, codec, input_fps, (width, height))
     while(cap.isOpened()):
         ret, frame = cap.read()
@@ -290,7 +308,7 @@ def sharpen(fname=None):
     cap.release()
     out_vid.release()
     cv2.destroyAllWindows()
-# play()
+#play()
 # play("ridtydz2.mp4")
 #play("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0_sharpened.avi")
 #sharpen("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0.avi")
