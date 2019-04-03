@@ -5,14 +5,15 @@ import datetime, os
 from OPwrapper import OP #openpose wrapper for convenience
 
 
-NUM_DINERS_INFO_PATH = "/mnt/harpdata/gastronomy_clips/extracted_clips"
+NUM_DINERS_INFO_PATH = "/mnt/harpdata/gastronomy_clips/test/extracted_clips"
 diners_file_dst = os.path.join(NUM_DINERS_INFO_PATH, 'diner_nums.txt')
 
 def get_num_people(frame, openpose_wrapper=None):
     if(openpose_wrapper==None):
         openpose_wrapper = OP()
     d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
-    return d.poseKeypoints.shape[0]
+    return 0 if (len(d.poseKeypoints.shape) == 0) else d.poseKeypoints.shape[0]
+    #return (d.poseKeypoints.shape)
 
 def is_relevant_scene(frame, confidence_threshold = 0.7):
     #input:
@@ -142,7 +143,7 @@ def extract_relevant_clips(source="", dest=""):
             recording_clip = subregion_info["recording"]
             if (recording_clip):
                 time_string = timeFromMilliseconds(vid.get(cv2.CAP_PROP_POS_MSEC))
-                print("recording frame {}, {}, {}".format(i, valid, time_string))
+                #print("recording frame {}, {}, {}".format(i, valid, time_string))
                 # add frame to clip
                 clip_obj = subregion_info["clip"]
                 x0, y0 = subregion_info["x0"], subregion_info["y0"]
@@ -166,9 +167,19 @@ def extract_relevant_clips(source="", dest=""):
                 clip_num = subregion_info["clip_num"]
 
                 recording_clip = subregion_info["recording"]
-                people_count = get_num_people(sub_frame, openpose_wrapper)
+                #people_count = get_num_people(sub_frame, openpose_wrapper)
+                #people_count = get_num_people(sub_frame)
                 #people_count = DetectorAPI.get_human_count(sub_frame, confidence_threshold)
+                #people_count = 0 if len(people_count) == 0 else people_count[0]
+    #if(openpose_wrapper==None):
+    #    openpose_wrapper = OP()
+    #d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
+    #people_count= 0 if (len(d.poseKeypoints.shape) == 0) else d.poseKeypoints.shape[0]
+                d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
+                people_count = 0 if (len(d.poseKeypoints.shape) == 0) else d.poseKeypoints.shape[0]
+                #print("\tseeing {} people".format(people_count))
                 if (people_count > 0):
+                    #print("\trecording!")
                     #if scene is to be recorded, you either want to start a new clip
                         # or add to existing clip, depending on whether you're recording
 
@@ -199,6 +210,8 @@ def extract_relevant_clips(source="", dest=""):
     for subregion in clip_info:
         subregion_info = clip_info[subregion]
         if subregion_info["clip"] != None:
+            avg_num_diners = float(subregion_info["people_in_scene"]) / float(subregion_info["times_checked"])
+            num_diners_file.write("{}\n\t{}\n".format(os.path.join(dest, "clip_{}_{}.avi".format(subregion, subregion_info["clip_num"])), avg_num_diners))
             subregion_info["clip"].release()
     vid.release()
     num_diners_file.close()
@@ -236,7 +249,7 @@ def list_clips(base="/mnt/harpdata/gastronomy_clips"):
                     is_middle = ("middle" in vid) and (not ("middle_over" in vid)) and (not ("middle_right" in vid))
                     if (is_middle or is_middle_over):
                         print("\t{}".format(os.path.join(dst,vid)))
-def parse_dirs(base="/mnt/harpdata/gastronomy_clips"):
+def parse_dirs(base="/mnt/harpdata/gastronomy_clips/test"):
     now = datetime.datetime.now()
     log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now.day, now.hour, now.minute))
     for f in os.listdir(base):
@@ -267,12 +280,10 @@ def play(fname=None):
         #sub_frame = frame[y0:(y0 + height), x0:(x0 + width)]
 
         # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
-            print("{} people in frame".format(d.poseKeypoints.shape[0]))
+            print("{} people in frame".format(get_num_people(frame, openpose_wrapper)))
             #print(d.poseKeypoints3D)
             #print(d)
             cv2.imshow('frame', frame)
-            cv2.imshow('openpose_frame', d.cvOutputData)
         #cv2.imshow('sub_frame', sub_frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break

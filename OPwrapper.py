@@ -73,7 +73,6 @@ class OP():
         datum = op.Datum()
         datum.cvInputData = frame
         self.opWrapper.emplaceAndPop([datum])
-        op_image = datum.cvOutputData
         return datum
 
 clip_paths = ['/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_17:1/clip_middle_0.avi',
