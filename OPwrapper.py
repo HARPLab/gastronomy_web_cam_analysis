@@ -70,6 +70,8 @@ class OP():
          
          
     def getOpenposeDataFrom(self, frame=None):
+        if (frame is None):
+            raise Exception("NoneType passed into OP wrapper class")
         datum = op.Datum()
         datum.cvInputData = frame
         self.opWrapper.emplaceAndPop([datum])

@@ -5,7 +5,7 @@ import datetime, os
 from OPwrapper import OP #openpose wrapper for convenience
 
 
-NUM_DINERS_INFO_PATH = "/mnt/harpdata/gastronomy_clips/test/extracted_clips"
+NUM_DINERS_INFO_PATH = "/mnt/harpdata/gastronomy_clips/extracted_clips"
 diners_file_dst = os.path.join(NUM_DINERS_INFO_PATH, 'diner_nums.txt')
 
 def get_num_people(frame, openpose_wrapper=None):
@@ -22,7 +22,7 @@ def is_relevant_scene(frame, confidence_threshold = 0.7):
         #boolean denoting whether input image is something we want in an extracted clip
     return DetectorAPI.get_human_count(frame, confidence_threshold) > 0
 
-def initialize_region(clip_info, region_name, width, height, x0, y0):
+def initialize_region(clip_info=None, region_name=None, width=None, height=None, x0=None, y0=None):
     clip_info[region_name] = dict()
     clip_info[region_name]["width"] = width
     clip_info[region_name]["height"] = height
@@ -34,6 +34,7 @@ def initialize_region(clip_info, region_name, width, height, x0, y0):
     #info to help with documenting number of diners in scene
     clip_info[region_name]["people_in_scene"] = 0
     clip_info[region_name]["times_checked"] = 0
+#    clip_info[region_name]['op'] = OP()
     return
 
 def extract_relevant_clips(source="", dest=""):
@@ -46,7 +47,7 @@ def extract_relevant_clips(source="", dest=""):
     input_dims = (int(width), int(height))
     # variable denoting the number of frames we want to skip before performing
         #our 'relevant_scene' check
-    frames_to_skip = 360*10
+    frames_to_skip = 360
 
     #variables for recording/saving relevant clips
     recording_clip = False
@@ -131,6 +132,7 @@ def extract_relevant_clips(source="", dest=""):
 
     #initialize openpose_wrapper for determining number of people in frame
     openpose_wrapper = OP()
+    confidence_threshold = 0.4 # for use in filtering poses by confidence
     while (vid.isOpened()):
         valid, frame = vid.read()
         if (not valid): break
@@ -153,8 +155,6 @@ def extract_relevant_clips(source="", dest=""):
                 clip_obj.write(sub_frame)
 
 
-
-        confidence_threshold = 0.7 # for use in the ppl counter
         if (i % frames_to_skip == 0):
             time_string = timeFromMilliseconds(vid.get(cv2.CAP_PROP_POS_MSEC))
             print('frame {} completed; time (hh:mm:ss): {}'.format(i, time_string))
@@ -167,19 +167,17 @@ def extract_relevant_clips(source="", dest=""):
                 clip_num = subregion_info["clip_num"]
 
                 recording_clip = subregion_info["recording"]
-                #people_count = get_num_people(sub_frame, openpose_wrapper)
-                #people_count = get_num_people(sub_frame)
-                #people_count = DetectorAPI.get_human_count(sub_frame, confidence_threshold)
-                #people_count = 0 if len(people_count) == 0 else people_count[0]
-    #if(openpose_wrapper==None):
-    #    openpose_wrapper = OP()
-    #d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
-    #people_count= 0 if (len(d.poseKeypoints.shape) == 0) else d.poseKeypoints.shape[0]
-                d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
-                people_count = 0 if (len(d.poseKeypoints.shape) == 0) else d.poseKeypoints.shape[0]
-                #print("\tseeing {} people".format(people_count))
+                
+                #logic to determine number of people detected in frame
+                cv2.imwrite('s.jpg', sub_frame)
+                sub_frame = cv2.imread('s.jpg')
+                d = openpose_wrapper.getOpenposeDataFrom(frame=sub_frame)
+                real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
+                people_count = len(real_poses)
+
+                print("\tseeing {} people!\n\tin {}\n\tfrom {}".format(people_count, real_poses, np.atleast_1d(d.poseScores)))
                 if (people_count > 0):
-                    #print("\trecording!")
+                    print("\trecording!")
                     #if scene is to be recorded, you either want to start a new clip
                         # or add to existing clip, depending on whether you're recording
 
@@ -201,7 +199,7 @@ def extract_relevant_clips(source="", dest=""):
                     num_diners_file.write("{}\n\t{}\n".format(os.path.join(dest, "clip_{}_{}.avi".format(subregion, subregion_info["clip_num"])), avg_num_diners))
                     subregion_info["recording"] = False
                     subregion_info["clip_num"] += 1
-
+                    subregion_info["people_in_scene"] = 0; subregion_info["times_checked"] = 0;
                     subregion_info["clip"].release()
                     subregion_info["clip"] = None
         i += 1
@@ -249,7 +247,7 @@ def list_clips(base="/mnt/harpdata/gastronomy_clips"):
                     is_middle = ("middle" in vid) and (not ("middle_over" in vid)) and (not ("middle_right" in vid))
                     if (is_middle or is_middle_over):
                         print("\t{}".format(os.path.join(dst,vid)))
-def parse_dirs(base="/mnt/harpdata/gastronomy_clips/test"):
+def parse_dirs(base="/mnt/harpdata/gastronomy_clips/test/"):
     now = datetime.datetime.now()
     log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now.day, now.hour, now.minute))
     for f in os.listdir(base):
@@ -265,7 +263,69 @@ def parse_dirs(base="/mnt/harpdata/gastronomy_clips/test"):
             print("Finished for {}!\n".format(f))
             log_file.write("Finished parsing {}\n".format(next_vid_path))
             log_file.close()
+def play_debug(fname=None):
+    confidence_threshold=0.4
+    openpose_wrapper = OP()
+    clip_info = dict()
+    initialize_region(clip_info, 
+        region_name="middle_right",
+        width=400, height=450,
+        x0=1300, y0=450)
+    initialize_region(clip_info, 
+        region_name="bottom_left",
+        width=550, height=580,
+        x0=220, y0=500)
+    while(True):
+        #fname=raw_input("What file would you like to play?\n\t-->")
+        fname=input("What file would you like to play?\n\t-->")
+        cap = cv2.VideoCapture(fname)
+    #x0 = 0; y0 = 200; width=445; height=320
+    #x0 = 0; y0 = 200; width=445; height=240
+    #x0 = 0; y0 = 200; width=290; height=240
+        print("playing {}".format(fname))
+        subregion_info = clip_info['middle_right']
+        x0, y0 = subregion_info["x0"], subregion_info["y0"]
+        sub_width, sub_height = subregion_info["width"], subregion_info["height"]
+        while(cap.isOpened()):
+            ret, frame = cap.read()
+            sub_frame = frame[y0:(y0 + sub_height), x0:(x0 + sub_width)]
+            cv2.imwrite('saved_file.jpg', sub_frame)
+            break
+        #sub_frame = frame[y0:(y0 + height), x0:(x0 + width)]
+
+        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            #print("{} people in frame".format(get_num_people(frame, openpose_wrapper)))
+            #print(d.poseKeypoints3D)
+            #print(d)
+            #sub_frame=frame
+            d = openpose_wrapper.getOpenposeDataFrom(sub_frame)
+            #print("shapes: {} | {}".format(sub_frame.shape, d.cvOutputData.shape))
+            real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
+            people_count = len(real_poses)
+            #d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
+            #confidences = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
+            #people_count = len(confidences)
+            cv2.imshow('frame', sub_frame)
+            cv2.imshow('frame_op', d.cvOutputData)
+            #print(d)
+            #print(real_poses, people_count)
+        #cv2.imshow('sub_frame', sub_frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        break
+    print("done playing {}!".format(fname))
+    sub_frame = cv2.imread('saved_file.jpg')
+    d = openpose_wrapper.getOpenposeDataFrom(sub_frame)
+    real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
+    people_count = len(real_poses)
+    print("ppl cnt: {}".format(people_count))
+    cv2.imshow('frame', sub_frame)
+    cv2.imshow('frame_op', d.cvOutputData)
+    if (cv2.waitKey(1) & 0xFF == ord('q')):
+        cap.release()
+        cv2.destroyAllWindows()
 def play(fname=None):
+    confidence_threshold=0.4
     openpose_wrapper = OP()
     while(True):
         #fname=raw_input("What file would you like to play?\n\t-->")
@@ -280,17 +340,26 @@ def play(fname=None):
         #sub_frame = frame[y0:(y0 + height), x0:(x0 + width)]
 
         # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            print("{} people in frame".format(get_num_people(frame, openpose_wrapper)))
+            #print("{} people in frame".format(get_num_people(frame, openpose_wrapper)))
             #print(d.poseKeypoints3D)
             #print(d)
+            sub_frame=frame
+            d = openpose_wrapper.getOpenposeDataFrom(frame=sub_frame)
+            real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
+            people_count = len(real_poses)
+            #d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
+            #confidences = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
+            #people_count = len(confidences)
             cv2.imshow('frame', frame)
+            cv2.imshow('frame', d.cvOutputData)
+            print(real_poses, people_count)
         #cv2.imshow('sub_frame', sub_frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         print("done playing {}!".format(fname))
 
-    cap.release()
-    cv2.destroyAllWindows()
+        cap.release()
+        cv2.destroyAllWindows()
 def sharpen(fname=None):
     if (fname==None):
         fname=raw_input("What file would you like to sharpen?\n\t-->")
@@ -319,7 +388,7 @@ def sharpen(fname=None):
     cap.release()
     out_vid.release()
     cv2.destroyAllWindows()
-#play()
+#play_debug()
 # play("ridtydz2.mp4")
 #play("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0_sharpened.avi")
 #sharpen("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0.avi")
