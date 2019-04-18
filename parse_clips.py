@@ -16,6 +16,9 @@ def get_num_people(frame, openpose_wrapper=None):
     return 0 if (len(d.poseKeypoints.shape) == 0) else d.poseKeypoints.shape[0]
     #return (d.poseKeypoints.shape)
 
+def get_num_people_tf(frame):
+    return DetectorAPI.get_human_count(frame)
+
 def is_relevant_scene(frame, confidence_threshold = 0.7):
     #input:
         #frame - an image
@@ -363,6 +366,8 @@ def play(fname=None):
             #d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
             #confidences = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
             #people_count = len(confidences)
+            print("op sees {} ppl".format(people_count))
+            print("fc sees {} ppl".format(get_num_people_tf(frame)))
             cv2.imshow('frame', frame)
             cv2.imshow('frame', d.cvOutputData)
             print(real_poses, people_count)
