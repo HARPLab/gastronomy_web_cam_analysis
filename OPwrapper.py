@@ -77,29 +77,40 @@ class OP():
         self.opWrapper.emplaceAndPop([datum])
         return datum
 
-clip_paths = ['/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_17:1/clip_middle_0.avi',
- '/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0.avi',
- '/mnt/harpdata/gastronomy_clips/extracted_clips/3-1_19:0/clip_bottom_left_5.avi']
+clip_paths = [ "/home/rkaufman/Downloads/restaurant_footage/IMG_8500.MOV",
+"/home/rkaufman/Downloads/restaurant_footage/IMG_8502.MOV",
+"/home/rkaufman/Downloads/restaurant_footage/IMG_2074.MOV",
+"/home/rkaufman/Downloads/restaurant_footage/IMG_8495.MOV",
+"/home/rkaufman/Downloads/restaurant_footage/IMG_8497.MOV",
+"/home/rkaufman/Downloads/restaurant_footage/IMG_8501.MOV"]
+
 def create_clips(file_name=None):
     # Starting OpenPose 
+    params = dict() 
+    params["model_folder"] = "/home/rkaufman/dev/openpose/models" 
     opWrapper = op.WrapperPython() 
     opWrapper.configure(params) 
     opWrapper.start() 
-    out_dir = "/mnt/harpdata/gastronomy_clips/tmp_demo"
+    out_dir = "/home/rkaufman/Downloads/restaurant_footage_openposified"
     #while True:
     #    file_name = input("Next clip please.\n\t-->")
-    for file_name in clip_paths:
+    for file_name in clip_paths[3:]:
+    #while(True):
+    #    file_name=input("next video please:\n\t-->")
         cap = cv2.VideoCapture(file_name)
         base, tail = os.path.split(file_name)
         codec = cv2.VideoWriter_fourcc('M','J','P','G')
-        outfile_name = os.path.join(out_dir,tail[:tail.find('.avi')] + "_openpose" + ".avi")
+        outfile_name = os.path.join(out_dir,tail[:tail.find('.')] + "_openpose" + ".avi")
         input_fps = 30
+#        input_fps = cap.get(cv2.CAP_PROP_FPS)
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         print("Writing to {}".format(outfile_name))
         out_vid = cv2.VideoWriter(outfile_name, codec, input_fps, (width, height))
+        i=0
         while(cap.isOpened()):
             ret, frame = cap.read()
+            print("\titeration: {}".format(i))
             if (not ret): break
             datum = op.Datum()
             datum.cvInputData = frame
@@ -107,13 +118,14 @@ def create_clips(file_name=None):
             op_image = datum.cvOutputData
                 # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             out_vid.write(op_image)
-         #   cv2.imshow('frame', frame)
-         #   cv2.imshow('openpose', op_image)
+            #cv2.imshow('frame', frame)
+            #cv2.imshow('openpose', op_image)
+            i+=1
          #   if cv2.waitKey(1) & 0xFF == ord('q'):
          #       break
-        print("Successfully wrote to {}".format(outfile_name))
+        print("Successfully wrote to {}\n".format(outfile_name))
 
         cap.release()
         out_vid.release()
-        cv2.destroyAllWindows()
-#create_clips() 
+        #cv2.destroyAllWindows()
+create_clips() 

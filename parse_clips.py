@@ -3,6 +3,7 @@ import numpy as np
 from tensorflow_human_detection import DetectorAPI
 import datetime, os
 from OPwrapper import OP #openpose wrapper for convenience
+import subprocess
 
 
 NUM_DINERS_INFO_PATH = "/mnt/harpdata/gastronomy_clips/extracted_clips"
@@ -34,8 +35,29 @@ def initialize_region(clip_info=None, region_name=None, width=None, height=None,
     #info to help with documenting number of diners in scene
     clip_info[region_name]["people_in_scene"] = 0
     clip_info[region_name]["times_checked"] = 0
+    clip_info[region_name]["cur_clip_duration"] = None
 #    clip_info[region_name]['op'] = OP()
     return
+
+def end_and_save(dest=None, frames_to_skip=None, clip_dict=None, subregion=None, num_diners_file=None):
+    subregion_info = clip_dict[subregion]
+    avg_num_diners = float(subregion_info["people_in_scene"]) / float(subregion_info["times_checked"])
+    #print("clip {} completed for region: {}\n\t avg number of diners was: {}".format(clip_num, subregion, avg_num_diners))
+    subregion_info["recording"] = False
+    clip_num = subregion_info["clip_num"]
+    clip_fname = dest + "/clip_{}_{}.avi".format(subregion, clip_num)
+    duration = subregion_info["cur_clip_duration"]
+    clip_num = subregion_info["clip_num"]
+    subregion_info["clip_num"] += 1
+    subregion_info["people_in_scene"] = 0; subregion_info["times_checked"] = 0;
+    subregion_info["clip"].release()
+    subregion_info["clip"] = None
+    print("clip {} completed, with duration {}".format(clip_fname, duration))
+    if (duration < 4 * frames_to_skip):
+        print("\tDELETED {}".format(clip_fname))
+        subprocess.run(["rm", clip_fname])
+    else: #only want to write num_diners if we're going to save the video
+        num_diners_file.write("{}\n\t{}\n".format(os.path.join(dest, "clip_{}_{}.avi".format(subregion, clip_num)), avg_num_diners))
 
 def extract_relevant_clips(source="", dest=""):
     timeFromMilliseconds = lambda x: str(datetime.timedelta(milliseconds=x))
@@ -47,7 +69,7 @@ def extract_relevant_clips(source="", dest=""):
     input_dims = (int(width), int(height))
     # variable denoting the number of frames we want to skip before performing
         #our 'relevant_scene' check
-    frames_to_skip = 360
+    frames_to_skip = 360*10#only check frame every 2 minutes
 
     #variables for recording/saving relevant clips
     recording_clip = False
@@ -151,6 +173,7 @@ def extract_relevant_clips(source="", dest=""):
                 x0, y0 = subregion_info["x0"], subregion_info["y0"]
                 sub_width, sub_height = subregion_info["width"], subregion_info["height"]
                 sub_frame = frame[y0:(y0 + sub_height), x0:(x0 + sub_width)]
+                subregion_info["cur_clip_duration"] += 1
 
                 clip_obj.write(sub_frame)
 
@@ -167,7 +190,7 @@ def extract_relevant_clips(source="", dest=""):
                 clip_num = subregion_info["clip_num"]
 
                 recording_clip = subregion_info["recording"]
-                
+
                 #logic to determine number of people detected in frame
                 cv2.imwrite('s.jpg', sub_frame)
                 sub_frame = cv2.imread('s.jpg')
@@ -175,9 +198,8 @@ def extract_relevant_clips(source="", dest=""):
                 real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
                 people_count = len(real_poses)
 
-                print("\tseeing {} people!\n\tin {}\n\tfrom {}".format(people_count, real_poses, np.atleast_1d(d.poseScores)))
+                #print("\tseeing {} people!\n\tin {}\n\tfrom {}".format(people_count, real_poses, np.atleast_1d(d.poseScores)))
                 if (people_count > 0):
-                    print("\trecording!")
                     #if scene is to be recorded, you either want to start a new clip
                         # or add to existing clip, depending on whether you're recording
 
@@ -188,32 +210,23 @@ def extract_relevant_clips(source="", dest=""):
                         cur_dims = (sub_width, sub_height)
                         subregion_info["clip"] = cv2.VideoWriter(new_clip_name, fourcc, input_fps, cur_dims)
                         subregion_info["recording"] = True
+                        subregion_info["cur_clip_duration"] = 0
                     #either way, we want to update num diners in scene info
                     subregion_info["people_in_scene"] += people_count
                     subregion_info["times_checked"] += 1
                 elif (recording_clip):
                     #if the frame isn't relevant and we are currently recording, we want
                         #to stop recording and save it
-                    avg_num_diners = float(subregion_info["people_in_scene"]) / float(subregion_info["times_checked"])
-                    print("clip {} completed for region: {}\n\t avg number of diners was: {}".format(clip_num, subregion, avg_num_diners))
-                    num_diners_file.write("{}\n\t{}\n".format(os.path.join(dest, "clip_{}_{}.avi".format(subregion, subregion_info["clip_num"])), avg_num_diners))
-                    subregion_info["recording"] = False
-                    subregion_info["clip_num"] += 1
-                    subregion_info["people_in_scene"] = 0; subregion_info["times_checked"] = 0;
-                    subregion_info["clip"].release()
-                    subregion_info["clip"] = None
+                    end_and_save(dest=dest, frames_to_skip=frames_to_skip, clip_dict=clip_info, subregion=subregion, num_diners_file=num_diners_file)
         i += 1
 
     # if any clips are still recording be sure to release them
     for subregion in clip_info:
         subregion_info = clip_info[subregion]
         if subregion_info["clip"] != None:
-            avg_num_diners = float(subregion_info["people_in_scene"]) / float(subregion_info["times_checked"])
-            num_diners_file.write("{}\n\t{}\n".format(os.path.join(dest, "clip_{}_{}.avi".format(subregion, subregion_info["clip_num"])), avg_num_diners))
-            subregion_info["clip"].release()
+            end_and_save(dest=dest, frames_to_skip=frames_to_skip, clip_dict=clip_info, subregion=subregion, num_diners_file=num_diners_file)
     vid.release()
     num_diners_file.close()
-import subprocess
 # #TODO: update so file can be passed as cmd line arg
 # openface_dir = os.path.join("~/dev/OpenFace/build")
 # execute_instr = os.path.join(openface_dir, "bin/FaceLandmarkVid")
@@ -247,7 +260,7 @@ def list_clips(base="/mnt/harpdata/gastronomy_clips"):
                     is_middle = ("middle" in vid) and (not ("middle_over" in vid)) and (not ("middle_right" in vid))
                     if (is_middle or is_middle_over):
                         print("\t{}".format(os.path.join(dst,vid)))
-def parse_dirs(base="/mnt/harpdata/gastronomy_clips/test/"):
+def parse_dirs(base="/mnt/harpdata/gastronomy_clips/"):
     now = datetime.datetime.now()
     log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now.day, now.hour, now.minute))
     for f in os.listdir(base):
@@ -388,11 +401,11 @@ def sharpen(fname=None):
     cap.release()
     out_vid.release()
     cv2.destroyAllWindows()
-#play_debug()
+play()
 # play("ridtydz2.mp4")
 #play("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0_sharpened.avi")
 #sharpen("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0.avi")
 # extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
 #extract_relevant_clips(source="/home/rkaufman/Downloads/vid3.mp4", dest="/mnt/harpdata/gastronomy_clips/tmp_demo")
 # extract_relevant_clips("./extracted_clips/clip_0.avi")
-parse_dirs()
+#parse_dirs()
