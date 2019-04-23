@@ -128,4 +128,4 @@ def create_clips(file_name=None):
         cap.release()
         out_vid.release()
         #cv2.destroyAllWindows()
-create_clips() 
+#create_clips() 

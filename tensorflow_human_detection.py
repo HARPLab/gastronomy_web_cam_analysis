@@ -11,10 +11,19 @@ import numpy as np
 import tensorflow as tf
 import cv2
 import time
+import os
 
 
 class DetectorAPI:
     def __init__(self, path_to_ckpt='./faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb'):
+        # for tf log messages
+        """
+            0 = all messages are logged (default behavior)
+            1 = INFO messages are not printed
+            2 = INFO and WARNING messages are not printed
+            3 = INFO, WARNING, and ERROR messages are not printed
+        """
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' 
         self.path_to_ckpt = path_to_ckpt
 
         self.detection_graph = tf.Graph()
@@ -63,6 +72,19 @@ class DetectorAPI:
     def close(self):
         self.sess.close()
         self.default_graph.close()
+
+    def get_human_count(self, frame, threshold=0.7):
+        odapi = self
+        img = cv2.resize(frame, (1280, 720))
+
+        boxes, scores, classes, num = odapi.processFrame(img)
+        human_count = 0
+        for i in range(len(boxes)):
+            # Class 1 represents human
+            if classes[i] == 1 and scores[i] > threshold:
+                human_count += 1
+        
+        return human_count
 
     @staticmethod 
     def get_human_count(frame, threshold=0.7):

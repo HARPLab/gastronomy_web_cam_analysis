@@ -16,8 +16,8 @@ def get_num_people(frame, openpose_wrapper=None):
     return 0 if (len(d.poseKeypoints.shape) == 0) else d.poseKeypoints.shape[0]
     #return (d.poseKeypoints.shape)
 
-def get_num_people_tf(frame):
-    return DetectorAPI.get_human_count(frame)
+def get_num_people_tf(frame, threshold=0.7):
+    return DetectorAPI.get_human_count(frame, threshold)
 
 def is_relevant_scene(frame, confidence_threshold = 0.7):
     #input:
@@ -342,7 +342,9 @@ def play_debug(fname=None):
         cv2.destroyAllWindows()
 def play(fname=None):
     confidence_threshold=0.4
+    confidence_threshold_weak = 0.2
     openpose_wrapper = OP()
+    fasterrcnn_wrapper = DetectorAPI()
     while(True):
         #fname=raw_input("What file would you like to play?\n\t-->")
         fname=input("What file would you like to play?\n\t-->")
@@ -363,11 +365,13 @@ def play(fname=None):
             d = openpose_wrapper.getOpenposeDataFrom(frame=sub_frame)
             real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
             people_count = len(real_poses)
+            possible_poses = list(filter(lambda x: x > confidence_threshold_weak, np.atleast_1d(d.poseScores)))
             #d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
             #confidences = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
             #people_count = len(confidences)
             print("op sees {} ppl".format(people_count))
-            print("fc sees {} ppl".format(get_num_people_tf(frame)))
+            print("opfsees {} ppl".format(len(possible_poses)))
+            #print("fc sees {} ppl".format(fasterrcnn_wrapper.get_human_count(frame, 0.4)))
             cv2.imshow('frame', frame)
             cv2.imshow('frame', d.cvOutputData)
             print(real_poses, people_count)
