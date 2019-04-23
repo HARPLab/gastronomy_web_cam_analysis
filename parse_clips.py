@@ -43,6 +43,8 @@ def initialize_region(clip_info=None, region_name=None, width=None, height=None,
     return
 
 def end_and_save(dest=None, frames_to_skip=None, clip_dict=None, subregion=None, num_diners_file=None):
+    # ends and saves relevant clips. If they're too short to be actual dining scenes,
+        # deletes them
     subregion_info = clip_dict[subregion]
     avg_num_diners = float(subregion_info["people_in_scene"]) / float(subregion_info["times_checked"])
     #print("clip {} completed for region: {}\n\t avg number of diners was: {}".format(clip_num, subregion, avg_num_diners))
@@ -74,15 +76,8 @@ def extract_relevant_clips(source="", dest=""):
         #our 'relevant_scene' check
     frames_to_skip = 360*10#only check frame every 2 minutes
 
-    #variables for recording/saving relevant clips
-    recording_clip = False
-    cur_clip = None
-    clip_num = 0
-
     # Define the codec and create VideoWriter object
-    #fourcc = cv2.VideoWriter_fourcc(*'MJPG')
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    #fourcc = cv2.cv.CV_FOURCC(*'XVID')
 
     num_diners_file = open(diners_file_dst, 'a+')
     print("now writing the number of diners corresponding to each parsed clip into {}".format(diners_file_dst))
@@ -92,15 +87,7 @@ def extract_relevant_clips(source="", dest=""):
     #######################################################################
     clip_info = dict()
     # initiliaze_region(x0=220, y0=500, width=)
-    x0 = 1665; y0 = 570; width=240; height=450
-    #clip_info["bottom_left"] = dict()
-    #clip_info["bottom_left"]["width"] = 550
-    #clip_info["bottom_left"]["height"] = 580
-    #clip_info["bottom_left"]["x0"] = 220
-    #clip_info["bottom_left"]["y0"] = 500
-    #clip_info["bottom_left"]["recording"] = False
-    #clip_info["bottom_left"]["clip"] = None
-    #clip_info["bottom_left"]["clip_num"] = 0
+    # x0 = 1665; y0 = 570; width=240; height=450
     initialize_region(clip_info, 
         region_name="bottom_left",
         width=550, height=580,
@@ -112,13 +99,6 @@ def extract_relevant_clips(source="", dest=""):
         region_name="middle_right",
         width=400, height=450,
         x0=1300, y0=450)
-    # clip_info["middle_right"]["width"] = 400
-    # clip_info["middle_right"]["height"] = 450
-    # clip_info["middle_right"]["x0"] = 1300
-    # clip_info["middle_right"]["y0"] = 450
-    # clip_info["middle_right"]["recording"] = False
-    # clip_info["middle_right"]["clip"] = None
-    # clip_info["middle_right"]["clip_num"] = 0
 
     #next_region="middle_over"
     #x0 = 1565; y0 = 570; width=340; height=450
@@ -126,14 +106,6 @@ def extract_relevant_clips(source="", dest=""):
         region_name="middle_over",
         width=340, height=450,
         x0=1565, y0=570)
-    #clip_info[next_region] = dict()
-    #clip_info[next_region]["width"] = width
-    #clip_info[next_region]["height"] = height
-    #clip_info[next_region]["x0"] = x0
-    #clip_info[next_region]["y0"] = y0
-    #clip_info[next_region]["recording"] = False
-    #clip_info[next_region]["clip"] = None
-    #clip_info[next_region]["clip_num"] = 0
 
     # next_region="central"
     # x0 = 0; y0 = 200; width=290; height=240
