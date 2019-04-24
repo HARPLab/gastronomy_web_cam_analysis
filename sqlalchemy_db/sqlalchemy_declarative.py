@@ -20,7 +20,7 @@ class Clip(Base):
 class Frame(Base):
     __tablename__ = 'frame'
     id = Column(Integer, primary_key=True)
-    clip_id = Column(Integer, ForeignKey('clip.id'))
+    clip_id = Column(Integer, ForeignKey('clip.id'), nullable=False)
     clip = relationship(Clip)
 
     waiter_present = Column(Boolean, default=False)
@@ -29,7 +29,7 @@ class Frame(Base):
 class Pose(Base):
     __tablename__ = 'pose'
     id = Column(Integer, primary_key=True)
-    frame_id = Column(Integer, ForeignKey('frame.id'))
+    frame_id = Column(Integer, ForeignKey('frame.id'), nullable=False)
     frame = relationship(Frame)
 
     confidence_score = Column(Float, nullable=False)
@@ -39,7 +39,7 @@ class Pose(Base):
 class Object(Base):
     __tablename__ = 'object'
     id = Column(Integer, primary_key=True)
-    frame_id = Column(Integer, ForeignKey('frame.id'))
+    frame_id = Column(Integer, ForeignKey('frame.id'), nullable=False)
     frame = relationship(Frame)
 
     object_type = Column(String(250), nullable=False)
@@ -55,4 +55,4 @@ def maketable():
     # Create all tables in the engine. This is equivalent to "Create Table"
     # statements in raw SQL.
     Base.metadata.create_all(engine)
-maketable()
+#maketable()
