@@ -15,6 +15,7 @@ class Clip(Base):
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     parent_clip_path = Column(String(250), nullable=False)
+    clip_path = Column(String(250), nullable=False)
     processed = Column(Boolean, default=False)
 
 class Frame(Base):
