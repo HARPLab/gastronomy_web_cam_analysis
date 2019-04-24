@@ -334,4 +334,5 @@ def sharpen(fname=None):
 # extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
 #extract_relevant_clips(source="/home/rkaufman/Downloads/vid3.mp4", dest="/mnt/harpdata/gastronomy_clips/tmp_demo")
 # extract_relevant_clips("./extracted_clips/clip_0.avi")
-#parse_dirs()
+#extract_relevant_clips("/mnt/harpdata/gastronomy_clips/2-28_19:10.ts")
+parse_dirs()
