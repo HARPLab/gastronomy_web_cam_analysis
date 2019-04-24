@@ -4,6 +4,8 @@ from tensorflow_human_detection import DetectorAPI
 import datetime, os
 from OPwrapper import OP #openpose wrapper for convenience
 import subprocess
+from sqlalchemy_db.ClassDeclarations import Clip
+from sqlalchemy_db.
 
 
 NUM_DINERS_INFO_PATH = "/mnt/harpdata/gastronomy_clips/extracted_clips"
