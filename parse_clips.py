@@ -289,6 +289,9 @@ def play(fname=None):
             print("op sees {} ppl".format(people_count))
             print("opfsees {} ppl".format(len(possible_poses)))
             #print("fc sees {} ppl".format(fasterrcnn_wrapper.get_human_count(frame, 0.4)))
+
+            # segment frame
+            fasterrcnn_wrapper.segment(frame)
             cv2.imshow('frame', frame)
             cv2.imshow('frame', d.cvOutputData)
             print(real_poses, people_count)
@@ -335,4 +338,4 @@ def sharpen(fname=None):
 #extract_relevant_clips(source="/home/rkaufman/Downloads/vid3.mp4", dest="/mnt/harpdata/gastronomy_clips/tmp_demo")
 # extract_relevant_clips("./extracted_clips/clip_0.avi")
 #extract_relevant_clips("/mnt/harpdata/gastronomy_clips/2-28_19:10.ts")
-parse_dirs()
+#parse_dirs()
