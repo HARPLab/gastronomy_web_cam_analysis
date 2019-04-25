@@ -18,6 +18,10 @@ Code below all taken from https://www.learnopencv.com/deep-learning-based-object
 '''
 # Draw the predicted bounding box, colorize and show the mask on the image
 def drawBox(frame, classId, conf, left, top, right, bottom, classMask):
+    cv = cv2
+    # Initialize the parameters
+    confThreshold = 0.5  #Confidence threshold
+    maskThreshold = 0.3  # Mask threshold 
     # Draw a bounding box.
     cv.rectangle(frame, (left, top), (right, bottom), (255, 178, 50), 3)
      
@@ -51,6 +55,7 @@ def drawBox(frame, classId, conf, left, top, right, bottom, classMask):
     cv.drawContours(frame[top:bottom+1, left:right+1], contours, -1, color, 3, cv.LINE_8, hierarchy, 100)
 # For each frame, extract the bounding box and mask for each detected object
 def postprocess(frame, boxes, masks):
+    cv = cv2
     # Output size of masks is NxCxHxW where
     # N - number of detected boxes
     # C - number of classes (excluding background)
