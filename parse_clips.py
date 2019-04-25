@@ -4,6 +4,8 @@ from tensorflow_human_detection import DetectorAPI
 import datetime, os
 from OPwrapper import OP #openpose wrapper for convenience
 import subprocess
+from SQL_DB.ClassDeclarations import Clip
+from SQL_DB.DBWrapper import DBWrapper
 
 
 NUM_DINERS_INFO_PATH = "/mnt/harpdata/gastronomy_clips/extracted_clips"
@@ -35,34 +37,42 @@ def initialize_region(clip_info=None, region_name=None, width=None, height=None,
     clip_info[region_name]["recording"] = False
     clip_info[region_name]["clip"] = None
     clip_info[region_name]["clip_num"] = 0
-    #info to help with documenting number of diners in scene
-    clip_info[region_name]["people_in_scene"] = 0
-    clip_info[region_name]["times_checked"] = 0
     clip_info[region_name]["cur_clip_duration"] = None
+    clip_info[region_name]["num_frames"] = 0
 #    clip_info[region_name]['op'] = OP()
     return
 
-def end_and_save(dest=None, frames_to_skip=None, clip_dict=None, subregion=None, num_diners_file=None):
+def end_and_save(dest=None, frames_to_skip=None, clip_dict=None, subregion=None, parent_clip_path=None, db_session=None):
     # ends and saves relevant clips. If they're too short to be actual dining scenes,
         # deletes them
+    formatStr = "%m-%d_%H:%M.ts"
+    _, parent_clip_filename = os.path.split(parent_clip_path)
+
     subregion_info = clip_dict[subregion]
-    avg_num_diners = float(subregion_info["people_in_scene"]) / float(subregion_info["times_checked"])
-    #print("clip {} completed for region: {}\n\t avg number of diners was: {}".format(clip_num, subregion, avg_num_diners))
+
+    # determining info necessary to store Clip object into database
+    start_time = datetime.datetime.strptime(parent_clip_filename, formatStr)
+    duration_in_secs = subregion_info["num_frames"] // 30.0
+    end_time = start_time + datetime.timedelta(seconds=duration_in_secs)
+    num_frames = subregion_info["num_frames"]
+
     subregion_info["recording"] = False
     clip_num = subregion_info["clip_num"]
     clip_fname = dest + "/clip_{}_{}.avi".format(subregion, clip_num)
     duration = subregion_info["cur_clip_duration"]
     clip_num = subregion_info["clip_num"]
     subregion_info["clip_num"] += 1
-    subregion_info["people_in_scene"] = 0; subregion_info["times_checked"] = 0;
     subregion_info["clip"].release()
     subregion_info["clip"] = None
     print("clip {} completed, with duration {}".format(clip_fname, duration))
     if (duration < 4 * frames_to_skip):
         print("\tDELETED {}".format(clip_fname))
         subprocess.run(["rm", clip_fname])
-    else: #only want to write num_diners if we're going to save the video
-        num_diners_file.write("{}\n\t{}\n".format(os.path.join(dest, "clip_{}_{}.avi".format(subregion, clip_num)), avg_num_diners))
+    else: #only want to save metadata to db if we're going to save the video
+        new_clip = Clip(num_frames=num_frames, start_time=start_time, end_time=end_time, parent_clip_path=parent_clip_path, clip_path=clip_fname, processed=False)
+        db_session.add(new_clip)
+        db_session.commit()
+        #num_diners_file.write("{}\n\t{}\n".format(os.path.join(dest, "clip_{}_{}.avi".format(subregion, clip_num)), avg_num_diners))
 
 def extract_relevant_clips(source="", dest=""):
     timeFromMilliseconds = lambda x: str(datetime.timedelta(milliseconds=x))
@@ -79,7 +89,6 @@ def extract_relevant_clips(source="", dest=""):
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
-    num_diners_file = open(diners_file_dst, 'a+')
     print("now writing the number of diners corresponding to each parsed clip into {}".format(diners_file_dst))
 
     #######################################################################
@@ -129,6 +138,8 @@ def extract_relevant_clips(source="", dest=""):
 
     #initialize openpose_wrapper for determining number of people in frame
     openpose_wrapper = OP()
+    db_wrapper = DBWrapper()
+    db_session = db_wrapper.get_session()
     confidence_threshold = 0.4 # for use in filtering poses by confidence
     while (vid.isOpened()):
         valid, frame = vid.read()
@@ -141,8 +152,6 @@ def extract_relevant_clips(source="", dest=""):
             subregion_info = clip_info[subregion]
             recording_clip = subregion_info["recording"]
             if (recording_clip):
-                time_string = timeFromMilliseconds(vid.get(cv2.CAP_PROP_POS_MSEC))
-                #print("recording frame {}, {}, {}".format(i, valid, time_string))
                 # add frame to clip
                 clip_obj = subregion_info["clip"]
                 x0, y0 = subregion_info["x0"], subregion_info["y0"]
@@ -151,11 +160,11 @@ def extract_relevant_clips(source="", dest=""):
                 subregion_info["cur_clip_duration"] += 1
 
                 clip_obj.write(sub_frame)
+                subregion_info["num_frames"] += 1
 
 
         if (i % frames_to_skip == 0):
-            time_string = timeFromMilliseconds(vid.get(cv2.CAP_PROP_POS_MSEC))
-            print('frame {} completed; time (hh:mm:ss): {}'.format(i, time_string))
+            print('frame {} completed'.format(i))
             for subregion in clip_info:
                 subregion_info = clip_info[subregion]
                 x0, y0 = subregion_info["x0"], subregion_info["y0"]
@@ -186,22 +195,19 @@ def extract_relevant_clips(source="", dest=""):
                         subregion_info["clip"] = cv2.VideoWriter(new_clip_name, fourcc, input_fps, cur_dims)
                         subregion_info["recording"] = True
                         subregion_info["cur_clip_duration"] = 0
-                    #either way, we want to update num diners in scene info
-                    subregion_info["people_in_scene"] += people_count
-                    subregion_info["times_checked"] += 1
+                        subregion_info["num_frames"] = 0
                 elif (recording_clip):
                     #if the frame isn't relevant and we are currently recording, we want
                         #to stop recording and save it
-                    end_and_save(dest=dest, frames_to_skip=frames_to_skip, clip_dict=clip_info, subregion=subregion, num_diners_file=num_diners_file)
+                    end_and_save(dest=dest, frames_to_skip=frames_to_skip, clip_dict=clip_info, subregion=subregion, parent_clip_path=source, db_session=db_session)
         i += 1
 
     # if any clips are still recording be sure to release them
     for subregion in clip_info:
         subregion_info = clip_info[subregion]
         if subregion_info["clip"] != None:
-            end_and_save(dest=dest, frames_to_skip=frames_to_skip, clip_dict=clip_info, subregion=subregion, num_diners_file=num_diners_file)
+            end_and_save(dest=dest, frames_to_skip=frames_to_skip, clip_dict=clip_info, subregion=subregion, parent_clip_path=source, db_session=db_session)
     vid.release()
-    num_diners_file.close()
 # #TODO: update so file can be passed as cmd line arg
 # openface_dir = os.path.join("~/dev/OpenFace/build")
 # execute_instr = os.path.join(openface_dir, "bin/FaceLandmarkVid")
@@ -251,67 +257,6 @@ def parse_dirs(base="/mnt/harpdata/gastronomy_clips/"):
             print("Finished for {}!\n".format(f))
             log_file.write("Finished parsing {}\n".format(next_vid_path))
             log_file.close()
-def play_debug(fname=None):
-    confidence_threshold=0.4
-    openpose_wrapper = OP()
-    clip_info = dict()
-    initialize_region(clip_info, 
-        region_name="middle_right",
-        width=400, height=450,
-        x0=1300, y0=450)
-    initialize_region(clip_info, 
-        region_name="bottom_left",
-        width=550, height=580,
-        x0=220, y0=500)
-    while(True):
-        #fname=raw_input("What file would you like to play?\n\t-->")
-        fname=input("What file would you like to play?\n\t-->")
-        cap = cv2.VideoCapture(fname)
-    #x0 = 0; y0 = 200; width=445; height=320
-    #x0 = 0; y0 = 200; width=445; height=240
-    #x0 = 0; y0 = 200; width=290; height=240
-        print("playing {}".format(fname))
-        subregion_info = clip_info['middle_right']
-        x0, y0 = subregion_info["x0"], subregion_info["y0"]
-        sub_width, sub_height = subregion_info["width"], subregion_info["height"]
-        while(cap.isOpened()):
-            ret, frame = cap.read()
-            sub_frame = frame[y0:(y0 + sub_height), x0:(x0 + sub_width)]
-            cv2.imwrite('saved_file.jpg', sub_frame)
-            break
-        #sub_frame = frame[y0:(y0 + height), x0:(x0 + width)]
-
-        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            #print("{} people in frame".format(get_num_people(frame, openpose_wrapper)))
-            #print(d.poseKeypoints3D)
-            #print(d)
-            #sub_frame=frame
-            d = openpose_wrapper.getOpenposeDataFrom(sub_frame)
-            #print("shapes: {} | {}".format(sub_frame.shape, d.cvOutputData.shape))
-            real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
-            people_count = len(real_poses)
-            #d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
-            #confidences = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
-            #people_count = len(confidences)
-            cv2.imshow('frame', sub_frame)
-            cv2.imshow('frame_op', d.cvOutputData)
-            #print(d)
-            #print(real_poses, people_count)
-        #cv2.imshow('sub_frame', sub_frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        break
-    print("done playing {}!".format(fname))
-    sub_frame = cv2.imread('saved_file.jpg')
-    d = openpose_wrapper.getOpenposeDataFrom(sub_frame)
-    real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
-    people_count = len(real_poses)
-    print("ppl cnt: {}".format(people_count))
-    cv2.imshow('frame', sub_frame)
-    cv2.imshow('frame_op', d.cvOutputData)
-    if (cv2.waitKey(1) & 0xFF == ord('q')):
-        cap.release()
-        cv2.destroyAllWindows()
 def play(fname=None):
     confidence_threshold=0.4
     confidence_threshold_weak = 0.2
@@ -382,11 +327,12 @@ def sharpen(fname=None):
     cap.release()
     out_vid.release()
     cv2.destroyAllWindows()
-play()
+#play()
 # play("ridtydz2.mp4")
 #play("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0_sharpened.avi")
 #sharpen("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0.avi")
 # extract_relevant_clips(source="ridtydz2.mp4", dest="./extracted_clips")
 #extract_relevant_clips(source="/home/rkaufman/Downloads/vid3.mp4", dest="/mnt/harpdata/gastronomy_clips/tmp_demo")
 # extract_relevant_clips("./extracted_clips/clip_0.avi")
-#parse_dirs()
+#extract_relevant_clips("/mnt/harpdata/gastronomy_clips/2-28_19:10.ts")
+parse_dirs()
