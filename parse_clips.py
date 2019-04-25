@@ -2,10 +2,10 @@ import cv2
 import numpy as np
 from tensorflow_human_detection import DetectorAPI
 import datetime, os
-from OPwrapper import OP #openpose wrapper for convenience
+#from OPwrapper import OP #openpose wrapper for convenience
 import subprocess
-from SQL_DB.ClassDeclarations import Clip
-from SQL_DB.DBWrapper import DBWrapper
+#from SQL_DB.ClassDeclarations import Clip
+#from SQL_DB.DBWrapper import DBWrapper
 
 
 NUM_DINERS_INFO_PATH = "/mnt/harpdata/gastronomy_clips/extracted_clips"
@@ -260,11 +260,11 @@ def parse_dirs(base="/mnt/harpdata/gastronomy_clips/"):
 def play(fname=None):
     confidence_threshold=0.4
     confidence_threshold_weak = 0.2
-    openpose_wrapper = OP()
+    #openpose_wrapper = OP()
     fasterrcnn_wrapper = DetectorAPI()
     while(True):
-        #fname=raw_input("What file would you like to play?\n\t-->")
-        fname=input("What file would you like to play?\n\t-->")
+        fname=raw_input("What file would you like to play?\n\t-->")
+    #    fname=input("What file would you like to play?\n\t-->")
         cap = cv2.VideoCapture(fname)
     #x0 = 0; y0 = 200; width=445; height=320
     #x0 = 0; y0 = 200; width=445; height=240
@@ -272,6 +272,9 @@ def play(fname=None):
         print("playing {}".format(fname))
         while(cap.isOpened()):
             ret, frame = cap.read()
+            if (not ret):
+                print("all done!")
+                return
         #sub_frame = frame[y0:(y0 + height), x0:(x0 + width)]
 
         # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -279,22 +282,25 @@ def play(fname=None):
             #print(d.poseKeypoints3D)
             #print(d)
             sub_frame=frame
-            d = openpose_wrapper.getOpenposeDataFrom(frame=sub_frame)
-            real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
-            people_count = len(real_poses)
-            possible_poses = list(filter(lambda x: x > confidence_threshold_weak, np.atleast_1d(d.poseScores)))
+    #        d = openpose_wrapper.getOpenposeDataFrom(frame=sub_frame)
+    #        real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
+    #        people_count = len(real_poses)
+    #        possible_poses = list(filter(lambda x: x > confidence_threshold_weak, np.atleast_1d(d.poseScores)))
             #d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
             #confidences = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
             #people_count = len(confidences)
-            print("op sees {} ppl".format(people_count))
-            print("opfsees {} ppl".format(len(possible_poses)))
+    #        print("op sees {} ppl".format(people_count))
+    #        print("opfsees {} ppl".format(len(possible_poses)))
             #print("fc sees {} ppl".format(fasterrcnn_wrapper.get_human_count(frame, 0.4)))
 
             # segment frame
             fasterrcnn_wrapper.segment(frame)
             cv2.imshow('frame', frame)
-            cv2.imshow('frame', d.cvOutputData)
-            print(real_poses, people_count)
+    #        cv2.imshow('frame', d.cvOutputData)
+    #        print(real_poses, people_count)
+            while True:
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
         #cv2.imshow('sub_frame', sub_frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
@@ -330,7 +336,7 @@ def sharpen(fname=None):
     cap.release()
     out_vid.release()
     cv2.destroyAllWindows()
-#play()
+play()
 # play("ridtydz2.mp4")
 #play("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0_sharpened.avi")
 #sharpen("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0.avi")
