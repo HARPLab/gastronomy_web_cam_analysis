@@ -12,25 +12,31 @@ import tensorflow as tf
 import cv2
 import time
 import os
+import random
+def make_random_color():
+    return (random.randint(0, 255),random.randint(0, 255),random.randint(0, 255))
+colors = [make_random_color() for i in range(90)]
+labels_path = "./faster_rcnn_inception_v2_coco_2018_01_28/coco_classes.txt"
+LABELS = open(labels_path).read().strip().split("\n")
 
 '''
 Code below all taken from https://www.learnopencv.com/deep-learning-based-object-detection-and-instance-segmentation-using-mask-r-cnn-in-opencv-python-c/
 '''
+# Initialize the parameters
+confThreshold = 0.5  #Confidence threshold
+maskThreshold = 0.3  # Mask threshold 
 # Draw the predicted bounding box, colorize and show the mask on the image
 def drawBox(frame, classId, conf, left, top, right, bottom, classMask):
     cv = cv2
-    # Initialize the parameters
-    confThreshold = 0.5  #Confidence threshold
-    maskThreshold = 0.3  # Mask threshold 
     # Draw a bounding box.
     cv.rectangle(frame, (left, top), (right, bottom), (255, 178, 50), 3)
      
     # Print a label of class.
-    label = '%.2f' % conf
-    if classes:
-        assert(classId < len(classes))
-        label = '%s:%s' % (classes[classId], label)
-     
+    label = '%.2f: %s'% (conf, LABELS[classId])
+    # if classes:
+    #     assert(classId < len(classes))
+    #     label = '%s:%s' % (classes[classId], label)
+    round = lambda x: int(x)
     # Display the label at the top of the bounding box
     labelSize, baseLine = cv.getTextSize(label, cv.FONT_HERSHEY_SIMPLEX, 0.5, 1)
     top = max(top, labelSize[1])
@@ -51,7 +57,7 @@ def drawBox(frame, classId, conf, left, top, right, bottom, classMask):
  
     # Draw the contours on the image
     mask = mask.astype(np.uint8)
-    im2, contours, hierarchy = cv.findContours(mask,cv.RETR_TREE,cv.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv.findContours(mask,cv.RETR_TREE,cv.CHAIN_APPROX_SIMPLE)
     cv.drawContours(frame[top:bottom+1, left:right+1], contours, -1, color, 3, cv.LINE_8, hierarchy, 100)
 # For each frame, extract the bounding box and mask for each detected object
 def postprocess(frame, boxes, masks):
@@ -93,7 +99,6 @@ def postprocess(frame, boxes, masks):
 ''' 
 code above all taken from https://www.learnopencv.com/deep-learning-based-object-detection-and-instance-segmentation-using-mask-r-cnn-in-opencv-python-c/
 '''
-
 class DetectorAPI:
     def __init__(self, path_to_ckpt='./faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb', config_path="./faster_rcnn_inception_v2_coco_2018_01_28/config.pbtxt"):
         # for tf log messages
@@ -116,7 +121,9 @@ class DetectorAPI:
 
         self.default_graph = self.detection_graph.as_default()
         self.sess = tf.Session(graph=self.detection_graph)
-        self.net = cv2.dnn.readNetFromTensorflow(path_to_ckpt, config_path)
+        mask_weight_path = "./mask_rcnn/frozen_inference_graph.pb"
+        mask_config_path = "./mask_rcnn/mask_rcnn_inception_v2_coco_2018_01_28.pbtxt"
+        self.mask_net = cv2.dnn.readNetFromTensorflow(mask_weight_path, mask_config_path)
 
         # Definite input and output Tensors for detection_graph
         self.image_tensor = self.detection_graph.get_tensor_by_name('image_tensor:0')
@@ -129,10 +136,17 @@ class DetectorAPI:
         self.num_detections = self.detection_graph.get_tensor_by_name('num_detections:0')
 
     def segment(self, image): #learned from --> https://www.learnopencv.com/deep-learning-based-object-detection-and-instance-segmentation-using-mask-r-cnn-in-opencv-python-c/
+        image = image.copy()
         blob = cv2.dnn.blobFromImage(image, swapRB=True, crop=False)
-        self.net.setInput(blob)
-        (boxes, masks) = self.net.forward(["detection_out_final", "detection_masks"])
+        self.mask_net.setInput(blob)
+        start = time.time()
+        (boxes, masks) = self.mask_net.forward(["detection_out_final", "detection_masks"])
+        end = time.time()
+        print("[INFO] Mask R-CNN took {:.6f} seconds".format(end - start))
+        print("[INFO] boxes shape: {}".format(boxes.shape))
+        print("[INFO] masks shape: {}".format(masks.shape))
         postprocess(image, boxes, masks)
+        return image
 
     def processFrame(self, image):
         # Expand dimensions since the trained_model expects images to have shape: [1, None, None, 3]
@@ -156,6 +170,23 @@ class DetectorAPI:
 
         return boxes_list, scores[0].tolist(), [int(x) for x in classes[0].tolist()], int(num[0])
 
+    def renderBoxes(self, image, threshold=0.7):
+        clone = image.copy()
+        boxes, scores, class_nums, num_detected = self.processFrame(image)
+        i=0
+        color = (0,255,0)
+        while( i < len(class_nums)):
+            box = boxes[i]; score = scores[i]; class_num = class_nums[i];
+            if score <= threshold: 
+                i+=1
+                continue
+            x0, x1, y0, y1 = (box[1],box[0], box[3],box[2])
+            cv2.rectangle(clone,(x0, x1),(y0, y1),(255,0,0),2)
+            text = "{}: {:.4f}".format(LABELS[class_num-1], score)
+            cv2.putText(clone, text, (x0, y0 - 5),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5,color, 2)
+            i+=1
+        return clone
     def close(self):
         self.sess.close()
         self.default_graph.close()
@@ -199,3 +230,18 @@ class DetectorAPI:
     #             human_count += 1
         
     #     return human_count
+
+# d = DetectorAPI()
+# img = cv2.imread("./temp.jpg")
+# # other_img = d.renderBoxes(img)
+# segmented = d.segment(img)
+
+# while True:
+#     cv2.imshow("preview", img)
+#     cv2.imshow("preview alt", segmented)
+#     key = cv2.waitKey(1)
+#     if key & 0xFF == ord('q'):
+#         break
+
+
+# cv2.destroyAllWindows()
