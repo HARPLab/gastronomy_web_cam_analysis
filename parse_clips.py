@@ -261,17 +261,26 @@ def play(fname=None):
     confidence_threshold=0.4
     confidence_threshold_weak = 0.2
     #openpose_wrapper = OP()
-    fasterrcnn_wrapper = DetectorAPI()
+    detector = DetectorAPI()
     while(True):
         fname=raw_input("What file would you like to play?\n\t-->")
-    #    fname=input("What file would you like to play?\n\t-->")
+#        fname=input("What file would you like to play?\n\t-->")
         cap = cv2.VideoCapture(fname)
     #x0 = 0; y0 = 200; width=445; height=320
     #x0 = 0; y0 = 200; width=445; height=240
     #x0 = 0; y0 = 200; width=290; height=240
         print("playing {}".format(fname))
+        mins=5; fps=30;i=0;
+        frames_to_skip = mins*60*fps*0
+        segment_flag = False
+        pause_flag = False
         while(cap.isOpened()):
-            ret, frame = cap.read()
+            if(pause_flag):
+                pass
+            else:
+                ret, frame = cap.read()
+            if (i < frames_to_skip):
+                i+=1; continue;
             if (not ret):
                 print("all done!")
                 return
@@ -282,10 +291,11 @@ def play(fname=None):
             #print(d.poseKeypoints3D)
             #print(d)
             sub_frame=frame
-    #        d = openpose_wrapper.getOpenposeDataFrom(frame=sub_frame)
-    #        real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
-    #        people_count = len(real_poses)
-    #        possible_poses = list(filter(lambda x: x > confidence_threshold_weak, np.atleast_1d(d.poseScores)))
+#            cv2.imwrite('s.jpg', sub_frame)
+#            d = openpose_wrapper.getOpenposeDataFrom(frame=sub_frame)
+#            real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
+#            people_count = len(real_poses)
+#            possible_poses = list(filter(lambda x: x > confidence_threshold_weak, np.atleast_1d(d.poseScores)))
             #d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
             #confidences = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
             #people_count = len(confidences)
@@ -294,14 +304,17 @@ def play(fname=None):
             #print("fc sees {} ppl".format(fasterrcnn_wrapper.get_human_count(frame, 0.4)))
 
             # segment frame
-            fasterrcnn_wrapper.segment(frame)
+            if (segment_flag):
+                frame = detector.segment(frame)
+            #segmented_with_pose = 
             cv2.imshow('frame', frame)
-    #        cv2.imshow('frame', d.cvOutputData)
+#            cv2.imshow('frame', d.cvOutputData)
     #        print(real_poses, people_count)
-            while True:
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
         #cv2.imshow('sub_frame', sub_frame)
+            if cv2.waitKey(1) & 0xFF == ord('a'):
+                segment_flag = not segment_flag
+            if cv2.waitKey(1) & 0xFF == ord('p'):
+                pause_flag = not pause_flag
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         print("done playing {}!".format(fname))
