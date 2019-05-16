@@ -1,4 +1,4 @@
-## Overview
+# Overview
 ```
 .
 ├── OPwrapper.py
@@ -28,36 +28,36 @@
 ├── tensorflow_human_detection.py
 ```
 
-### Data Pulling
+## Data Pulling
 This section documents how/where restaurant footage is pulled.
 
-#### Relevant Files
+### Relevant Files
 ```
 ├── pull.py
 ```
 
-#### Further Description
+### Further Description
 Pulling process is performed (and commented) in `pull.py` above - pulled from riptydz stream and stitched together every two hours using ffmpeg. Placed into `/mnt/harpdata/gastronomy_clips/` (our mounted theorem network attached storage).
 
 
 
-### Clip Extraction
+## Clip Extraction
 This section documents how dining scenes are extracted from restaurant footage.
 
-#### Relevant Files
+### Relevant Files
 ```
 ├── parse_clips.py
 ├── OPwrapper.py
 ```
 
-#### Further Description
+### Further Description
 The `parse_dirs` function iterates through the stitched together clips, checking (withing hardcoded regions of interest) every two minutes for the presence of human poses over a certain confidence threshold (using openpose). It extracts and saves interesting clips that exceed a cutoff length (to decrease the number of false positives), also stored within our theorem NAS, and saves the metadata into the sqlite db, for feature extraction next.
 
 
-### Clip Analysis
+## Clip Analysis
 This section documents what features are extracted from a given dining scene and where they're stored.
 
-#### Relevant Files
+### Relevant Files
 ```
 ├── mask_rcnn
 │   ├── frozen_inference_graph.pb
@@ -67,5 +67,5 @@ This section documents what features are extracted from a given dining scene and
 ├── OPwrapper.py
 ```
 
-#### Further Description
+### Further Description
 Here, for every extracted dining scene focused on a region-of-interest (one table within the larger captured scene), we extract features with corresponding metadata for each frame, all saved into our sqlite db. Models we're using to extract features for a given frame of a dining scene are (1) OpenPose and (2) Mask RCNN. OpenPose gives the pose information and mask rcnn is trained on the Common Objects in Context, or COCO dataset - which can identify cutlery, bowls, plates, cups, and various types of furniture. 
