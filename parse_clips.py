@@ -2,10 +2,10 @@ import cv2
 import numpy as np
 from tensorflow_human_detection import DetectorAPI
 import datetime, os
-#from OPwrapper import OP #openpose wrapper for convenience
+from OPwrapper import OP #openpose wrapper for convenience
 import subprocess
-#from SQL_DB.ClassDeclarations import Clip
-#from SQL_DB.DBWrapper import DBWrapper
+from SQL_DB.ClassDeclarations import Clip
+from SQL_DB.DBWrapper import DBWrapper
 
 
 NUM_DINERS_INFO_PATH = "/mnt/harpdata/gastronomy_clips/extracted_clips"
@@ -39,7 +39,6 @@ def initialize_region(clip_info=None, region_name=None, width=None, height=None,
     clip_info[region_name]["clip_num"] = 0
     clip_info[region_name]["cur_clip_duration"] = None
     clip_info[region_name]["num_frames"] = 0
-#    clip_info[region_name]['op'] = OP()
     return
 
 def end_and_save(dest=None, frames_to_skip=None, clip_dict=None, subregion=None, parent_clip_path=None, db_session=None):
@@ -52,7 +51,7 @@ def end_and_save(dest=None, frames_to_skip=None, clip_dict=None, subregion=None,
 
     # determining info necessary to store Clip object into database
     start_time = datetime.datetime.strptime(parent_clip_filename, formatStr)
-    duration_in_secs = subregion_info["num_frames"] // 30.0
+    duration_in_secs = subregion_info["num_frames"] / 30.0
     end_time = start_time + datetime.timedelta(seconds=duration_in_secs)
     num_frames = subregion_info["num_frames"]
 
@@ -78,13 +77,13 @@ def extract_relevant_clips(source="", dest=""):
     timeFromMilliseconds = lambda x: str(datetime.timedelta(milliseconds=x))
     vid = cv2.VideoCapture(source)
     input_fps = vid.get(cv2.CAP_PROP_FPS)
-    input_fps = 30 #the input fps is far higher than it actually is, have to change it manually
+    input_fps = 30 #the input fps that is read is far higher than it actually is, have to change it manually
     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)  
     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
     input_dims = (int(width), int(height))
     # variable denoting the number of frames we want to skip before performing
         #our 'relevant_scene' check
-    frames_to_skip = 360*10#only check frame every 2 minutes
+    frames_to_skip = 30*120#only check frame every 2 minutes
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -123,16 +122,6 @@ def extract_relevant_clips(source="", dest=""):
 #        width=290, height=240,
 #        x0=0, y0=200)
 
-    #next_region="middle"
-    #clip_info[next_region] = dict()
-    #x0 = 575; y0 = 250; width=250; height=545
-    #clip_info[next_region]["width"] = width
-    #clip_info[next_region]["height"] = height
-    #clip_info[next_region]["x0"] = x0
-    #clip_info[next_region]["y0"] = y0
-    #clip_info[next_region]["recording"] = False
-    #clip_info[next_region]["clip"] = None
-    #clip_info[next_region]["clip_num"] = 0
     # counter representing the frame number we're on
     i = 0
 
@@ -208,17 +197,16 @@ def extract_relevant_clips(source="", dest=""):
         if subregion_info["clip"] != None:
             end_and_save(dest=dest, frames_to_skip=frames_to_skip, clip_dict=clip_info, subregion=subregion, parent_clip_path=source, db_session=db_session)
     vid.release()
-# #TODO: update so file can be passed as cmd line arg
-# openface_dir = os.path.join("~/dev/OpenFace/build")
-# execute_instr = os.path.join(openface_dir, "bin/FaceLandmarkVid")
-# print execute_instr
+
+
+#utility function that runs and renders openface output (on a single or multiple faces)
 def view_clips(base="/mnt/harpdata/gastronomy_clips"):
     while True:
         inp = raw_input("Next Video pls:\n\t-->")
         mode = raw_input("\tSingle or Double? -->").lower()
-        #single face
         print("processing {}!".format(mode))
         if (mode=="single"):
+            #single face
             subprocess.call('~/dev/OpenFace/build/bin/FaceLandmarkVid -f "{}"'.format(inp), shell=True)
         elif(mode == "double"):
             #multiple faces
@@ -241,6 +229,9 @@ def list_clips(base="/mnt/harpdata/gastronomy_clips"):
                     is_middle = ("middle" in vid) and (not ("middle_over" in vid)) and (not ("middle_right" in vid))
                     if (is_middle or is_middle_over):
                         print("\t{}".format(os.path.join(dst,vid)))
+
+#Input: String of directory 
+#Operation: Searches directory for all occurences of ".ts" files and calls `extract_relevant_clips` function on each such file
 def parse_dirs(base="/mnt/harpdata/gastronomy_clips/"):
     now = datetime.datetime.now()
     log = os.path.join(os.getcwd(), "logs", "{}-{}__{}:{}.txt".format(now.month, now.day, now.hour, now.minute))
@@ -257,18 +248,17 @@ def parse_dirs(base="/mnt/harpdata/gastronomy_clips/"):
             print("Finished for {}!\n".format(f))
             log_file.write("Finished parsing {}\n".format(next_vid_path))
             log_file.close()
+
+#utility function that plays a file of interest (I usually use this for rendering the segmented output from mask rcnn or the pose data from openpose)
 def play(fname=None):
     confidence_threshold=0.4
     confidence_threshold_weak = 0.2
     #openpose_wrapper = OP()
     detector = DetectorAPI()
     while(True):
-        fname=raw_input("What file would you like to play?\n\t-->")
-#        fname=input("What file would you like to play?\n\t-->")
+        # if python3, use input (but if python2, use raw_input)
+        fname = input("What file would you like to play?\n\t-->")
         cap = cv2.VideoCapture(fname)
-    #x0 = 0; y0 = 200; width=445; height=320
-    #x0 = 0; y0 = 200; width=445; height=240
-    #x0 = 0; y0 = 200; width=290; height=240
         print("playing {}".format(fname))
         mins=5; fps=30;i=0;
         frames_to_skip = mins*60*fps*0
@@ -284,33 +274,13 @@ def play(fname=None):
             if (not ret):
                 print("all done!")
                 return
-        #sub_frame = frame[y0:(y0 + height), x0:(x0 + width)]
-
-        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            #print("{} people in frame".format(get_num_people(frame, openpose_wrapper)))
-            #print(d.poseKeypoints3D)
-            #print(d)
             sub_frame=frame
-#            cv2.imwrite('s.jpg', sub_frame)
-#            d = openpose_wrapper.getOpenposeDataFrom(frame=sub_frame)
-#            real_poses = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
-#            people_count = len(real_poses)
-#            possible_poses = list(filter(lambda x: x > confidence_threshold_weak, np.atleast_1d(d.poseScores)))
-            #d = openpose_wrapper.getOpenposeDataFrom(frame=frame)
-            #confidences = list(filter(lambda x: x > confidence_threshold, np.atleast_1d(d.poseScores)))
-            #people_count = len(confidences)
-    #        print("op sees {} ppl".format(people_count))
-    #        print("opfsees {} ppl".format(len(possible_poses)))
-            #print("fc sees {} ppl".format(fasterrcnn_wrapper.get_human_count(frame, 0.4)))
 
             # segment frame
             if (segment_flag):
                 frame = detector.segment(frame)
-            #segmented_with_pose = 
             cv2.imshow('frame', frame)
-#            cv2.imshow('frame', d.cvOutputData)
-    #        print(real_poses, people_count)
-        #cv2.imshow('sub_frame', sub_frame)
+
             if cv2.waitKey(1) & 0xFF == ord('a'):
                 segment_flag = not segment_flag
             if cv2.waitKey(1) & 0xFF == ord('p'):
@@ -321,34 +291,6 @@ def play(fname=None):
 
         cap.release()
         cv2.destroyAllWindows()
-def sharpen(fname=None):
-    if (fname==None):
-        fname=raw_input("What file would you like to sharpen?\n\t-->")
-    cap = cv2.VideoCapture(fname)
-    # x0 = 1565; y0 = 570; width=340; height=450
-    base, tail = os.path.split(fname)
-    codec = cv2.VideoWriter_fourcc('M','J','P','G')
-    outfile_name = os.path.join(base,tail[:tail.find('.avi')] + "_sharpened" + ".avi")
-    input_fps = 30
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    print("Writing to {}".format(outfile_name))
-    out_vid = cv2.VideoWriter(outfile_name, codec, input_fps, (width, height))
-    while(cap.isOpened()):
-        ret, frame = cap.read()
-        k = np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
-        sharper = cv2.filter2D(frame, -1, k)
-        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        out_vid.write(sharper)
-
-        cv2.imshow('frame', frame)
-        cv2.imshow('sharper?', sharper)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    out_vid.release()
-    cv2.destroyAllWindows()
 play()
 # play("ridtydz2.mp4")
 #play("/mnt/harpdata/gastronomy_clips/extracted_clips/3-2_13:32/clip_middle_over_0_sharpened.avi")

@@ -51,7 +51,7 @@ This section documents how dining scenes are extracted from restaurant footage.
 ```
 
 ### Further Description
-The `parse_dirs` function iterates through the stitched together clips, checking (withing hardcoded regions of interest) every two minutes for the presence of human poses over a certain confidence threshold (using openpose). It extracts and saves interesting clips that exceed a cutoff length (to decrease the number of false positives), also stored within our theorem NAS, and saves the metadata into the sqlite db, for feature extraction next.
+The `parse_dirs` function iterates through the stitched together clips, checking (within hardcoded regions of interest) every two minutes for the presence of human poses over a certain confidence threshold (using openpose). It extracts and saves interesting clips that exceed a cutoff length (to decrease the number of false positives), also stored within our theorem NAS, and saves the metadata into the sqlite db, for feature extraction next.
 
 
 ## Clip Analysis

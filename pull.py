@@ -13,7 +13,7 @@ def save_file(file_url=None, output_dir=None, filenames_file=None):
         response = requests.get(file_url)
         try:
             cur_time = datetime.datetime.now()
-            
+
             pre_ts_name = filename[:filename.find(".")]
             ts_name = "{}-{}_{}:{}:{}.ts".format(cur_time.month, cur_time.day, cur_time.hour, cur_time.minute, cur_time.second)
             avi_name = "{}-{}_{}:{}:{}.avi".format(cur_time.month, cur_time.day, cur_time.hour, cur_time.minute, cur_time.second)

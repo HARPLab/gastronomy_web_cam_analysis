@@ -4,7 +4,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 
-# don't understand --> https://www.pythoncentral.io/introductory-tutorial-python-sqlalchemy/
+# info necessary to understand this from below link
+#   https://www.pythoncentral.io/introductory-tutorial-python-sqlalchemy/
 Base = declarative_base()
  
 class Clip(Base):
