@@ -85,7 +85,7 @@ def download_requests():
     filenames_file = open(FILENAMES, "w+")
     i = 0
     while True:
-        if (datetime.datetime.now().hour == 23):
+        if (datetime.datetime.now().hour == 23 and datetime.datetime.now().minute > 30):
             #when hour is past closing we don't want any more stream info
             return
         
