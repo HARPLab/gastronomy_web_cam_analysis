@@ -264,6 +264,10 @@ def play(fname=None):
     detector = DetectorAPI()
     while(True):
         fname=raw_input("What file would you like to play?\n\t-->")
+        frame = cv2.imread(fname)
+        frame = detector.segment(frame)
+        cv2.imwrite('parsed.jpg', frame)
+        return
 #        fname=input("What file would you like to play?\n\t-->")
         cap = cv2.VideoCapture(fname)
     #x0 = 0; y0 = 200; width=445; height=320

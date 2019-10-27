@@ -23,7 +23,7 @@ LABELS = open(labels_path).read().strip().split("\n")
 Code below all taken from https://www.learnopencv.com/deep-learning-based-object-detection-and-instance-segmentation-using-mask-r-cnn-in-opencv-python-c/
 '''
 # Initialize the parameters
-confThreshold = 0.5  #Confidence threshold
+confThreshold = 0.55  #Confidence threshold
 maskThreshold = 0.3  # Mask threshold 
 # Draw the predicted bounding box, colorize and show the mask on the image
 def drawBox(frame, classId, conf, left, top, right, bottom, classMask):
@@ -39,9 +39,9 @@ def drawBox(frame, classId, conf, left, top, right, bottom, classMask):
     round = lambda x: int(x)
     # Display the label at the top of the bounding box
     labelSize, baseLine = cv.getTextSize(label, cv.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-    top = max(top, labelSize[1])
-    cv.rectangle(frame, (left, top - round(1.5*labelSize[1])), (left + round(1.5*labelSize[0]), top + baseLine), (255, 255, 255), cv.FILLED)
-    cv.putText(frame, label, (left, top), cv.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,0), 1)
+    top = max(top, 3.5*labelSize[1])
+    cv.rectangle(frame, (left, top - round(4.5*labelSize[1])), (left + round(4.5*labelSize[0]), top + baseLine), (255, 255, 255), cv.FILLED)
+    cv.putText(frame, label, (left, top), cv.FONT_HERSHEY_SIMPLEX, 3*0.75, (0,0,0), 5)
  
     # Resize the mask, threshold, color and apply it on the image
     classMask = cv.resize(classMask, (right - left + 1, bottom - top + 1))
