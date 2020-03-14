@@ -2,7 +2,6 @@
 # code below adapted from https://gist.github.com/madhawav/1546a4b99c8313f06c0b2d7d7b4a09e2
 #######################
 
-
 # Code adapted from Tensorflow Object Detection Framework
 # https://github.com/tensorflow/models/blob/master/research/object_detection/object_detection_tutorial.ipynb
 # Tensorflow Object Detection Detector
