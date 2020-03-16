@@ -190,32 +190,6 @@ class DetectorAPI:
         self.sess.close()
         self.default_graph.close()
 
-    def get_human_count(self, frame, threshold=0.7):
-        odapi = self
-        img = cv2.resize(frame, (1280, 720))
-
-        boxes, scores, classes, num = odapi.processFrame(img)
-        human_count = 0
-        for i in range(len(boxes)):
-            # Class 1 represents human
-            if classes[i] == 1 and scores[i] > threshold:
-                human_count += 1
-        
-        return human_count
-
-    @staticmethod 
-    def get_human_count(frame, threshold=0.7):
-        odapi = DetectorAPI()
-        img = cv2.resize(frame, (1280, 720))
-
-        boxes, scores, classes, num = odapi.processFrame(img)
-        human_count = 0
-        for i in range(len(boxes)):
-            # Class 1 represents human
-            if classes[i] == 1 and scores[i] > threshold:
-                human_count += 1
-        
-        return human_count
     # @staticmethod 
     # def get_objects(frame, threshold=0.7):
     #     odapi = DetectorAPI()
@@ -230,8 +204,8 @@ class DetectorAPI:
         
     #     return human_count
 
-# d = DetectorAPI()
-# img = cv2.imread("./temp.jpg")
+d = DetectorAPI()
+img = cv2.imread("./temp.jpg")
 # # other_img = d.renderBoxes(img)
 # segmented = d.segment(img)
 

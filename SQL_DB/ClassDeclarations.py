@@ -48,6 +48,15 @@ class Object(Base):
     confidence_score = Column(Float, nullable=False)
     object_data = Column(LargeBinary, nullable=False)
 
+class Activity(Base):
+    __tablename__ = 'activity'
+    id = Column(Integer, primary_key=True)
+    frame_id = Column(Integer, ForeignKey('frame.id'), nullable=False)
+    frame = relationship(Frame)
+
+    activityA = Column(Integer, nullable=False) #activity of personA, index of activity
+    activityB = Column(Integer, nullable=False) #activity of personA
+
 
 def maketable():
     # Create an engine that stores data in the local directory's

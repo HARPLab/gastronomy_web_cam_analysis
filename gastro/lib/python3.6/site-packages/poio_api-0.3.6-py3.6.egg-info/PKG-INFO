@@ -1,0 +1,29 @@
+Metadata-Version: 1.1
+Name: poio-api
+Version: 0.3.6
+Summary: A Python Library to access and manipulate linguistically annotated corpus files.
+Home-page: http://media.cidles.eu/poio/poio-api/
+Author: Peter Bouda
+Author-email: pbouda@cidles.eu
+License: Apache License, Version 2.0
+Description: UNKNOWN
+Keywords: NLP,CL,natural language processing,computational linguistics,parsing,tagging,annotation,linguistics,language,natural language,language documentation
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: Information Technology
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.2
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Scientific/Engineering :: Human Machine Interfaces
+Classifier: Topic :: Scientific/Engineering :: Information Analysis
+Classifier: Topic :: Text Processing
+Classifier: Topic :: Text Processing :: General
+Classifier: Topic :: Text Processing :: Indexing
+Classifier: Topic :: Text Processing :: Linguistic
