@@ -32,9 +32,12 @@ class Frame(Base):
 class Pose(Base):
     __tablename__ = 'pose'
     id = Column(Integer, primary_key=True)
-    confidence_score = Column(Float, nullable=False)
+    #confidence_score = Column(Float, nullable=False)
     # Expect to use pickle to store/retrieve numpy arrays into/from this column, respectively
-    pose_data = Column(LargeBinary, nullable=False)
+    body_data = Column(LargeBinary, nullable=False)
+    face_data = Column(LargeBinary)
+    left_hand = Column(LargeBinary)
+    right_hand = Column(LargeBinary)
     frame_id = Column(Integer, ForeignKey('frame.id'), nullable=False)
     frame = relationship(Frame)
 
@@ -42,9 +45,9 @@ class Object(Base):
     __tablename__ = 'object'
     id = Column(Integer, primary_key=True)
     frame_id = Column(Integer, ForeignKey('frame.id'), nullable=False)
-    object_type = Column(String(250), nullable=False)
-    confidence_score = Column(Float, nullable=False)
-    object_data = Column(LargeBinary, nullable=False)
+    object_type = Column(String(250), nullable=False) ## object class
+    confidence_score = Column(Float, nullable=False) ## object score
+    #object_data = Column(LargeBinary, nullable=False)
     frame = relationship(Frame)
 
 class Activity(Base):
