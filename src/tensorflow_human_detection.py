@@ -107,6 +107,7 @@ class DetectorAPI:
             2 = INFO and WARNING messages are not printed
             3 = INFO, WARNING, and ERROR messages are not printed
         """
+        print("hi")
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' 
         self.path_to_ckpt = path_to_ckpt
 
@@ -144,10 +145,10 @@ class DetectorAPI:
         print("[INFO] Mask R-CNN took {:.6f} seconds".format(end - start))
         print("[INFO] boxes shape: {}".format(boxes.shape))
         print("[INFO] masks shape: {}".format(masks.shape))
-        postprocess(image, boxes, masks)
+        #postprocess(image, boxes, masks)
         return image
 
-    def processFrame(self, image):
+    """def processFrame(self, image):
         # Expand dimensions since the trained_model expects images to have shape: [1, None, None, 3]
         image_np_expanded = np.expand_dims(image, axis=0)
         # Actual detection.
@@ -203,12 +204,14 @@ class DetectorAPI:
     #             human_count += 1
         
     #     return human_count
-
+    """
+print("hi")
 d = DetectorAPI()
-img = cv2.imread("./temp.jpg")
-# # other_img = d.renderBoxes(img)
-# segmented = d.segment(img)
-
+print("hi")
+img = cv2.imread("temp.jpg")
+# #other_img = d.renderBoxes(img)
+segmented = d.segment(img)
+cv2.imshow(segmented)
 # while True:
 #     cv2.imshow("preview", img)
 #     cv2.imshow("preview alt", segmented)

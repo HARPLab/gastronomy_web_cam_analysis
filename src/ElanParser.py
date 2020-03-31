@@ -118,6 +118,7 @@ for child in root:
                         session.add(new_object)
                         session.commit()
 
+
     elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonB':
         print("Todo")
                 # add frames within these bounds with correct activities to data base
