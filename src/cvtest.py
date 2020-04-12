@@ -4,7 +4,10 @@ import pathlib
 import six.moves.urllib as urllib
 import sys
 import tarfile
+import cv2
 import tensorflow as tf
+from PIL import Image, ImageDraw, ImageFilter
+import six
 import zipfile
 
 from collections import defaultdict
@@ -48,7 +51,8 @@ PATH_TO_TEST_IMAGES_DIR = pathlib.Path('../models/research/object_detection/test
 TEST_IMAGE_PATHS = sorted(list(PATH_TO_TEST_IMAGES_DIR.glob("*.jpg")))
 
 
-model_name = 'ssd_mobilenet_v1_coco_2017_11_17'
+#model_name = 'ssd_mobilenet_v1_coco_2017_11_17'
+model_name = 'faster_rcnn_inception_v2_coco_2018_01_28'
 detection_model = load_model(model_name)
 
 
@@ -85,10 +89,12 @@ def run_inference_for_single_image(model, image):
 
     return output_dict
 
-def show_inference(model, image_path):
+def show_inference(model, image_np):
   # the array based representation of the image will be used later in order to prepare the
   # result image with boxes and labels on it.
-  image_np = np.array(Image.open(image_path))
+  #image_np = np.array(Image.open(image_path))
+  #image_np = image_np[150:(150+125),160:(160+200),:]
+  #image_np = image_np[200:(210 + 40), 220:(220 + 50), :]
   # Actual detection.
   output_dict = run_inference_for_single_image(model, image_np)
   # Visualization of the results of a detection.
@@ -100,11 +106,78 @@ def show_inference(model, image_path):
       category_index,
       instance_masks=output_dict.get('detection_masks_reframed', None),
       use_normalized_coordinates=True,
-      line_thickness=8)
+      line_thickness=3)
   result = Image.fromarray(image_np)
   display(Image.fromarray(image_np))
   result.save("test.jpg")
 
+def retrieveclasses(model, image_np):
+    output_dict = run_inference_for_single_image(model, image_np)
+    classes = output_dict['detection_classes']
+    class_freq = defaultdict(lambda: 0)
+    for i in range(0, min(20,output_dict['detection_boxes'].shape[0])):
+        if classes[i] in six.viewkeys(category_index):
+            class_name = category_index[classes[i]]['name']
+        else:
+            class_name = 'N/A'
+        class_freq[class_name] += 1
+    return class_freq
 
-for image_path in TEST_IMAGE_PATHS:
-  show_inference(detection_model, image_path)
+def region_of_interest(img, vertices):
+    """
+    Applies an image mask.
+
+    Only keeps the region of the image defined by the polygon
+    formed from `vertices`. The rest of the image is set to black.
+    """
+    # defining a blank mask to start with
+    mask = np.zeros_like(img)
+
+    # defining a 3 channel or 1 channel color to fill the mask with depending on the input image
+    if len(img.shape) > 2:
+        channel_count = img.shape[2]  # i.e. 3 or 4 depending on your image
+        ignore_mask_color = (255,) * channel_count
+    else:
+        ignore_mask_color = 255
+
+    # filling pixels inside the polygon defined by "vertices" with the fill color
+    cv2.fillPoly(mask, vertices, ignore_mask_color)
+
+    # returning the image only where mask pixels are nonzero
+    masked_image = cv2.bitwise_and(img, mask)
+    return masked_image
+
+#for image_path in TEST_IMAGE_PATHS:
+#  show_inference(detection_model, image_path)
+cap = cv2.VideoCapture('../videos/9-10-18_cropped.mp4')
+#cap.set(cv2.CAP_PROP_POS_FRAMES,28800)
+#ret, frame = cap.read()
+vertices = np.array([[[140, 170], [160,220], [280, 280],[360,200],[350, 170],[220,120]]], dtype=np.int32)
+#cv2.imshow("frame", frame)
+#cv2.waitKey(0)
+#maskedimage = region_of_interest(frame,vertices)
+#cv2.imshow("masked", maskedimage)
+#cv2.waitKey(0)
+#show_inference(detection_model, maskedimage[120:280, 140:360])
+
+#cv2.imshow('mask', maskedimage)
+totalFrames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+overall_class_freq = defaultdict(lambda : 0)
+ret = True
+i = 0
+while ret:
+    ret, frame = cap.read()
+    #cv2.imshow('frame',frame)
+    if i % 5 == 0:
+        maskedimage = frame # region_of_interest(frame,vertices)
+        detectedclasses = retrieveclasses(detection_model, maskedimage)#[120:200, 140:360])
+        print(detectedclasses)
+        for key in detectedclasses.keys():
+            overall_class_freq[key] += detectedclasses[key]
+    i +=1
+    #show_inference(detection_model, maskedimage[120:280, 140:360])
+    #cv2.imshow('mask', maskedimage)
+    #cv2.waitKey(0)
+
+# changes
+print(overall_class_freq)
