@@ -181,3 +181,6 @@ while ret:
 
 # changes
 print(overall_class_freq)
+output = open("class_freq.txt", "w")
+for key in overall_class_freq.keys():
+    output.write(str(key) + ": " + str(overall_class_freq[key]) + "\n")

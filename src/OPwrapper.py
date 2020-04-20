@@ -63,7 +63,7 @@ except ImportError as e:
 class OP():
     def __init__(self):
         params = dict() 
-        params["model_folder"] = "/home/rkaufman/dev/openpose/models" 
+        params["model_folder"] = "/Users/michaelhuang/PycharmProjects/gast_analyisis_new/openpose/models"
         self.opWrapper = op.WrapperPython() 
         self.opWrapper.configure(params) 
         self.opWrapper.start() 
