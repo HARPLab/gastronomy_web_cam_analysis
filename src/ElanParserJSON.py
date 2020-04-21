@@ -125,6 +125,7 @@ for child in root:
 
                     #writestring = writestring + "Act:"+str(activity)
                     frame_to_poseact[f_id] = feature_data
+                    print("added personA " + f_id)
                     #print(writestring + activity)
                     #outfile.write(writestring + "\n")
 
@@ -145,6 +146,7 @@ for child in root:
                     if f_id in frame_to_poseact.keys():
                         feature_data = frame_to_poseact[f_id]
                         frame_to_poseact[f_id] = addActivityToFeatureObj(feature_data, 'person-B', activity)
+                        print("added personB " + f_id)
                         continue                    
                     #print(str(f_id))
                     if f_id >= frame_id:
@@ -157,6 +159,7 @@ for child in root:
                         feature_data = getFeatureObj(currentframe, pose_datum)
                         feature_data = addActivityToFeatureObj(feature_data, 'person-B', activity)
                         
+                        print("updated personB " + f_id)
 
                         frame_to_poseact[f_id] = feature_data
                     #print(writestring + activity)
