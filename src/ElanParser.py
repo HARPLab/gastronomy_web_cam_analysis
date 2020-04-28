@@ -38,7 +38,8 @@ def parseXML(elanfile):
     return root
     print(root.tag)
 
-root = parseXML('../Annotations/8-21-18-michael.eaf')
+filename = "8-21-18"
+root = parseXML('../Annotations/' + filename '-michael.eaf')
 timedict = {}
 activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
             'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
@@ -46,7 +47,7 @@ activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'ta
             'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20}
 
 ##cv2 create framedictionary
-cap = cv2.VideoCapture("PATH_TO_CLIP")
+cap = cv2.VideoCapture("../videos/" + filename + "_cropped.mp4")
 frames = {}
 frame_id = 0
 while True:
@@ -64,7 +65,7 @@ engine = create_engine('sqlite:///gastro.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
-new_clip = Clip(clip_name='8-21-18-michael.eaf')
+new_clip = Clip(clip_name=filename + '-michael.eaf')
 session.add(new_clip)
 session.commit()
 def maskTable(frame):
