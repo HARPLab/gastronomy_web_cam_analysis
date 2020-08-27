@@ -21,20 +21,12 @@
 # 19 looking:PersonB
 # 20 take-out-food
 ######################
-##
-## loop through each frame and check if there is an annotation available for that frame.
-## record the frame id for which there are annotations and use the annotation key
-## fram nump should start at 0, then convert frame number to time through 30 fps
 import xml.etree.ElementTree as ET
-#from sqlalchemy import create_engine
-#from sqlalchemy.orm import sessionmaker
-#from SQL_DB.ClassDeclarations import Frame, Pose, Object, Activity, Clip, Base
 import cv2
 from collections import defaultdict
 from OPwrapper import OP
 import json
 
-#from tensorflow_human_detection import DetectorAPI
 def parseXML(elanfile):
     tree = ET.parse(elanfile)
     root = tree.getroot()
@@ -61,9 +53,6 @@ while True:
     frames[frame_id] = frame
     frame_id = frame_id + 1
 print(frame_id)
-#print(frames[30])
-## object detector initialization
-#object_detector = DetectorAPI()
 
 def getFeatureObj(currentframe, pose_datum):
     feature_data = {}
@@ -82,13 +71,6 @@ def addActivityToFeatureObj(feature_obj, personLabel, activity):
 
 
 ## database initialization
-#engine = create_engine('sqlite:///gastro.db')
-#Base.metadata.bind = engine
-#DBSession = sessionmaker(bind=engine)
-#session = DBSession()
-#new_clip = Clip(clip_name='8-21-18-michael.eaf')
-#session.add(new_clip)
-#session.commit()
 ## start looping through annotation labels
 write_file = "restaurant_features_full-" + filename_root + ".json"
 outfile = open(write_file, "w")
@@ -113,28 +95,20 @@ for child in root:
                     activity=anno.text
                 for f_id in range (beginning_frame, ending_frame):
                     #print("adding another frame from annotation")
-                    #print(str(f_id))
                     if f_id >= frame_id:
                         continue
                     currentframe = frames[f_id]
-                    #print(currentframe)
-                    #print(frames[30])
                     pose_datum = openpose_wrapper.getOpenposeDataFrom(frame=currentframe)
                     feature_data = getFeatureObj(currentframe, pose_datum)
                     feature_data = addActivityToFeatureObj(feature_data, 'person-A', activity)
-
-                    #writestring = writestring + "Act:"+str(activity)
                     frame_to_poseact[f_id] = feature_data
                     print("added personA " + f_id)
-                    #print(writestring + activity)
-                    #outfile.write(writestring + "\n")
 
 
     elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonB':
          for annotation in child:
             print("adding PersonB's annotations...")
             for temp in annotation: ## this should only loop once, couldnt figure out how to access a child xml tag without looping
-                #print(temp.attrib['TIME_SLOT_REF1'])
                 ## beginning frame
                 beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
                 ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
@@ -165,13 +139,6 @@ for child in root:
                     #print(writestring + activity)
                     #outfile.write(writestring + "\n")
         
-                # add frames within these bounds with correct activities to data base
-                # for each frame, add (pose, objects, activity): For future persons, need to check if frame is already
-                # added, in which case only need to add another activity entry related to the frame. This should make
-                # each frame be only related to exactly one pose, one objectdata, and at most two(n) activities
-                # using the frame id, get the correct frame run openpose and add coresponding pose to database
-                # using frame id, get correct frame and run object detection
-
 print(len(frame_to_poseact))
 
 outfile.write(json.dumps(frame_to_poseact))

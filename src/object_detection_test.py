@@ -52,7 +52,9 @@ TEST_IMAGE_PATHS = sorted(list(PATH_TO_TEST_IMAGES_DIR.glob("*.jpg")))
 
 
 #model_name = 'ssd_mobilenet_v1_coco_2017_11_17'
+# faster_rcnn_inception_v2_coco_2018_01_28
 model_name = 'faster_rcnn_inception_v2_coco_2018_01_28'
+
 detection_model = load_model(model_name)
 
 
@@ -147,40 +149,13 @@ def region_of_interest(img, vertices):
     masked_image = cv2.bitwise_and(img, mask)
     return masked_image
 
-#for image_path in TEST_IMAGE_PATHS:
-#  show_inference(detection_model, image_path)
 cap = cv2.VideoCapture('../videos/9-10-18_cropped.mp4')
-#cap.set(cv2.CAP_PROP_POS_FRAMES,28800)
-#ret, frame = cap.read()
-vertices = np.array([[[140, 170], [160,220], [280, 280],[360,200],[350, 170],[220,120]]], dtype=np.int32)
-#cv2.imshow("frame", frame)
-#cv2.waitKey(0)
-#maskedimage = region_of_interest(frame,vertices)
-#cv2.imshow("masked", maskedimage)
-#cv2.waitKey(0)
-#show_inference(detection_model, maskedimage[120:280, 140:360])
+cap.set(cv2.CAP_PROP_POS_FRAMES,29200)
+ret, frame = cap.read()
+vertices = np.array([[[100, 80], [100,400], [370, 400],[370,80]]], dtype=np.int32)
+cv2.imwrite("frame.png", frame)
+cv2.waitKey(0)
+maskedimage = frame[100:400, 100:370]#region_of_interest(frame,vertices)
 
-#cv2.imshow('mask', maskedimage)
-totalFrames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-overall_class_freq = defaultdict(lambda : 0)
-ret = True
-i = 0
-while ret:
-    ret, frame = cap.read()
-    #cv2.imshow('frame',frame)
-    if i % 5 == 0:
-        maskedimage = frame # region_of_interest(frame,vertices)
-        detectedclasses = retrieveclasses(detection_model, maskedimage)#[120:200, 140:360])
-        print(detectedclasses)
-        for key in detectedclasses.keys():
-            overall_class_freq[key] += detectedclasses[key]
-    i +=1
-    #show_inference(detection_model, maskedimage[120:280, 140:360])
-    #cv2.imshow('mask', maskedimage)
-    #cv2.waitKey(0)
-
-# changes
-print(overall_class_freq)
-output = open("class_freq.txt", "w")
-for key in overall_class_freq.keys():
-    output.write(str(key) + ": " + str(overall_class_freq[key]) + "\n")
+show_inference(detection_model, maskedimage)
+print("done")
