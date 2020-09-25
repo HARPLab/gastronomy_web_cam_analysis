@@ -2,7 +2,6 @@
 # code below adapted from https://gist.github.com/madhawav/1546a4b99c8313f06c0b2d7d7b4a09e2
 #######################
 
-
 # Code adapted from Tensorflow Object Detection Framework
 # https://github.com/tensorflow/models/blob/master/research/object_detection/object_detection_tutorial.ipynb
 # Tensorflow Object Detection Detector
@@ -108,6 +107,7 @@ class DetectorAPI:
             2 = INFO and WARNING messages are not printed
             3 = INFO, WARNING, and ERROR messages are not printed
         """
+        print("hi")
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' 
         self.path_to_ckpt = path_to_ckpt
 
@@ -145,10 +145,10 @@ class DetectorAPI:
         print("[INFO] Mask R-CNN took {:.6f} seconds".format(end - start))
         print("[INFO] boxes shape: {}".format(boxes.shape))
         print("[INFO] masks shape: {}".format(masks.shape))
-        postprocess(image, boxes, masks)
+        #postprocess(image, boxes, masks)
         return image
 
-    def processFrame(self, image):
+    """def processFrame(self, image):
         # Expand dimensions since the trained_model expects images to have shape: [1, None, None, 3]
         image_np_expanded = np.expand_dims(image, axis=0)
         # Actual detection.
@@ -191,32 +191,6 @@ class DetectorAPI:
         self.sess.close()
         self.default_graph.close()
 
-    def get_human_count(self, frame, threshold=0.7):
-        odapi = self
-        img = cv2.resize(frame, (1280, 720))
-
-        boxes, scores, classes, num = odapi.processFrame(img)
-        human_count = 0
-        for i in range(len(boxes)):
-            # Class 1 represents human
-            if classes[i] == 1 and scores[i] > threshold:
-                human_count += 1
-        
-        return human_count
-
-    @staticmethod 
-    def get_human_count(frame, threshold=0.7):
-        odapi = DetectorAPI()
-        img = cv2.resize(frame, (1280, 720))
-
-        boxes, scores, classes, num = odapi.processFrame(img)
-        human_count = 0
-        for i in range(len(boxes)):
-            # Class 1 represents human
-            if classes[i] == 1 and scores[i] > threshold:
-                human_count += 1
-        
-        return human_count
     # @staticmethod 
     # def get_objects(frame, threshold=0.7):
     #     odapi = DetectorAPI()
@@ -230,12 +204,14 @@ class DetectorAPI:
     #             human_count += 1
         
     #     return human_count
-
-# d = DetectorAPI()
-# img = cv2.imread("./temp.jpg")
-# # other_img = d.renderBoxes(img)
-# segmented = d.segment(img)
-
+    """
+print("hi")
+d = DetectorAPI()
+print("hi")
+img = cv2.imread("temp.jpg")
+# #other_img = d.renderBoxes(img)
+segmented = d.segment(img)
+cv2.imshow(segmented)
 # while True:
 #     cv2.imshow("preview", img)
 #     cv2.imshow("preview alt", segmented)
