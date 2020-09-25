@@ -49,7 +49,7 @@ if not FLAG_SVM:
         Y_test = []
 
         #shuffled_list = copy.copy(timeline)
-
+        """
         shuffled_list = pickle.load(open("13-17-18-21_data.pickle","rb"))["timeline"] #copy.copy(timeline)
         #pickle.dump(shuffled_list, open("8-21-18_data_list.p", "wb"))
         test_list = pickle.load(open("8-21-18_data.pickle", "rb"))["timeline"]
@@ -76,11 +76,25 @@ if not FLAG_SVM:
                 X_test.extend(newX)
                 Y_test.append(newY)
         print("slicing...")
+        
         window_size=128
         X_train = np.asarray(X_train)
         Y_train = np.asarray(Y_train)
         X_test = np.asarray(X_test)
         Y_test = np.asarray(Y_test)
+        print(X_train.shape)
+        #pickle.dump(X_train, open("X_train.p", "wb"), protocol=4)
+        #pickle.dump(X_test, open("X_test.p", "wb"), protocol=4)
+        #pickle.dump(Y_train, open("Y_train.p", "wb"), protocol=4)
+        #pickle.dump(Y_test, open("Y_test.p", "wb"), protocol=4)
+         """ 
+        X_train = pickle.load(open("X_train.p", "rb"))
+        Y_train = pickle.load(open("Y_train.p", "rb"))
+        X_test = pickle.load(open("X_test.p", "rb"))
+        Y_test = pickle.load(open("Y_test.p", "rb"))
+        
+        
+        window_size=128         
         X_train_sliced = np.zeros((X_train.shape[0]-window_size, window_size, X_train.shape[1]))
         Y_train_sliced = np.zeros((Y_train.shape[0]-window_size, 1))
         X_test_sliced = np.zeros((X_test.shape[0]-window_size, window_size, X_test.shape[1]))
@@ -97,10 +111,10 @@ if not FLAG_SVM:
         Y_train_sliced = to_categorical(Y_train_sliced)
         Y_test_sliced = to_categorical(Y_test_sliced)
         print(X_train_sliced.shape, Y_train_sliced.shape, X_test_sliced.shape, Y_test_sliced.shape)
-        #pickle.dump(X_train_sliced, open("X_train_sliced.p", "wb"), protocol=2)
-        #pickle.dump(X_test_sliced, open("X_test_sliced.p", "wb"), protocol=2)
-        #pickle.dump(Y_train_sliced, open("Y_train_sliced.p", "wb"), protocol=2)
-        #pickle.dump(Y_test_sliced, open("Y_test_sliced.p", "wb"), protocol=2)
+        #pickle.dump(X_train_sliced, open("X_train_sliced.p", "wb"), protocol=4)
+        #pickle.dump(X_test_sliced, open("X_test_sliced.p", "wb"), protocol=4)
+        #pickle.dump(Y_train_sliced, open("Y_train_sliced.p", "wb"), protocol=4)
+        #pickle.dump(Y_test_sliced, open("Y_test_sliced.p", "wb"), protocol=4)
         try:
                 model = pickle.load(open("LSTMblah_4train-1test-70epochs.p", "rb"))
                 #pred_Y = model.predict(X_test_sliced)
@@ -147,6 +161,6 @@ if not FLAG_SVM:
                 plot_confusion_matrix(cm,cmap=plt.cm.Blues)
                 plt.savefig("LSTM4170epochs_confusion_mat.png")
         except:
-                run_experiments(X_train_sliced, Y_train_sliced, X_test_sliced, Y_test_sliced)
+                run_experiment(X_train_sliced, Y_train_sliced, X_test_sliced, Y_test_sliced)
                 print("error")
 

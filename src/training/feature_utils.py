@@ -30,7 +30,26 @@ import pickle
 import copy
 import numpy as np
 import keras
+activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
+                        'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
+                        'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
+                        'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20, 'leaving-table':21, 'cleaning-up':22, 'NONE':23}
 
+# Lookup table for OpenPose keypoint indices
+keypoint_labels = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder",
+                                                "LElbow","LWrist","MidHip","RHip","RKnee","RAnkle","LHip","LKnee","LAnkle","REye","LEye","REar",
+                                                "LEar","LBigToe", "LSmallToe", "LHeel", "RBigToe", "RSmallToe", "RHeel", "Background", '']
+
+NULL_POSE = [(0.0, 0.0, 0.0)]
+
+FEATURES_TYPE_POSES_RAW = 10
+FEATURES_TYPE_POSES_ROLES = 11
+FEATURES_TYPE_ALSO_VEL = 12
+FEATURES_SET_PA = 0
+FEATURES_SET_PB = 1
+FEATURES_SET_BOTH = 2
+FLAG_FEATURE_SET = FEATURES_SET_PA
+FLAG_FEATURE_TYPE = FEATURES_TYPE_POSES_RAW
 
 def get_main_pt(pt_set):
         # return the nose point
@@ -86,17 +105,26 @@ def get_role_labels(cleaned_poses):
 def get_feature_vector(frame): # TODO add cleaned feature type here
         feature_vector = []
         if FLAG_FEATURE_TYPE is FEATURES_TYPE_POSES_RAW:
-                test = np.array(frame.get_poses_clean()[0][0])
-                #print(test.shape)
+                if len(frame.get_poses_raw()) > 0:
+                    test = np.array(frame.get_poses_raw()[0][0])
+                else:
+                    return np.zeros(50), False
+                #print(test)
+                #raw = np.zeros(50)
+                #for cleaned_pose in frame.get_poses_clean():
+                #    if np.array(cleaned_pose[0]).shape != (3,):
+                #        raw = np.array(cleaned_pose[0])[:, 0:2]
+                #        break
                 #raw = np.array(frame.get_poses_clean()[0][0])[:,0:2]
                 if test.shape == (3,):
                         return np.zeros(50), False
                 raw = test[:, 0:2]
+                #print(raw)
                 feature_vector.append(raw)
 
         elif FLAG_FEATURE_TYPE is FEATURES_TYPE_POSES_ROLES:
                 if FLAG_FEATURE_SET is FEATURES_SET_PA:
-                        print(frame.get_PA())
+                        #iprint(frame.get_PA())
                         feature_vector.append(frame.get_PA())
 
                 elif FLAG_FEATURE_SET is FEATURES_SET_PB:
@@ -141,7 +169,8 @@ def frame_to_vectors(frame):
 
         newY = get_labels_vector(frame)
         feature_vector, ret = get_feature_vector(frame)
-        # print(feature_vector.shape)
+        #print(feature_vector.shape)
+        #print(newY)
         if not ret:
                 return newX, newY, False
         #print(feature_vector.shape)
