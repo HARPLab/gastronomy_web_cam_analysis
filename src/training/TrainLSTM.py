@@ -116,10 +116,10 @@ if not FLAG_SVM:
         #pickle.dump(Y_train_sliced, open("Y_train_sliced.p", "wb"), protocol=4)
         #pickle.dump(Y_test_sliced, open("Y_test_sliced.p", "wb"), protocol=4)
         try:
-                model = pickle.load(open("LSTMblah_4train-1test-70epochs.p", "rb"))
-                #pred_Y = model.predict(X_test_sliced)
-                #pickle.dump(pred_Y, open("pred_Y_LSTM70epochs.p", "wb"))
-                pred_Y = pickle.load(open("pred_Y_LSTM70epochs.p", "rb"))
+                model = pickle.load(open("LSTM_4train-1test-1epochs.p", "rb"))
+                pred_Y = model.predict(X_test_sliced)
+                pickle.dump(pred_Y, open("pred_Y_LSTM1epochs.p", "wb"))
+                #pred_Y = pickle.load(open("pred_Y_LSTM70epochs.p", "rb"))
                 decodedpredY = pred_Y.argmax(axis=1)
                 decodedtestY = Y_test_sliced.argmax(axis=1)
                 frequencytest = {}
@@ -159,7 +159,7 @@ if not FLAG_SVM:
                 cm = cm / (sum_of_rows[:, np.newaxis]+1e-8)
                 print(cm)
                 plot_confusion_matrix(cm,cmap=plt.cm.Blues)
-                plt.savefig("LSTM4170epochs_confusion_mat.png")
+                plt.savefig("LSTM411epochs_confusion_mat.png")
         except:
                 run_experiment(X_train_sliced, Y_train_sliced, X_test_sliced, Y_test_sliced)
                 print("error")
