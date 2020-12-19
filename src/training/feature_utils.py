@@ -42,14 +42,31 @@ keypoint_labels = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder",
 
 NULL_POSE = [(0.0, 0.0, 0.0)]
 
+ROLES_BY_BUCKET = 0
 FEATURES_TYPE_POSES_RAW = 10
 FEATURES_TYPE_POSES_ROLES = 11
 FEATURES_TYPE_ALSO_VEL = 12
 FEATURES_SET_PA = 0
 FEATURES_SET_PB = 1
 FEATURES_SET_BOTH = 2
+LABELS_SET_PA = 0
+LABELS_SET_PB = 1
 FLAG_FEATURE_SET = FEATURES_SET_PA
-FLAG_FEATURE_TYPE = FEATURES_TYPE_POSES_RAW
+FLAG_FEATURE_TYPE = FEATURES_TYPE_POSES_ROLES
+FLAG_ROLE_ASSIGNMENT = ROLES_BY_BUCKET
+FLAG_LABEL_SET = LABELS_SET_PA
+
+nexuses = [(170, 146), (329, 221)]
+
+nexus_PA = (170, 146)
+nexus_PB = (329, 221)
+nexus_waiter = (nexus_PA + nexus_PB)
+nexus_waiter = (nexus_waiter[0] / 2.0, nexus_waiter[1] / 2.0)
+
+confidence_threshold = .8
+NULL_POSE = [(0.0, 0.0, 0.0)]
+NULL_POSE = NULL_POSE * 25
+
 
 def get_main_pt(pt_set):
         # return the nose point
@@ -69,10 +86,40 @@ def com_near_nexus(com_xy, nexuses, tol):
                         return True
 
         return False
+def in_bd_box(bd_box, point):
+        return point[0] > bd_box[0][0] and point[0] < bd_box[0][1] and point[1] < bd_box[1][1] and point[1] > bd_box[1][0]
 
 def get_role_labels(cleaned_poses):
+        if len(cleaned_poses) == 0:
+                return None, None, None
+        bd_box_B = ((90,350),(250,450))
+        bd_box_A = ((90,350),(70,230))
+        num_points_in_Abox = []
+        num_points_in_Bbox = []
+        for pose in cleaned_poses:
+                num_pts_in_A = 0
+                num_pts_in_B = 0
+                for r in range(len(pose[0])):
+                        if in_bd_box(bd_box_A, pose[0][r]):
+                                num_pts_in_A += 1
+                        if in_bd_box(bd_box_B, pose[0][r]):
+  	                        num_pts_in_B += 1
+                num_points_in_Abox.append(num_pts_in_A) 
+                num_points_in_Bbox.append(num_pts_in_B)
+        max_A_idx = 0
+        max_pts_A = -1
+        max_B_idx = 0
+        max_pts_B = -1
+        for i in range(len(num_points_in_Abox)):
+                if num_points_in_Abox[i] > max_pts_A:
+                        max_A_idx = i
+                        max_pts_A = num_points_in_Abox[i]
+                if num_points_in_Bbox[i] > max_pts_B:
+                        max_B_idx = i
+                        max_pts_B = num_points_in_Bbox[i]
+        return cleaned_poses[max_A_idx], cleaned_poses[max_B_idx], None
+"""
         assignments = [None, None, None]
-
         if FLAG_ROLE_ASSIGNMENT == ROLES_BY_BUCKET:
                 role_nexuses = [nexus_PA, nexus_PB]
                 if len(cleaned_poses) > len(role_nexuses):
@@ -92,23 +139,24 @@ def get_role_labels(cleaned_poses):
 
                         if len(distances) > 0:
                                 distances_np = np.asarray(distances)
-                                assignment = distances_np.argmax()
+                                assignment = distances_np.argmin()
                         else:
                                 assignment = NULL_POSE
 
-                        assignments[i] = assignment #TODO change to cleaned_poses[assignment]
+                        assignments[i] = cleaned_poses[assignment] #TODO change to cleaned_poses[assignment] PA->index of closest pos in cleaned poses, PB, Waiter
 
         else:
                 print("ERROR IN ROLES")
 
         return assignments
+"""
 def get_feature_vector(frame): # TODO add cleaned feature type here
         feature_vector = []
         if FLAG_FEATURE_TYPE is FEATURES_TYPE_POSES_RAW:
-                if len(frame.get_poses_raw()) > 0:
+                if len(frame.get_poses_raw()) > 1:
                     test = np.array(frame.get_poses_raw()[0][0])
                 else:
-                    return np.zeros(50), False
+                    return [np.zeros(50)], [np.zeros(50)],  False
                 #print(test)
                 #raw = np.zeros(50)
                 #for cleaned_pose in frame.get_poses_clean():
@@ -117,22 +165,24 @@ def get_feature_vector(frame): # TODO add cleaned feature type here
                 #        break
                 #raw = np.array(frame.get_poses_clean()[0][0])[:,0:2]
                 if test.shape == (3,):
-                        return np.zeros(50), False
+                        return [np.zeros(50)], [np.zeros(50)], False
                 raw = test[:, 0:2]
                 #print(raw)
-                feature_vector.append(raw)
+                feature_vector.append(raw.flatten())
 
         elif FLAG_FEATURE_TYPE is FEATURES_TYPE_POSES_ROLES:
                 if FLAG_FEATURE_SET is FEATURES_SET_PA:
-                        #iprint(frame.get_PA())
-                        feature_vector.append(frame.get_PA())
+                        #print("PA: " + str(frame.get_PA()))
+                        feature_vector.append(np.array(frame.get_PA()[0])[:,0:2].flatten())
 
                 elif FLAG_FEATURE_SET is FEATURES_SET_PB:
-                        feature_vector.append(frame.get_PB())
+                        feature_vector.append(np.array(frame.get_PB()[0])[:,0:2].flatten())
 
                 elif FLAG_FEATURE_SET is FEATURES_SET_BOTH:
-                        feature_vector.append(frame.get_PA())
-                        feature_vector.append(frame.get_PB())
+                        b_feats = np.array(frame.get_PB()[0])[:,0:2].flatten()
+                        a_feats = np.array(frame.get_PA()[0])[:,0:2].flatten()
+                        both_feats = np.concatenate((a_feats, b_feats), axis=None)
+                        feature_vector.append(both_feats)
 
 
         elif FLAG_FEATURE_TYPE is FEATURES_TYPE_ALSO_VEL:
@@ -146,8 +196,9 @@ def get_feature_vector(frame): # TODO add cleaned feature type here
                 elif FLAG_FEATURE_SET is FEATURES_SET_PA:
                         feature_vector.append(frame.get_label_PA())
                         feature_vector.append(frame.get_label_PB())
-
-        return np.asarray(feature_vector).flatten(), True
+        rev_temp = copy.deepcopy(feature_vector)
+        rev_temp.reverse()
+        return feature_vector, rev_temp, True #list of flattend poses, up to two poses per list for PA and PB
 
 def get_labels_vector(frame):
         newY = []
@@ -157,28 +208,38 @@ def get_labels_vector(frame):
         elif FLAG_FEATURE_SET is FEATURES_SET_PB:
                 newY.append(frame.get_label_PA())
         elif FLAG_FEATURE_SET is FEATURES_SET_BOTH:
-                newY.append(frame.get_label_PA())
-                newY.append(frame.get_label_PB())
-
-        return newY
+                if FLAG_LABEL_SET is LABELS_SET_PA:
+                        newY.append(frame.get_label_PA())
+                if FLAG_LABEL_SET is LABELS_SET_PB:
+                        newY.append(frame.get_label_PB())
+        rev_temp = copy.deepcopy(newY)
+        rev_temp.reverse()
+        return newY, rev_temp #up to two labels per list
 
 
 def frame_to_vectors(frame):
         newX = []
+        newrX = []
         newY = []
 
-        newY = get_labels_vector(frame)
-        feature_vector, ret = get_feature_vector(frame)
+        newY, revY= get_labels_vector(frame)
+        feature_vector, rev_feature_vector, ret = get_feature_vector(frame)
+       # print(newY)
+        #print("feat:" + str(feature_vector))
+        assert len(newY) == len(feature_vector)
         #print(feature_vector.shape)
         #print(newY)
         if not ret:
-                return newX, newY, False
+                return newX, newY, [], [], False
         #print(feature_vector.shape)
-        for ys in newY:
-                newX.append(feature_vector)
-        newY = activitydict[newY[0]]
-        #print(newY) 
-        return newX, newY, True
+        for i in range(len(newY)):
+                newX.append(feature_vector[i])
+                newrX.append(rev_feature_vector[i])
+        newY = [activitydict[ny] for ny in newY]
+        newrY = [activitydict[ny] for ny in revY] 
+        #print("nexX: " + str(newX))
+        return newX, newY, newrX, newrY, True # ith label in newY corresponds to ith featurevector in newX.
+
 def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Oranges):
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
@@ -240,6 +301,6 @@ class TrainingPlot(keras.callbacks.Callback):
             plt.xlabel("Epoch #")
             plt.ylabel("Loss/Accuracy")
             plt.legend()
-            plt.savefig("LSTM_Losses70epochs.png")
+            plt.savefig("LSTM_Losses.png")
             plt.close()
 

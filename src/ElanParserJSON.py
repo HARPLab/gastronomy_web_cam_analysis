@@ -76,6 +76,7 @@ write_file = "restaurant_features_full-" + filename_root + ".json"
 outfile = open(write_file, "w")
 openpose_wrapper = OP()
 frame_to_poseact ={} #f_id -> (posedata, personAactivity, personBactivity)
+surf = cv2.SURF(400)
 for child in root:
     if child.tag == 'TIME_ORDER':
         for times in child:
@@ -98,6 +99,9 @@ for child in root:
                     if f_id >= frame_id:
                         continue
                     currentframe = frames[f_id]
+                    gray = cv2.cvtColor(currentframe, cv2.COLOR_BGR2GRAY)
+                    kp, des = surf.detectAndCompute(gray,None)
+                    print(len(kp))
                     pose_datum = openpose_wrapper.getOpenposeDataFrom(frame=currentframe)
                     feature_data = getFeatureObj(currentframe, pose_datum)
                     feature_data = addActivityToFeatureObj(feature_data, 'person-A', activity)
@@ -129,6 +133,7 @@ for child in root:
                         currentframe = frames[f_id]
                         #print(currentframe)
                         #print(frames[30])
+                        
                         pose_datum = openpose_wrapper.getOpenposeDataFrom(frame=currentframe)
                         feature_data = getFeatureObj(currentframe, pose_datum)
                         feature_data = addActivityToFeatureObj(feature_data, 'person-B', activity)

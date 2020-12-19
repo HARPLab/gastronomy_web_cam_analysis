@@ -35,7 +35,7 @@ FLAG_FEATURE_TYPE = FEATURES_TYPE_POSES_RAW
 FLAG_FEATURE_SET = FEATURES_SET_PA
 
 
-filename_root = "8-21-18"
+filename_root = "all_data"
 full_import_name = filename_root + "_cropped.mp4"
 
 pickle_name = "all_data.pickle" #filename_root + ".pickle"
@@ -56,39 +56,44 @@ NULL_POSE = NULL_POSE * 25
 print("Looking for previously pickled file")
 filepath_features = 'features_' + filename_root + '.txt'
 db = {}
-try:
-        db = pickle.load(open("8-21-18_data.pickle", "rb"))
-        print("Successfully imported pickle")
-
+try:  
+    db = pickle.load(open("13-17-18-21_data.pickle", "rb"))
+    print("Successfully imported pickle")
 except (OSError, IOError) as e:
-        timeline = []
-        files = ["features_8-13-18.txt", "features_8-17-18.txt", "features_8-18-18.txt", "features_8-21-18.txt"] 
-        for filepath_features in files:
-                with open("../feature_data/" + filepath_features) as fp:
-                        print("Generating import file from scratch")
-                        print("Now with obj defs")
-                        input_content = fp.read()
+    timeline = []
+    files = ["features_8-13-18.txt", "features_8-21-18.txt", "features_8-17-18.txt", "features_8-18-18.txt", "features_8-21-18.txt"] 
+    #sift_files = ["8-13-18_sift_features.txt", "8-21-18_sift_features.txt"]#"8-17-18_sift_features.txt", "8-18-18_sift_features.txt", "8-21-18_sift_features.txt"]
+    for (filepath_features, sift_features) in zip(files, sift_files):
+        sp = open("../feature_data/" + sift_features)
+        with open("../feature_data/" + filepath_features) as fp:
+            print("Generating import file from scratch")
+            print("Now with obj defs")
+            input_content = fp.read()
+            sifts = sp.read()
+            sift_features = sifts.split("\n")
+            frames = input_content.split("Body")
 
-                        frames = input_content.split("Body")
+            print("Number of frames:")
+            print(len(frames))
+            print("Number of sifts:")
+            print(len(sift_features))
+            frame_counter = 0
+            for i in range(len(frames)):
+                frame = frames[i]
+                s = sift_features[i]
+                if len(frame) > 0:
+                    frame_counter = len(timeline)
+                    frame_obj = RestaurantFrame(frame_counter, frame, s)
+                    frame_index = frame_obj.get_frame_number()
+                    timeline.append(frame_obj)
+    db['timeline'] = timeline
+    db['filename'] = filename_root
 
-                        print("Number of frames:")
-                        print(len(frames))
-
-                        frame_counter = 0
-                        for frame in frames:
-                                if len(frame) > 0:
-                                        frame_counter = len(timeline)
-                                        frame_obj = RestaurantFrame(frame_counter, frame)
-                                        frame_index = frame_obj.get_frame_number()
-                                        timeline.append(frame_obj)
-
-        db['timeline'] = timeline
-        db['filename'] = filename_root
-
-        dbfile = open("13-17-18-21_data" + ".pickle", 'ab') 
-        pickle.dump(db, dbfile)                                   
-        dbfile.close() 
-        #8-9-18
+    dbfile = open("13-21_sift_data" + ".pickle", 'ab') 
+    pickle.dump(db, dbfile)                                   
+    dbfile.close() 
+#8-9-18
+"""
         with open("../feature_data/" + filepath_features) as fp:
                         print("Generating import file from scratch")
                         print("Now with obj defs")
@@ -111,7 +116,7 @@ except (OSError, IOError) as e:
         dbfile = open("8-21-18_data" + ".pickle", 'ab')
         pickle.dump(db, dbfile)                                   
         dbfile.close() 
-
+"""
 
 timeline = db['timeline']
 analytics_db = {}
@@ -188,13 +193,14 @@ for frame_index in range(len(timeline)):
                 if is_clean_point:
                         cleaned_poses.append(person_pose) 
 
-
-        new_frame.poses_arrays_cleaned = cleaned_poses
+        if len(cleaned_poses) == 0:
+                continue
+        #new_frame.poses_arrays_cleaned = cleaned_poses
         new_frame.num_poses_cleaned = len(cleaned_poses)
         total_poses_clean += len(cleaned_poses)
         pa, pb, waiter = get_role_labels(cleaned_poses)
         new_frame.set_roles(pa, pb, waiter)
-
+        
         num_person_log.append(new_frame.get_num_poses_clean())
 
 
@@ -202,6 +208,9 @@ for frame_index in range(len(timeline)):
         prev_frame = new_frame
 print("Total poses = " + str(total_poses))
 print("Cleaned poses = " + str(total_poses_clean))
+dbfile = open("13-17-18-21_data_processed.pickle", 'ab')
+pickle.dump(processed_timeline, dbfile)
+dbfile.close()
 """
 # visualization code for weird stuff
 if FLAG_EXPORT_OUTLIER_SAMPLES:
