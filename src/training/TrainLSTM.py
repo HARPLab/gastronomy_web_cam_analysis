@@ -120,7 +120,7 @@ class LSTMTrainer:
                best_config = params
        self.summarize_results(scores)
        print("best config: " + str(params))
-
+       return max_score
 # run the experiment
 def RestarauntFrames2Vec(filename, training_suff):
     X_train = []
@@ -214,14 +214,15 @@ modelpath = "models/processed_features/A_to_B/"
 X_train, Y_train, X_test, Y_test = None, None, None, None
 try:
     X_train = pickle.load(open("training_sets/X_train_processed_a.p","rb"))# + training_suffix +".p", "rb"))
-    Y_train = pickle.load(open("training_sets/Y_train_processed_b.p","rb"))#" + training_suffix +".p", "rb"))
+    Y_train = pickle.load(open("training_sets/Y_train_processed_a.p","rb"))#" + training_suffix +".p", "rb"))
     X_test = pickle.load(open("training_sets/X_test_processed_a.p","rb"))#" + training_suffix +".p", "rb"))
-    Y_test = pickle.load(open("training_sets/Y_test_processed_b.p","rb"))#" + training_suffix +".p", "rb"))
+    Y_test = pickle.load(open("training_sets/Y_test_processed_a.p","rb"))#" + training_suffix +".p", "rb"))
 except:
     print("generating sliced dataset...")
     X_train, Y_train, X_test, Y_test = RestarauntFrames2Vec("13-17-18-21_data_processed.pickle", training_suffix)
 #xt, yt, xtest, ytest = slice_vectors(X_train, Y_train, X_test, Y_test[0:X_test.shape[0]], window_size=128)
 train_list, test_list = slice_vectors(X_train, Y_train, X_test, Y_test[0:X_test.shape[0]], window_size=128)
+acc_sum = 0.0
 for i in range(0, len(train_list)):
     print("training for " +str(i) + "'th fold of data")
     xt, yt = train_list[i] 
@@ -230,8 +231,10 @@ for i in range(0, len(train_list)):
     trainer = LSTMTrainer(xt, yt, xtest, ytest)
     start_time = time.time()
     print("start_time: " + str(start_time))
-    trainer.run_experiment(False, i, modelpath)
+    acc = trainer.run_experiment(False, i, modelpath)
     #score, model = trainer.evaluate_model(xt, yt, xtest, ytest, {'verbose': 0, 'epochs': 1, 'batch_size': 64})
     end_time = time.time()
+    acc_sum += acc
     print("end_time: " + str(end_time))
     print("minutes elapsed: " + str((end_time-start_time)/60) )
+print("avg acc: " + str(float(acc_sum/float(len(train_list)))))
