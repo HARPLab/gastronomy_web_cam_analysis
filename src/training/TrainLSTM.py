@@ -4,11 +4,12 @@ FLAG_SVM = False
 import time
 #fid evaluate a model
 class LSTMTrainer:
-    def __init__(self, xtrain, ytrain, xtest, ytest):
+    def __init__(self, xtrain, ytrain, xtest, ytest, logfile):
         self.xtrain = xtrain
         self.ytrain = ytrain
         self.xtest = xtest
         self.ytest = ytest
+        self.logfile = logfile
         model = None
         
     def generate_cm(self, model, filename):
@@ -62,6 +63,7 @@ class LSTMTrainer:
         #model.add(Dense(100, activation='relu'))
         model.add(Dense(n_outputs, activation='softmax'))
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        self.logfile.write("fiting model...." + model_name)
         print("fiting model...." + model_name)
         #plot_losses = TrainingPlot()
         history = model.fit(trainX, trainy, epochs=epochs, batch_size=batch_size, verbose=verbose,validation_data=(testX, testy))
@@ -81,6 +83,7 @@ class LSTMTrainer:
     def summarize_results(self,scores):
         print(scores)
         m, s = mean(scores), std(scores)
+        self.logfile.write('Accuracy: %.3f%% (+/-%.3f)\n' % (m, s))
         print('Accuracy: %.3f%% (+/-%.3f)' % (m, s))
 
 # run an experiment
@@ -92,14 +95,15 @@ class LSTMTrainer:
        #for dropout in list(np.linspace(0.1,0.8,8)):
        dropout=0.1
        if search_space:
-           for batch_size in [1024, 2048]:
-               for hidden_dim in [540,640]:
-                   params = {'verbose': 0, 'epochs': 70, 'batch_size':batch_size,'dropout':dropout, 'hidden_dim': hidden_dim}
+           for epochs in [120]:
+               for hidden_dim in [320]:
+                   params = {'verbose': 0, 'epochs': hidden_dim, 'batch_size':256,'dropout':dropout, 'hidden_dim': hidden_dim}
                    model_name = savepath + "CVLSTM"+str(fold)+"_"+ str(params['epochs']) + str(params['batch_size']) + str(params['dropout'])+str(params['hidden_dim'])
                    score,model  = self.evaluate_model(self.xtrain, self.ytrain, self.xtest, self.ytest, params, model_name)
                    score = score * 100.0
                    scores.append(score)
                    self.generate_cm(model, model_name)
+                   self.logfile.write("finished training model " + model_name +" with accuracy of " + str(score) + "\n")
                    print("finished training model " + model_name +" with accuracy of " + str(score))
                    if score > max_score:
                        max_score = score
@@ -119,6 +123,7 @@ class LSTMTrainer:
                max_score = score
                best_config = params
        self.summarize_results(scores)
+       self.logfile.write("best config: " + str(params) + "\n")
        print("best config: " + str(params))
        return max_score
 # run the experiment
@@ -144,13 +149,13 @@ def RestarauntFrames2Vec(filename, training_suff):
     #X_train = np.zeros((1, 150))
     #X_test = np.zeros((1,150))
     for frame in train:
-        newX, newY, revX, revY, ret = frame_to_vectors(frame)
+        newX, newY, ret = frame_to_vectors(frame)
         if not ret:
             continue
         X_train.extend(newX)
         Y_train.extend(newY)
     for frame in test:
-        newX, newY, revX, revY, ret = frame_to_vectors(frame)
+        newX, newY, ret = frame_to_vectors(frame)
         if not ret:
             continue
         X_test.extend(newX)
@@ -161,10 +166,10 @@ def RestarauntFrames2Vec(filename, training_suff):
     X_test = np.array(X_test)
     #X_test = np.array([np.array(xi) for xi in X_test])#np.array(X_test)
     Y_test = np.asarray(Y_test)
-    pickle.dump(X_train, open("X_train_" + training_suff +".p", "wb"))
-    pickle.dump(Y_train, open("Y_train_" + training_suff +".p", "wb"))
-    pickle.dump(X_test, open("X_test_" + training_suff +".p", "wb"))
-    pickle.dump(Y_test, open("Y_test_" + training_suff +".p", "wb"))
+    pickle.dump(X_train, open("training_sets/X_train_" + training_suff +".p", "wb"))
+    pickle.dump(Y_train, open("training_sets/Y_train_" + training_suff +".p", "wb"))
+    pickle.dump(X_test, open("training_sets/X_test_" + training_suff +".p", "wb"))
+    pickle.dump(Y_test, open("training_sets/Y_test_" + training_suff +".p", "wb"))
     return X_train, Y_train, X_test, Y_test# X_test, Y_test
 
 def shuffle_in_unison(set_a, set_b):
@@ -196,7 +201,7 @@ def slice_vectors(X_train, Y_train, X_test, Y_test, window_size=128):
     test_list = []
     percent_test = .2
     k = int(1.0/percent_test)
-    for fold in range(0, k-2):    
+    for fold in range(0, 1):    
         index_split = int(len(X_sliced) * (1.0 - percent_test))
         lower = int(fold*percent_test*len(X_sliced))
         upper = lower + int(percent_test*len(X_sliced))
@@ -209,32 +214,39 @@ def slice_vectors(X_train, Y_train, X_test, Y_test, window_size=128):
         print(X_train_sliced.shape, Y_train_sliced.shape, X_test_sliced.shape, Y_test_sliced.shape)
     #return X_train_sliced, Y_train_sliced, X_test_sliced, Y_test_sliced
     return train_list, test_list
-training_suffix = "processed_a"
-modelpath = "models/processed_features/A_to_B/"
+training_suffix = "processed_ab_a"
+modelpath = "models/AB_A/"
 X_train, Y_train, X_test, Y_test = None, None, None, None
+log = open("training_log", "a")
 try:
-    X_train = pickle.load(open("training_sets/X_train_processed_a.p","rb"))# + training_suffix +".p", "rb"))
-    Y_train = pickle.load(open("training_sets/Y_train_processed_a.p","rb"))#" + training_suffix +".p", "rb"))
-    X_test = pickle.load(open("training_sets/X_test_processed_a.p","rb"))#" + training_suffix +".p", "rb"))
-    Y_test = pickle.load(open("training_sets/Y_test_processed_a.p","rb"))#" + training_suffix +".p", "rb"))
+    X_train = pickle.load(open("training_sets/X_train_" + training_suffix +".p", "rb"))
+    Y_train = pickle.load(open("training_sets/Y_train_" + training_suffix +".p", "rb"))
+    X_test = pickle.load(open("training_sets/X_test_" + training_suffix +".p", "rb"))
+    Y_test = pickle.load(open("training_sets/Y_test_" + training_suffix +".p", "rb"))
 except:
     print("generating sliced dataset...")
     X_train, Y_train, X_test, Y_test = RestarauntFrames2Vec("13-17-18-21_data_processed.pickle", training_suffix)
 #xt, yt, xtest, ytest = slice_vectors(X_train, Y_train, X_test, Y_test[0:X_test.shape[0]], window_size=128)
 train_list, test_list = slice_vectors(X_train, Y_train, X_test, Y_test[0:X_test.shape[0]], window_size=128)
 acc_sum = 0.0
-for i in range(0, len(train_list)):
+for i in range(0, 1):# len(train_list)):
+    log.write("training for " +str(i) + "'th fold of data\n")
     print("training for " +str(i) + "'th fold of data")
     xt, yt = train_list[i] 
     print(yt[0])
     xtest, ytest = test_list[i]
-    trainer = LSTMTrainer(xt, yt, xtest, ytest)
+    trainer = LSTMTrainer(xt, yt, xtest, ytest,log)
     start_time = time.time()
-    print("start_time: " + str(start_time))
-    acc = trainer.run_experiment(False, i, modelpath)
+    log.write("start_time: " + str(start_time))
+    print("start_time: " + str(start_time)+"\n")
+    acc = trainer.run_experiment(True, i, modelpath)
     #score, model = trainer.evaluate_model(xt, yt, xtest, ytest, {'verbose': 0, 'epochs': 1, 'batch_size': 64})
     end_time = time.time()
     acc_sum += acc
+    log.write("end_time: " + str(end_time) + "\n")
     print("end_time: " + str(end_time))
+    log.write("minutes elapsed: " + str((end_time-start_time)/60) + "\n")
     print("minutes elapsed: " + str((end_time-start_time)/60) )
+log.write("avg acc: " + str(float(acc_sum/float(len(train_list)))) + "\n")
+log.close()
 print("avg acc: " + str(float(acc_sum/float(len(train_list)))))

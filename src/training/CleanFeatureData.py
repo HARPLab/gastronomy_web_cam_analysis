@@ -1,4 +1,5 @@
 from feature_utils import *
+import cv2
 from RestaurantFrame import RestaurantFrame
 activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
                         'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
@@ -63,33 +64,26 @@ except (OSError, IOError) as e:
     timeline = []
     files = ["features_8-13-18.txt", "features_8-21-18.txt", "features_8-17-18.txt", "features_8-18-18.txt", "features_8-21-18.txt"] 
     #sift_files = ["8-13-18_sift_features.txt", "8-21-18_sift_features.txt"]#"8-17-18_sift_features.txt", "8-18-18_sift_features.txt", "8-21-18_sift_features.txt"]
-    for (filepath_features, sift_features) in zip(files, sift_files):
-        sp = open("../feature_data/" + sift_features)
+    for filepath_features in files:
         with open("../feature_data/" + filepath_features) as fp:
             print("Generating import file from scratch")
             print("Now with obj defs")
             input_content = fp.read()
-            sifts = sp.read()
-            sift_features = sifts.split("\n")
             frames = input_content.split("Body")
 
             print("Number of frames:")
             print(len(frames))
-            print("Number of sifts:")
-            print(len(sift_features))
             frame_counter = 0
             for i in range(len(frames)):
                 frame = frames[i]
-                s = sift_features[i]
                 if len(frame) > 0:
                     frame_counter = len(timeline)
-                    frame_obj = RestaurantFrame(frame_counter, frame, s)
+                    frame_obj = RestaurantFrame(frame_counter, frame)
                     frame_index = frame_obj.get_frame_number()
                     timeline.append(frame_obj)
     db['timeline'] = timeline
     db['filename'] = filename_root
-
-    dbfile = open("13-21_sift_data" + ".pickle", 'ab') 
+    dbfile = open("13-17-18-21_data.pickle", "ab")
     pickle.dump(db, dbfile)                                   
     dbfile.close() 
 #8-9-18

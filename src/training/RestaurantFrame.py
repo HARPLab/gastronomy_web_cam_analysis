@@ -65,23 +65,9 @@ class RestaurantFrame:
 
         def set_PB(self, pb):
                 self.pose_PB = pb
-        def get_sift(self):
-                features = self.sift_features.split("),")
-                features[0] = features[0][1:]
-                features[len(features)-1] = features[len(features)-1][0:-2]
-                features = [x[2:] for x in features]
-                sift_feat = np.zeros((len(features), 2))
-                for i,f in enumerate(features):
-                    x = f.split(", ")[0]
-                    y = f.split(", ")[1]
-                    if len(x) < 5 and len(y) < 5 and len(x) > 0 and len(y)>0:
-                        sift_feat[i][0] = int(x)
-                        sift_feat[i][1] = int(y)
-                return list(sift_feat.flatten())
         def set_waiter(self, w):
                 self.pose_waiter = w
-        def __init__(self, frame_num, frame, sift):
-                self.sift_features = sift
+        def __init__(self, frame_num, frame):
                 self.frame_number = frame_num
 
                 # 25 keyframes for body

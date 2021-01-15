@@ -63,7 +63,7 @@ except ImportError as e:
 class OP():
     def __init__(self):
         params = dict() 
-        params["model_folder"] = "/Users/michaelhuang/PycharmProjects/gast_analyisis_new/openpose/models"
+        params["model_folder"] = "/home/mghuang/gastronomy_web_cam_analysis/openpose/models/"
         self.opWrapper = op.WrapperPython() 
         self.opWrapper.configure(params) 
         self.opWrapper.start() 
@@ -74,7 +74,7 @@ class OP():
             raise Exception("NoneType passed into OP wrapper class")
         datum = op.Datum()
         datum.cvInputData = frame
-        self.opWrapper.emplaceAndPop([datum])
+        self.opWrapper.emplaceAndPop(op.VectorDatum([datum]))
         return datum
 
 clip_paths = [ "/home/rkaufman/Downloads/restaurant_footage/IMG_8500.MOV",
@@ -114,7 +114,7 @@ def create_clips(file_name=None):
             if (not ret): break
             datum = op.Datum()
             datum.cvInputData = frame
-            opWrapper.emplaceAndPop([datum])
+            opWrapper.emplaceAndPop(op.VectorDatum([datum]))
             op_image = datum.cvOutputData
                 # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             out_vid.write(op_image)

@@ -1,4 +1,3 @@
-import cv2
 import random
 from collections import defaultdict
 # from OPwrapper import OP
@@ -51,7 +50,7 @@ FEATURES_SET_PB = 1
 FEATURES_SET_BOTH = 2
 LABELS_SET_PA = 0
 LABELS_SET_PB = 1
-FLAG_FEATURE_SET = FEATURES_SET_PA
+FLAG_FEATURE_SET = FEATURES_SET_BOTH
 FLAG_FEATURE_TYPE = FEATURES_TYPE_POSES_ROLES
 FLAG_ROLE_ASSIGNMENT = ROLES_BY_BUCKET
 FLAG_LABEL_SET = LABELS_SET_PA
@@ -174,16 +173,16 @@ def get_feature_vector(frame): # TODO add cleaned feature type here
                 if FLAG_FEATURE_SET is FEATURES_SET_PA:
                         #print("PA: " + str(frame.get_PA()))
                         feature_vector.append(np.array(frame.get_PA()[0])[:,0:2].flatten())
-
+                        print("feature A")
                 elif FLAG_FEATURE_SET is FEATURES_SET_PB:
                         feature_vector.append(np.array(frame.get_PB()[0])[:,0:2].flatten())
-
+                        print("feature B")
                 elif FLAG_FEATURE_SET is FEATURES_SET_BOTH:
                         b_feats = np.array(frame.get_PB()[0])[:,0:2].flatten()
                         a_feats = np.array(frame.get_PA()[0])[:,0:2].flatten()
                         both_feats = np.concatenate((a_feats, b_feats), axis=None)
                         feature_vector.append(both_feats)
-
+                        print("feature both")
 
         elif FLAG_FEATURE_TYPE is FEATURES_TYPE_ALSO_VEL:
 
@@ -191,30 +190,34 @@ def get_feature_vector(frame): # TODO add cleaned feature type here
                         feature_vector.append(frame.get_delta_PA())
 
                 elif FLAG_FEATURE_SET is FEATURES_SET_PB:
-                        feature_vector.append(frame.get_label_PA())
+                        feature_vector.append(frame.get_label_PB())
 
                 elif FLAG_FEATURE_SET is FEATURES_SET_PA:
                         feature_vector.append(frame.get_label_PA())
                         feature_vector.append(frame.get_label_PB())
-        rev_temp = copy.deepcopy(feature_vector)
-        rev_temp.reverse()
-        return feature_vector, rev_temp, True #list of flattend poses, up to two poses per list for PA and PB
+        #rev_temp = copy.deepcopy(feature_vector)
+        #rev_temp.reverse()
+        return feature_vector, True#, rev_temp, True #list of flattend poses, up to two poses per list for PA and PB
 
 def get_labels_vector(frame):
         newY = []
 
         if FLAG_FEATURE_SET is FEATURES_SET_PA:
                 newY.append(frame.get_label_PA())
+                print("a label")
         elif FLAG_FEATURE_SET is FEATURES_SET_PB:
-                newY.append(frame.get_label_PA())
+                newY.append(frame.get_label_PB())
+                print("b label")
         elif FLAG_FEATURE_SET is FEATURES_SET_BOTH:
                 if FLAG_LABEL_SET is LABELS_SET_PA:
                         newY.append(frame.get_label_PA())
+                        print("a label both")
                 if FLAG_LABEL_SET is LABELS_SET_PB:
                         newY.append(frame.get_label_PB())
-        rev_temp = copy.deepcopy(newY)
-        rev_temp.reverse()
-        return newY, rev_temp #up to two labels per list
+                        print("b label both")
+        #rev_temp = copy.deepcopy(newY)
+        #rev_temp.reverse()
+        return newY#, rev_temp #up to two labels per list
 
 
 def frame_to_vectors(frame):
@@ -222,23 +225,23 @@ def frame_to_vectors(frame):
         newrX = []
         newY = []
 
-        newY, revY= get_labels_vector(frame)
-        feature_vector, rev_feature_vector, ret = get_feature_vector(frame)
+        newY = get_labels_vector(frame)
+        feature_vector, ret = get_feature_vector(frame)
        # print(newY)
         #print("feat:" + str(feature_vector))
         assert len(newY) == len(feature_vector)
         #print(feature_vector.shape)
         #print(newY)
         if not ret:
-                return newX, newY, [], [], False
+                return newX, newY, False
         #print(feature_vector.shape)
         for i in range(len(newY)):
                 newX.append(feature_vector[i])
-                newrX.append(rev_feature_vector[i])
+                #newrX.append(rev_feature_vector[i])
         newY = [activitydict[ny] for ny in newY]
-        newrY = [activitydict[ny] for ny in revY] 
+        #newrY = [activitydict[ny] for ny in revY] 
         #print("nexX: " + str(newX))
-        return newX, newY, newrX, newrY, True # ith label in newY corresponds to ith featurevector in newX.
+        return newX, newY, True # ith label in newY corresponds to ith featurevector in newX.
 
 def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Oranges):
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
