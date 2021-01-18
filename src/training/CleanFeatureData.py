@@ -254,7 +254,7 @@ def export_annotated_frame(frame, label, export_all_poses=False):
 
 
     title = "shows_" + label + "_f" + str(frame_num) + ".jpg"
-                        cv2.imwrite('./debug_output/' + title, frame_img) 
+    cv2.imwrite('./debug_output/' + title, frame_img) 
     print("Exported outlier " + title)
 
 
@@ -426,5 +426,4 @@ if FLAG_PER_ACTIVITY_ANALYSIS:
 print("Done with all analysis")
 print("Start with classification")
 
-#print(np.array(timeline[10000].get_poses_clean()[0][0])[:,0:2])
-   """                                                                                                                   
+#print(np.array(timeline[10000].get_poses_clean()[0][0])[:,0:2])                                                                                                                  
