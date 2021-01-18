@@ -205,15 +205,90 @@ print("Cleaned poses = " + str(total_poses_clean))
 dbfile = open("13-17-18-21_data_processed.pickle", 'ab')
 pickle.dump(processed_timeline, dbfile)
 dbfile.close()
-"""
+
+def add_pose_to_image(pose, img, color):
+    # TODO verify 
+    points = pt_set[0]
+    for p in points:
+        x1, y1, c1 = pt1
+        x1 = int(x1)
+        y1 = int(y1)
+        frame_img = cv2.circle(frame_img, (x1,y1), 3, color, -1)
+
+    return frame_img
+
+
+def export_annotated_frame(frame, label, export_all_poses=False):
+    label_a = frame.get_label_PA()
+    label_b = frame.get_label_PB()
+    pose_a  = frame.get_PA()
+    pose_b  = frame.get_PB()
+
+    frame_num = frame.get_frame_number()
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
+    ret, frame_img = cap.read()
+
+    COLOR_RED = (255, 0, 0)
+    COLOR_BLUE = (0, 0, 255)
+
+    frame_img = add_pose_to_image(pose_a, frame_img, COLOR_RED)
+    frame_img = add_pose_to_image(pose_b, frame_img, COLOR_BLUE)
+
+    halfway = int(frame_img.shape()[0] / 2)
+
+    org_a = (50, 50) 
+    org_b = (50 + halfway, 50) 
+      
+
+    font = cv2.FONT_HERSHEY_SIMPLEX 
+    fontScale = 1
+    color = (255, 0, 0) 
+    thickness = 2
+   
+    frame_imag = cv2.putText(frame_img, label_a, org_a, font,  
+                   fontScale, COLOR_RED, thickness, cv2.LINE_AA) 
+
+    frame_imag = cv2.putText(frame_img, label_b, org_b, font,  
+                   fontScale, COLOR_RED, thickness, cv2.LINE_AA) 
+
+
+    title = "shows_" + label + "_f" + str(frame_num) + ".jpg"
+                        cv2.imwrite('./debug_output/' + title, frame_img) 
+    print("Exported outlier " + title)
+
+
+
+EXPORT_DROPOUT_STATS                = True
+EXPORT_TYPE_TOO_MANY_POSES          = False
+EXPORT_TYPE_AWAY_BUT_POSE_DETECTED  = True
+EXPORT_TYPE_RANDOM                  = True
+EXPORT_WAITER_MOMENTS               = True
+
+LABEL_TOO_MANY_POSES                = 'err-too-many-poses'
+LABEL_TYPE_AWAY_BUT_POSE_DETECTED   = 'err-away-but-pose'
+LABEL_TYPE_RANDOM                   = 'quality-check-random'
+LABEL_WAITER_MOMENTS                = 'quality-check-waiter'
+
+
 # visualization code for weird stuff
 if FLAG_EXPORT_OUTLIER_SAMPLES:
         print("Exporting strange samples")
         export_counter = 0
         for frame in processed_timeline:
                 person_poses = frame.get_poses_clean()
+                label_a = frame.get_label_PA()
+                label_b = frame.get_label_PB()
+                pose_a  = frame.get_PA()
+                pose_b  = frame.get_PB()
 
-                if len(person_poses) > 3 and export_counter < 20:
+                if label_a is 'away-from-table' and pose_a is not None:
+                    export_annotated_frame(frame, LABEL_TYPE_AWAY_BUT_POSE_DETECTED)
+
+                if label_b is 'away-from-table' and pose_b is not None:
+                    export_annotated_frame(frame, LABEL_TYPE_AWAY_BUT_POSE_DETECTED)
+
+                if EXPORT_TYPE_TOO_MANY_POSES and len(person_poses) > 3 and export_counter < 20:
 
                         export_counter += 1
 
