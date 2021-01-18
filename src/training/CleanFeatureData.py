@@ -200,6 +200,7 @@ for frame_index in range(len(timeline)):
 
         processed_timeline.append(new_frame)
         prev_frame = new_frame
+
 print("Total poses = " + str(total_poses))
 print("Cleaned poses = " + str(total_poses_clean))
 dbfile = open("13-17-18-21_data_processed.pickle", 'ab')
@@ -249,14 +250,12 @@ def export_annotated_frame(frame, label, export_all_poses=False):
     frame_imag = cv2.putText(frame_img, label_a, org_a, font,  
                    fontScale, COLOR_RED, thickness, cv2.LINE_AA) 
 
-    frame_imag = cv2.putText(frame_img, label_b, org_b, font,  
-                   fontScale, COLOR_RED, thickness, cv2.LINE_AA) 
+    frame_imag = cv2.putText(frame_img, label_b, org_b, font, fontScale, COLOR_RED, thickness, cv2.LINE_AA) 
 
 
     title = "shows_" + label + "_f" + str(frame_num) + ".jpg"
-                        cv2.imwrite('./debug_output/' + title, frame_img) 
+    cv2.imwrite('./debug_output/' + title, frame_img) 
     print("Exported outlier " + title)
-
 
 
 EXPORT_DROPOUT_STATS                = True

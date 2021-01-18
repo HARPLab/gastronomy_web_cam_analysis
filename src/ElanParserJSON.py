@@ -32,27 +32,7 @@ def parseXML(elanfile):
     root = tree.getroot()
     return root
     print(root.tag)
-# 8-21-18
-filename_root = "8-21-18"
 
-root = parseXML('../Annotations/' + filename_root + '-michael.eaf')
-timedict = {}
-activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
-            'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
-            'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
-            'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20}
-
-##cv2 create framedictionary
-cap = cv2.VideoCapture("../videos/" + filename_root + "_cropped.mp4")
-frames = {}
-frame_id = 0
-while True:
-    ret,frame =cap.read()
-    if not ret:
-        break
-    frames[frame_id] = frame
-    frame_id = frame_id + 1
-print(frame_id)
 
 def getFeatureObj(currentframe, pose_datum):
     feature_data = {}
@@ -70,88 +50,117 @@ def addActivityToFeatureObj(feature_obj, personLabel, activity):
 
 
 
-## database initialization
-## start looping through annotation labels
-write_file = "restaurant_features_full-" + filename_root + ".json"
-outfile = open(write_file, "w")
-openpose_wrapper = OP()
-frame_to_poseact ={} #f_id -> (posedata, personAactivity, personBactivity)
-#surf = cv2.SURF(400)
-logfile = open("logfile_elanparsing.txt", "a")
-logfile.write("begining parsing\n")
-for child in root:
-    if child.tag == 'TIME_ORDER':
-        for times in child:
-            timedict[times.attrib['TIME_SLOT_ID']] = times.attrib['TIME_VALUE']
+# 8-21-18
+filename_root = "8-21-18"
+filenames_all = ['8-21-18', '8-13-18', '8-18-18', '8-19-18', '9-10-18']
 
-    elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonA':
-        for annotation in child:
-            logfile.write("adding PersonA's annotations...\n")
-            print("adding PersonA's annotations...")
-            for temp in annotation: ## this should only loop once, couldnt figure out how to access a child xml tag without looping
-                #print(temp.attrib['TIME_SLOT_REF1'])
-                ## beginning frame
-                beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
-                ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
-                activity = None
-                #print("beginning new annotation: \n\n")
-                for anno in temp: ## another single iteration loop
-                    activity=anno.text
-                for f_id in range (beginning_frame, ending_frame):
-                    #print("adding another frame from annotation")
-                    if f_id >= frame_id:
-                        continue
-                    currentframe = frames[f_id]
-                    gray = cv2.cvtColor(currentframe, cv2.COLOR_BGR2GRAY)
-                    #kp, des = surf.detectAndCompute(gray,None)
-                    #print(len(kp))
-                    pose_datum = openpose_wrapper.getOpenposeDataFrom(frame=currentframe)
-                    feature_data = getFeatureObj(currentframe, pose_datum)
-                    feature_data = addActivityToFeatureObj(feature_data, 'person-A', activity)
-                    frame_to_poseact[f_id] = feature_data
-                    logfile.write("added personA " + str(f_id) + "\n")
-                    print("added personA " + str(f_id))
+for filename_root in filenames_all:
+
+    root = parseXML('../Annotations/' + filename_root + '-michael.eaf')
+    timedict = {}
+    activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
+                'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
+                'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
+                'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20}
+
+    ##cv2 create framedictionary
+    cap = cv2.VideoCapture("../videos/" + filename_root + "_cropped.mp4")
+    frames = {}
+    frame_id = 0
+    while True:
+        ret,frame =cap.read()
+        if not ret:
+            break
+        frames[frame_id] = frame
+        frame_id = frame_id + 1
+    print(frame_id)
 
 
-    elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonB':
-         for annotation in child:
-            logfile.write("adding PersonB's annotations...\n")
-            print("adding PersonB's annotations...")
-            for temp in annotation: ## this should only loop once, couldnt figure out how to access a child xml tag without looping
-                ## beginning frame
-                beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
-                ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
-                activity = None
-                for anno in temp: ## another single iteration loop
-                    activity=anno.text
-                for f_id in range (beginning_frame, ending_frame):
-                    #print("adding another frame from annotation")
-                    if f_id in frame_to_poseact.keys():
-                        feature_data = frame_to_poseact[f_id]
-                        frame_to_poseact[f_id] = addActivityToFeatureObj(feature_data, 'person-B', activity)
-                        logfile.write("added personB " + f_id + "\n")
-                        print("added personB " + f_id)
-                        continue                    
-                    #print(str(f_id))
-                    if f_id >= frame_id:
-                        continue
-                    else:
+
+    ## database initialization
+    ## start looping through annotation labels
+    write_file = "restaurant_features_full-" + filename_root + ".json"
+    outfile = open(write_file, "w")
+    openpose_wrapper = OP()
+    frame_to_poseact ={} #f_id -> (posedata, personAactivity, personBactivity)
+    #surf = cv2.SURF(400)
+    logfile = open("logfile_elanparsing.txt", "a")
+    logfile.write("begining parsing\n")
+    for child in root:
+        if child.tag == 'TIME_ORDER':
+            for times in child:
+                timedict[times.attrib['TIME_SLOT_ID']] = times.attrib['TIME_VALUE']
+
+        elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonA':
+            for annotation in child:
+                logfile.write("adding PersonA's annotations...\n")
+                print("adding PersonA's annotations...")
+                for temp in annotation: ## this should only loop once, couldnt figure out how to access a child xml tag without looping
+                    #print(temp.attrib['TIME_SLOT_REF1'])
+                    ## beginning frame
+                    beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
+                    ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+                    activity = None
+                    #print("beginning new annotation: \n\n")
+                    for anno in temp: ## another single iteration loop
+                        activity=anno.text
+
+                    for f_id in range (beginning_frame, ending_frame):
+                        #print("adding another frame from annotation")
+                        if f_id >= frame_id:
+                            continue
                         currentframe = frames[f_id]
-                        #print(currentframe)
-                        #print(frames[30])
-                        
+                        gray = cv2.cvtColor(currentframe, cv2.COLOR_BGR2GRAY)
+                        #kp, des = surf.detectAndCompute(gray,None)
+                        #print(len(kp))
                         pose_datum = openpose_wrapper.getOpenposeDataFrom(frame=currentframe)
                         feature_data = getFeatureObj(currentframe, pose_datum)
-                        feature_data = addActivityToFeatureObj(feature_data, 'person-B', activity)
-                        logfile.write("updated personB " + str(f_id) + "\n")
-                        print("updated personB " + str(f_id))
-
+                        feature_data = addActivityToFeatureObj(feature_data, 'person-A', activity)
                         frame_to_poseact[f_id] = feature_data
-                    #print(writestring + activity)
-                    #outfile.write(writestring + "\n")
-        
-print(len(frame_to_poseact))
+                        logfile.write("added personA " + str(f_id) + "\n")
+                        print("added personA " + str(f_id))
 
-outfile.write(json.dumps(frame_to_poseact))
-logfile.write("finished dumping\n")
-logfile.close()
+
+        elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonB':
+             for annotation in child:
+                logfile.write("adding PersonB's annotations...\n")
+                print("adding PersonB's annotations...")
+                for temp in annotation: ## this should only loop once, couldnt figure out how to access a child xml tag without looping
+                    ## beginning frame
+                    beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
+                    ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+                    activity = None
+                    for anno in temp: ## another single iteration loop
+                        activity=anno.text
+                    
+                    for f_id in range (beginning_frame, ending_frame):
+                        #print("adding another frame from annotation")
+                        if f_id in frame_to_poseact.keys():
+                            feature_data = frame_to_poseact[f_id]
+                            frame_to_poseact[f_id] = addActivityToFeatureObj(feature_data, 'person-B', activity)
+                            logfile.write("added personB " + f_id + "\n")
+                            print("added personB " + f_id)
+                            continue                    
+                        #print(str(f_id))
+                        if f_id >= frame_id:
+                            continue
+                        else:
+                            currentframe = frames[f_id]
+                            #print(currentframe)
+                            #print(frames[30])
+                            
+                            pose_datum = openpose_wrapper.getOpenposeDataFrom(frame=currentframe)
+                            feature_data = getFeatureObj(currentframe, pose_datum)
+                            feature_data = addActivityToFeatureObj(feature_data, 'person-B', activity)
+                            logfile.write("updated personB " + str(f_id) + "\n")
+                            print("updated personB " + str(f_id))
+
+                            frame_to_poseact[f_id] = feature_data
+                        #print(writestring + activity)
+                        #outfile.write(writestring + "\n")
+    # print(len(frame_to_poseact))
+
+    outfile.write(json.dumps(frame_to_poseact))
+    logfile.write("finished dumping\n") 
+    logfile.close()
+  
