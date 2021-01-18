@@ -1,0 +1,30 @@
+Table states:
+
+['reading-menus' None 'ready-to-order' 'eating' 'ready-for-cleanup'
+ 'ready-for-bill' 'ready-for-final-check' 'ready-to-leave']
+
+
+Activities:
+['away-from-table', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 'talking:waiter', 'looking:window', 'looking:waiter', 'reading:bill', 'reading:menu', 'paying:check', 'using:phone', 'using:napkin', 'using:purse', 'using:glasses', 'using:wallet', 'looking:PersonA', 'looking:PersonB', 'takeoutfood']
+
+# 0 away-from-table
+# 1 idle
+# 2 eating
+# 3 drinking
+# 4 talking
+# 5 ordering
+# 6 standing
+# 7 talking:waiter
+# 8 looking:window
+# 9 looking:waiter
+# 10 reading:bill
+# 11 reading:menu
+# 12 paying:check
+# 13 using:phone
+# 14 using:napkin
+# 15 using:purse
+# 16 using:glasses
+# 17 using:wallet
+# 18 looking:PersonA
+# 19 looking:PersonB
+# 20 take-out-food
