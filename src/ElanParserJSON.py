@@ -55,6 +55,7 @@ filename_root = "8-21-18"
 filenames_all = ['8-21-18', '8-13-18', '8-18-18', '8-19-18', '9-10-18']
 
 for filename_root in filenames_all:
+    print("parsing file " + filename_root)
 
     root = parseXML('../Annotations/' + filename_root + '-michael.eaf')
     timedict = {}
@@ -63,7 +64,7 @@ for filename_root in filenames_all:
                 'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
                 'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20}
 
-    ##cv2 create framedictionary
+    # Open the corresponding video file for analysis
     cap = cv2.VideoCapture("../videos/" + filename_root + "_cropped.mp4")
     frames = {}
     frame_id = 0
@@ -73,7 +74,10 @@ for filename_root in filenames_all:
             break
         frames[frame_id] = frame
         frame_id = frame_id + 1
-    print(frame_id)
+        if frame_id % 1000 == 0:
+            print("processing through frame " + str(f_id))
+
+    print("Total number of frames: " + str(frame_id))
 
 
 
@@ -106,6 +110,9 @@ for filename_root in filenames_all:
                         activity=anno.text
 
                     for f_id in range (beginning_frame, ending_frame):
+                        if (f_id % 1000 == 0):
+                            print(f_id)
+                        
                         #print("adding another frame from annotation")
                         if f_id >= frame_id:
                             continue
@@ -117,8 +124,8 @@ for filename_root in filenames_all:
                         feature_data = getFeatureObj(currentframe, pose_datum)
                         feature_data = addActivityToFeatureObj(feature_data, 'person-A', activity)
                         frame_to_poseact[f_id] = feature_data
-                        logfile.write("added personA " + str(f_id) + "\n")
-                        print("added personA " + str(f_id))
+                        # logfile.write("added personA " + str(f_id) + "\n")
+                        # print("added personA " + str(f_id))
 
 
         elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonB':
@@ -130,16 +137,20 @@ for filename_root in filenames_all:
                     beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
                     ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
                     activity = None
+
                     for anno in temp: ## another single iteration loop
                         activity=anno.text
-                    
+
                     for f_id in range (beginning_frame, ending_frame):
+                        if (f_id % 1000 == 0):
+                            print(f_id)
+
                         #print("adding another frame from annotation")
                         if f_id in frame_to_poseact.keys():
                             feature_data = frame_to_poseact[f_id]
                             frame_to_poseact[f_id] = addActivityToFeatureObj(feature_data, 'person-B', activity)
-                            logfile.write("added personB " + f_id + "\n")
-                            print("added personB " + f_id)
+                            # logfile.write("added personB " + f_id + "\n")
+                            # print("added personB " + f_id)
                             continue                    
                         #print(str(f_id))
                         if f_id >= frame_id:
@@ -152,13 +163,13 @@ for filename_root in filenames_all:
                             pose_datum = openpose_wrapper.getOpenposeDataFrom(frame=currentframe)
                             feature_data = getFeatureObj(currentframe, pose_datum)
                             feature_data = addActivityToFeatureObj(feature_data, 'person-B', activity)
-                            logfile.write("updated personB " + str(f_id) + "\n")
-                            print("updated personB " + str(f_id))
+                            # logfile.write("updated personB " + str(f_id) + "\n")
+                            # print("updated personB " + str(f_id))
 
                             frame_to_poseact[f_id] = feature_data
                         #print(writestring + activity)
                         #outfile.write(writestring + "\n")
-    # print(len(frame_to_poseact))
+    print(len(frame_to_poseact))
 
     outfile.write(json.dumps(frame_to_poseact))
     logfile.write("finished dumping\n") 
