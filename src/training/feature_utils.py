@@ -34,6 +34,7 @@ activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'ta
                         'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
                         'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20, 'leaving-table':21, 'cleaning-up':22, 'NONE':23}
 
+activitydict_rev = dict([(value, key) for key, value in activitydict.items()]) 
 # Lookup table for OpenPose keypoint indices
 keypoint_labels = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder",
                                                 "LElbow","LWrist","MidHip","RHip","RKnee","RAnkle","LHip","LKnee","LAnkle","REye","LEye","REar",
@@ -173,16 +174,16 @@ def get_feature_vector(frame): # TODO add cleaned feature type here
                 if FLAG_FEATURE_SET is FEATURES_SET_PA:
                         #print("PA: " + str(frame.get_PA()))
                         feature_vector.append(np.array(frame.get_PA()[0])[:,0:2].flatten())
-                        print("feature A")
+                        #print("feature A")
                 elif FLAG_FEATURE_SET is FEATURES_SET_PB:
                         feature_vector.append(np.array(frame.get_PB()[0])[:,0:2].flatten())
-                        print("feature B")
+                        #print("feature B")
                 elif FLAG_FEATURE_SET is FEATURES_SET_BOTH:
                         b_feats = np.array(frame.get_PB()[0])[:,0:2].flatten()
                         a_feats = np.array(frame.get_PA()[0])[:,0:2].flatten()
                         both_feats = np.concatenate((a_feats, b_feats), axis=None)
                         feature_vector.append(both_feats)
-                        print("feature both")
+                        #print("feature both")
 
         elif FLAG_FEATURE_TYPE is FEATURES_TYPE_ALSO_VEL:
 
@@ -204,17 +205,17 @@ def get_labels_vector(frame):
 
         if FLAG_FEATURE_SET is FEATURES_SET_PA:
                 newY.append(frame.get_label_PA())
-                print("a label")
+                #print("a label")
         elif FLAG_FEATURE_SET is FEATURES_SET_PB:
                 newY.append(frame.get_label_PB())
-                print("b label")
+                #print("b label")
         elif FLAG_FEATURE_SET is FEATURES_SET_BOTH:
                 if FLAG_LABEL_SET is LABELS_SET_PA:
                         newY.append(frame.get_label_PA())
-                        print("a label both")
+                       # print("a label both")
                 if FLAG_LABEL_SET is LABELS_SET_PB:
                         newY.append(frame.get_label_PB())
-                        print("b label both")
+                       # print("b label both")
         #rev_temp = copy.deepcopy(newY)
         #rev_temp.reverse()
         return newY#, rev_temp #up to two labels per list
