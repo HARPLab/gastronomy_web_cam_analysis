@@ -18,17 +18,18 @@ from numpy import mean
 from numpy import std
 from numpy import dstack
 from pandas import read_csv
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import Flatten
-from keras.layers import Dropout
-from keras.layers import LSTM
-from keras.utils import to_categorical
+# from keras.models import Sequential
+# from keras.layers import Dense
+# from keras.layers import Flatten
+# from keras.layers import Dropout
+# from keras.layers import LSTM
+# from keras.utils import to_categorical
 from matplotlib import pyplot
 import pickle
 import copy
 import numpy as np
-import keras
+from tensorflow import keras
+
 activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
                         'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
                         'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
@@ -149,8 +150,12 @@ def get_role_labels(cleaned_poses):
 
         return assignments
 """
-def get_feature_vector(frame): # TODO add cleaned feature type here
+
+def get_feature_vector(frame, feature_set=FLAG_FEATURE_SET): # TODO add cleaned feature type here
+        # TODO make this more flexible?
+        FLAG_FEATURE_SET = feature_set
         feature_vector = []
+
         if FLAG_FEATURE_TYPE is FEATURES_TYPE_POSES_RAW:
                 if len(frame.get_poses_raw()) > 1:
                     test = np.array(frame.get_poses_raw()[0][0])
@@ -173,16 +178,16 @@ def get_feature_vector(frame): # TODO add cleaned feature type here
                 if FLAG_FEATURE_SET is FEATURES_SET_PA:
                         #print("PA: " + str(frame.get_PA()))
                         feature_vector.append(np.array(frame.get_PA()[0])[:,0:2].flatten())
-                        print("feature A")
+                        # print("feature A")
                 elif FLAG_FEATURE_SET is FEATURES_SET_PB:
                         feature_vector.append(np.array(frame.get_PB()[0])[:,0:2].flatten())
-                        print("feature B")
+                        # print("feature B")
                 elif FLAG_FEATURE_SET is FEATURES_SET_BOTH:
                         b_feats = np.array(frame.get_PB()[0])[:,0:2].flatten()
                         a_feats = np.array(frame.get_PA()[0])[:,0:2].flatten()
                         both_feats = np.concatenate((a_feats, b_feats), axis=None)
                         feature_vector.append(both_feats)
-                        print("feature both")
+                        # print("feature both")
 
         elif FLAG_FEATURE_TYPE is FEATURES_TYPE_ALSO_VEL:
 
@@ -204,22 +209,22 @@ def get_labels_vector(frame):
 
         if FLAG_FEATURE_SET is FEATURES_SET_PA:
                 newY.append(frame.get_label_PA())
-                print("a label")
+                # print("a label")
         elif FLAG_FEATURE_SET is FEATURES_SET_PB:
                 newY.append(frame.get_label_PB())
-                print("b label")
+                # print("b label")
         elif FLAG_FEATURE_SET is FEATURES_SET_BOTH:
                 if FLAG_LABEL_SET is LABELS_SET_PA:
                         newY.append(frame.get_label_PA())
-                        print("a label both")
+                        # print("a label both")
                 if FLAG_LABEL_SET is LABELS_SET_PB:
                         newY.append(frame.get_label_PB())
-                        print("b label both")
+                        # print("b label both")
         #rev_temp = copy.deepcopy(newY)
         #rev_temp.reverse()
         return newY#, rev_temp #up to two labels per list
 
-
+# TODO: verify
 def frame_to_vectors(frame):
         newX = []
         newrX = []
@@ -262,8 +267,9 @@ def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Oranges):
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-class TrainingPlot(keras.callbacks.Callback):
 
+
+class TrainingPlot(keras.callbacks.Callback):
     # This function is called when the training begins
     def on_train_begin(self, logs={}):
         # Initialize the lists for holding the logs, losses and accuracies
