@@ -62,7 +62,7 @@ try:
     print("Successfully imported pickle")
 except (OSError, IOError) as e:
     timeline = []
-    files = ["features_8-13-18.txt", "features_8-21-18.txt", "features_8-17-18.txt", "features_8-18-18.txt", "features_8-21-18.txt"] 
+    files = ["features_8-13-18.txt", "features_8-21-18.txt", "features_8-17-18.txt", "features_8-18-18.txt"] 
     #sift_files = ["8-13-18_sift_features.txt", "8-21-18_sift_features.txt"]#"8-17-18_sift_features.txt", "8-18-18_sift_features.txt", "8-21-18_sift_features.txt"]
     for filepath_features in files:
         with open("../feature_data/" + filepath_features) as fp:

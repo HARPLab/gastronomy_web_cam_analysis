@@ -112,7 +112,7 @@ class LSTMTrainer:
        dropout=0.1
        if search_space:
            for epochs in [150]:
-               for hidden_dim in [320, 350, 400]: # 320, 350, 400
+               for hidden_dim in [700, 800, 1000]: # 320, 350, 400
                    params = {'verbose': 0, 'epochs': epochs, 'batch_size':256,'dropout':dropout, 'hidden_dim': hidden_dim}
                    model_name = savepath + "CVLSTM"+str(fold)+"_"+ str(params['epochs']) + str(params['batch_size']) + str(params['dropout'])+str(params['hidden_dim'])
                    score,model  = self.evaluate_model(self.xtrain, self.ytrain, self.xtest, self.ytest, params, model_name)
