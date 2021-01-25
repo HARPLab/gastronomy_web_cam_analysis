@@ -38,10 +38,7 @@ def getFeatureObj(currentframe, pose_datum):
     feature_data = {}
     feature_data['frame'] = currentframe
     feature_data['pose_body'] = pose_datum.poseKeypoints
-    feature_data['pose_hand_left'] = pose_datum.handKeypoints[0]
-    feature_data['pose_hand_right'] = pose_datum.handKeypoints[1]
-    feature_data['pose_face'] = pose_datum.faceKeypoints
-   
+    
     return feature_data
 
 def addActivityToFeatureObj(feature_obj, personLabel, activity):
@@ -51,7 +48,6 @@ def addActivityToFeatureObj(feature_obj, personLabel, activity):
 
 
 # 8-21-18
-filename_root = "8-21-18"
 filenames_all = ['8-21-18', '8-13-18', '8-18-18', '8-19-18', '9-10-18']
 
 for filename_root in filenames_all:
@@ -170,7 +166,7 @@ for filename_root in filenames_all:
                         #print(writestring + activity)
                         #outfile.write(writestring + "\n")
     print(len(frame_to_poseact))
-
+    
     outfile.write(json.dumps(frame_to_poseact))
     logfile.write("finished dumping\n") 
     logfile.close()

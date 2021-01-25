@@ -214,6 +214,8 @@ def slice_vectors(X_train, Y_train, X_test, Y_test, window_size=128):
         print(X_train_sliced.shape, Y_train_sliced.shape, X_test_sliced.shape, Y_test_sliced.shape)
     #return X_train_sliced, Y_train_sliced, X_test_sliced, Y_test_sliced
     return train_list, test_list
+
+
 training_suffix = "processed_ab_a"
 modelpath = "models/AB_A/"
 X_train, Y_train, X_test, Y_test = None, None, None, None
@@ -226,6 +228,8 @@ try:
 except:
     print("generating sliced dataset...")
     X_train, Y_train, X_test, Y_test = RestarauntFrames2Vec("13-17-18-21_data_processed.pickle", training_suffix)
+
+
 #xt, yt, xtest, ytest = slice_vectors(X_train, Y_train, X_test, Y_test[0:X_test.shape[0]], window_size=128)
 train_list, test_list = slice_vectors(X_train, Y_train, X_test, Y_test[0:X_test.shape[0]], window_size=128)
 acc_sum = 0.0
