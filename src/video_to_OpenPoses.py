@@ -86,7 +86,7 @@ for filename_root in filenames_all:
     write_file = "restaurant_features_full-" + filename_root + ".json"
     outfile = open(write_file, "w")
     
-    outfile.write(json.dumps(frames)
+    outfile.write(json.dumps(frames))
     logfile.write("finished dumping\n") 
     logfile.close()
   
