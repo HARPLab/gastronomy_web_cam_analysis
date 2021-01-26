@@ -1,0 +1,12 @@
+,before,operation,after,probability
+0,NONE,bring-menus,reading-menus,1.0
+1,reading-menus,bring-drinks,ready-to-order,1.0
+2,ready-to-order,take-order,ready-for-cleanup,1.0
+3,ready-for-cleanup,bring-food,eating,1.0
+4,eating,take-info,ready-for-cleanup,1.0
+5,ready-for-cleanup,take-dishes,eating,1.0
+6,eating,bring-drinks,ready-for-cleanup,1.0
+7,ready-for-cleanup,bring-boxes,ready-for-bill,1.0
+8,ready-for-bill,take-dishes,ready-for-final-check,1.0
+9,ready-for-final-check,take-bill,ready-for-final-check,1.0
+10,ready-for-final-check,take-info,ready-to-leave,1.0
