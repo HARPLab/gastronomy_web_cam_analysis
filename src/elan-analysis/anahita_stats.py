@@ -28,6 +28,12 @@ import json
 import copy
 import pandas as pd
 
+import seaborn as sns
+from matplotlib import cm
+import matplotlib
+
+
+
 def parseXML(elanfile):
     tree = ET.parse(elanfile)
     root = tree.getroot()
@@ -65,7 +71,14 @@ log = {}
 LABEL_NONE = "NONE"
 
 BLANK_LABELS = [LABEL_NONE, LABEL_NONE, LABEL_NONE]
+TYPE_WAITER = 'waiter_action'
+TYPE_CUSTOMER_STATE = 'customer_state'
 
+
+
+overall_flow = []
+waiter_events = []
+customer_states = []
 
 for meal in filenames_all:
     root = parseXML('../../Annotations/' + meal + '-michael.eaf')
@@ -79,7 +92,21 @@ for meal in filenames_all:
                 timedict[times.attrib['TIME_SLOT_ID']] = times.attrib['TIME_VALUE']
 
         elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'Waiter':
-            pass
+            for annotation in child:
+                # print(annotation)
+                label = ""
+                for temp in annotation:
+                    beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
+                    ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+                    # print(beginning_frame, ending_frame)
+                   
+                    label = LABEL_NONE
+                    # for each of the labeled activities in this block of time
+                    for anno in temp: ## another single iteration loop
+                        label = anno.text
+
+                    overall_flow.append((meal, beginning_frame, label, TYPE_WAITER))
+                    waiter_events.append(label)
 
 
         # initial setup happens here
@@ -103,6 +130,9 @@ for meal in filenames_all:
                             log[(meal, f_id)] = copy.copy(BLANK_LABELS)
                         
                         log[(meal, f_id)][0] = label
+
+                    overall_flow.append((meal, beginning_frame, label, TYPE_CUSTOMER_STATE))
+                    customer_states.append(label)
 
 
 
@@ -155,6 +185,153 @@ for meal in filenames_all:
                         
 # print(log)
 
+# print(overall_flow)
+# Process the overall flow
+# list of (meal_id, timestamp, label)
+
+
+waiter_events = list(set(waiter_events))
+customer_states = list(set(customer_states))
+
+no_op = (meal, None, 'NOP', TYPE_WAITER)
+
+data_all = []
+data_individual_meals = []
+
+for meal in filenames_all:
+    print("Adding timeline info for " + meal)
+    timeline = list(filter(lambda entry: entry[0] == meal, overall_flow))
+    timeline.sort(key=lambda x: x[1])
+    prev_event = (meal, 0, 'NONE', TYPE_CUSTOMER_STATE)
+    prev_action = no_op
+    data = []
+
+    INDEX_MEALID = 0
+    INDEX_TIMESTAMP = 1
+    INDEX_LABEL = 2
+    INDEX_TYPE = 3
+
+    for event in timeline:
+        # if the waiter took a novel action, ex not a NO-OP, then hold onto it
+        if prev_event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_TYPE] == TYPE_WAITER:
+            # if it's the unique waiter event
+            if event[INDEX_LABEL] not in ['arriving', 'leaving']:
+                prev_action = event
+
+        # if we have a transition between two events
+        elif prev_event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_TYPE] == TYPE_CUSTOMER_STATE:
+            datum = [meal, prev_event[INDEX_LABEL], prev_action[INDEX_LABEL], event[INDEX_LABEL], prev_event[INDEX_TIMESTAMP], event[INDEX_TIMESTAMP]]
+            data.append(datum)
+            # print("added " + str(prev_event[INDEX_LABEL]) + " --" + prev_action[INDEX_LABEL] + "--> " + event[INDEX_LABEL])
+
+            prev_event = event
+            prev_action = no_op
+
+        elif prev_event[INDEX_LABEL] == 'NONE':
+            prev_event = event
+
+        else:
+            print("ERR")
+            print(prev_event)
+            print(prev_action)
+            print(event)
+            print("~~~")
+
+    data_individual_meals.append(data)
+    data_all.extend(data)
+
+transition_log = pd.DataFrame(data_all, columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at'])
+
+# Make nice graph
+import pydot_ng as pydot
+from pydot_ng import Dot, Edge,Node
+
+def make_graph(data, graph_label, customer_states):
+    data_overview = []
+
+    g = Dot()
+    g.set_node_defaults(color='lightgray',
+                        style='filled',
+                        shape='box',
+                        fontname='Courier',
+                        fontsize='10',
+                        fontcolor='white')
+    colors_viridis = cm.get_cmap('viridis', len(customer_states))
+
+    for i in range(len(customer_states)):
+        label = customer_states[i]
+        label = label.replace(':', "-")
+
+        new_node = Node(label)
+        col = colors_viridis(i)
+        col = matplotlib.colors.rgb2hex(col)
+        new_node.set_color(col)
+        g.add_node(new_node)
+        # print("Add node " + str(customer_states[i]))
+
+    transition_types = defaultdict(list)
+
+    # Consolidate labels
+    for link in data:
+        m, la, op, lb, at, bt = link
+        la = la.replace(':', "-")
+        lb = lb.replace(':', "-")
+        op = op.replace(':', "-")
+
+        transition_types[(la, op)].append(lb)
+
+    checklist = set()
+    for link in data:
+        m, la, op, lb, at, bt = link
+        la = la.replace(':', "-")
+        lb = lb.replace(':', "-")
+        op = op.replace(':', "-")
+
+        this_edge = (la, op, lb)
+        if this_edge not in checklist:
+            checklist.add(this_edge)
+
+            edge = pydot.Edge(la, lb)
+            
+            # print("edge from " + la + " to " + lb + " via " + op)
+            # prob_label = transmats[i_a][j_b]
+            # if (prob_label,b) in best:
+            #     prob_label = float('%.3g' % prob_label)
+            #     prob_label = str(prob_label)
+            #     # print(prob_label)
+
+            results = transition_types[(la, op)]
+            prob = results.count(lb) / len(results)
+            prob = float('%.3g' % prob)
+
+            datum = [la, op, lb, prob]
+            data_overview.append(datum)
+
+            edge.set_label(op + "\nP=" + str(prob))
+            g.add_edge(edge)
+
+
+    
+    g.write_png("graphs/table_states-" + graph_label + ".png")
+    print("Output graph " + graph_label)
+
+    df = pd.DataFrame(data_overview, columns = ['before', 'operation', 'after', 'probability']) 
+    df.to_csv('outputs/table_states-' + graph_label + '.csv')
+
+
+
+graph_data = data_individual_meals
+graph_data.append(data_all)
+
+graph_names = filenames_all
+graph_names.append("all")
+
+for i in range(len(graph_data)):
+    data_list = graph_data[i]
+    graph_name = graph_names[i]
+    make_graph(data_list, graph_name, customer_states)
+
+
 data = []
 for entry in log.keys():
     datum = []
@@ -170,13 +347,13 @@ df = pd.DataFrame(data, columns = ['Meal ID', 'timestamp', 'table-state', 'perso
 
 # POST ANALYSIS
 table_state_labels = df['table-state'].unique()
-print(table_state_labels)
+# print(table_state_labels)
 
 
 data = []
 table_state_emissions = {}
 activity_labels = activitydict.keys()
-print(activity_labels)
+# print(activity_labels)
 
 
 for ts in table_state_labels:
@@ -205,16 +382,15 @@ cols_emi = ["table-state"] + list(activity_labels)
 # print(cols_emi)
 
 
-
 d_emi = pd.DataFrame(data, columns = cols_emi) 
-d_emi.to_csv('observerations.csv')
+d_emi.to_csv('outputs/observerations.csv')
 
 
 
 
 
 # exit()
-df.to_csv('all_data.csv')
+df.to_csv('outputs/all_data.csv')
 
 
 

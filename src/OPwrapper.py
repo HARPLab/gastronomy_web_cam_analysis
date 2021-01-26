@@ -58,7 +58,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append('/usr/local/python');
 #sys.path.append('../../python'); 
 sys.path.append('/home/adat/dev/openpose/build/python'); 
- 
+
  
 # Process Image 
 #datum = op.Datum() 
