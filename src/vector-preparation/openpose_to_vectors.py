@@ -37,11 +37,12 @@ def get_json_raw_to_tuples(json_raw):
 	return pose
 
 
-bd_box_A = ((90,350),(70,230))
-bd_box_B = ((90,350),(250,450))
+bd_box_A = ((70, 80), (200, 340))
+bd_box_B = ((230, 130), (370, 370))
+
 
 def in_bd_box(bd_box, pX, pY):
-    return pX > bd_box[0][0] and pX < bd_box[0][1] and pY < bd_box[1][1] and pY > bd_box[1][0]
+    return pX > bd_box[0][0] and pX < bd_box[1][0] and pY < bd_box[1][1] and pY > bd_box[0][1]
 
 # based on get_role_labels(cleaned_poses) in feature_utils
 def get_role_assignments(all_poses_in_frame):
