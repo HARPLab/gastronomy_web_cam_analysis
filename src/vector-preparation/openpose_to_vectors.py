@@ -111,7 +111,6 @@ for group_name in filenames_all:
 
 
 	for entry in entries:
-
 		json_file = open(prefix + entry) 
 		raw_json = json.load(json_file)
 		frame_index = get_file_frame_index(entry)
@@ -133,18 +132,6 @@ for group_name in filenames_all:
 			all_poses_in_frame.append(pose)
 
 		pose_a, pose_b = get_role_assignments(all_poses_in_frame)
-		# print(pose_a)
-		# print(pose_b)
-		# print(len(pose_a))
-
-		# print("~~~")
-		# print(get_vectorized(pose_a))
-		# print(get_vectorized(pose_b))
-
-		# roles_vectorized = get_vectorized(pose_a) + get_vectorized(pose_b)
-		# print(roles_vectorized)
-		# print(len(roles_vectorized))
-
 		pose_ab = np.concatenate((np.array(pose_a), np.array(pose_b)))
 
 		# Add findings to appropriate data structures
@@ -163,23 +150,24 @@ for group_name in filenames_all:
 	df = pd.DataFrame(pandas_data, columns = ['meal', 'frame_index', 'pose_a', 'pose_b', 'poses_all']) 
 	df.to_csv(prefix_output + group_name + '.csv')
 
-	filehandler = open(prefix_output + group_name + '_raw.p', 'wb') 
+	filehandler = open(prefix_output + group_name + '_raw_X.p', 'wb') 
 	pickle.dump(output_vector_raw, filehandler)
 	filehandler.close()
 
-	filehandler = open(prefix_output + group_name + 'AB_X.p', 'wb') 
+	filehandler = open(prefix_output + group_name + '_roles_X.p', 'wb') 
 	pickle.dump(output_vector_roles, filehandler)
 	filehandler.close()
 
-	# TODO adjust to be the correct slice
-	filehandler = open(prefix_output + group_name + 'A_X.p', 'wb') 
-	pickle.dump(output_vector_roles[:25], filehandler)
-	filehandler.close()
 
-	# TODO adjust to be the correct slice
-	filehandler = open(prefix_output + group_name + 'B_X.p', 'wb') 
-	pickle.dump(output_vector_roles[25:], filehandler)
-	filehandler.close()
+	# # TODO adjust to be the correct slice
+	# filehandler = open(prefix_output + group_name + '_A_X.p', 'wb') 
+	# pickle.dump(output_vector_roles[:25], filehandler)
+	# filehandler.close()
+
+	# # TODO adjust to be the correct slice
+	# filehandler = open(prefix_output + group_name + '_B_X.p', 'wb') 
+	# pickle.dump(output_vector_roles[25:], filehandler)
+	# filehandler.close()
 
 
 
