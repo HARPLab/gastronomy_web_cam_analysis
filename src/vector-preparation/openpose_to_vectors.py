@@ -24,6 +24,7 @@ max_poses = 5
 prefix_output = "output-vectors/"
 
 def get_file_frame_index(file_title):
+	index_length = len('000000000000')
 	start_index = file_title.index('_cropped_') + len('_cropped_')
 	return int(file_title[start_index: start_index + index_length])
 
@@ -41,8 +42,9 @@ bd_box_A = ((70, 80), (200, 340))
 bd_box_B = ((230, 130), (370, 370))
 
 
-def in_bd_box(bd_box, pX, pY):
-    return pX > bd_box[0][0] and pX < bd_box[1][0] and pY < bd_box[1][1] and pY > bd_box[0][1]
+def in_bd_box(bd_box, p):
+	pX, pY = p[0], p[1]
+	return pX > bd_box[0][0] and pX < bd_box[1][0] and pY < bd_box[1][1] and pY > bd_box[0][1]
 
 # based on get_role_labels(cleaned_poses) in feature_utils
 def get_role_assignments(all_poses_in_frame):
@@ -55,18 +57,18 @@ def get_role_assignments(all_poses_in_frame):
 		num_a, num_b = 0, 0
 
 		for pt in pose:
-			if in_bd_box(bd_box_A, pt[0], pt[1]):
+			if in_bd_box(bd_box_A, pt):
 				num_a += 1
 
-			if in_bd_box(bd_box_B, pt[0], pt[1]):
+			if in_bd_box(bd_box_B, pt):
 				num_b += 1
 
 		if num_a > best_num_a:
-			best_a = num_a
+			best_num_a = num_a
 			best_pose_a = pose
 
 		if num_b > best_num_b:
-			best_b = num_b
+			best_num_b = num_b
 			best_pose_b = pose
 
 	# TODO alternate take where we check if contiguous with previous?
@@ -82,8 +84,7 @@ def get_vectorized(pose):
 
 	return flat_list
         
-
-for group_name in filenames_all:
+def process_vectors_for_filename(group_name):
 	print("Analyzing " + group_name)
 	prefix = '../../Annotations/json/'
 	entries = os.listdir(prefix)
@@ -93,10 +94,9 @@ for group_name in filenames_all:
 	
 	if len(entries) < 1:
 		print("No entries found, skipping")
-		continue
+		return
 
 	start_index = entries[0].index('_cropped_') + len('_cropped_')
-	index_length = len('000000000000')
 
 	indices = [get_file_frame_index(e) for e in entries]
 	max_frame = max(indices) + 1
@@ -160,15 +160,19 @@ for group_name in filenames_all:
 	filehandler.close()
 
 
-	# # TODO adjust to be the correct slice
-	# filehandler = open(prefix_output + group_name + '_A_X.p', 'wb') 
-	# pickle.dump(output_vector_roles[:25], filehandler)
-	# filehandler.close()
+for group_name in filenames_all:
+	process_vectors_for_filename(group_name)
 
-	# # TODO adjust to be the correct slice
-	# filehandler = open(prefix_output + group_name + '_B_X.p', 'wb') 
-	# pickle.dump(output_vector_roles[25:], filehandler)
-	# filehandler.close()
+
+# # TODO adjust to be the correct slice
+# filehandler = open(prefix_output + group_name + '_A_X.p', 'wb') 
+# pickle.dump(output_vector_roles[:25], filehandler)
+# filehandler.close()
+
+# # TODO adjust to be the correct slice
+# filehandler = open(prefix_output + group_name + '_B_X.p', 'wb') 
+# pickle.dump(output_vector_roles[25:], filehandler)
+# filehandler.close()
 
 
 
