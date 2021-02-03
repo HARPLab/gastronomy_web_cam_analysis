@@ -21,7 +21,7 @@ keypoint_labels = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder",
                                                 "LEar","LBigToe", "LSmallToe", "LHeel", "RBigToe", "RSmallToe", "RHeel", "Background", '']
 
 
-filenames_all = ['8-13-18', '8-18-18', '8-19-18', '8-17-18', '8-21-18']
+filenames_all = ['8-13-18', '8-18-18', '8-17-18', '8-21-18', '8-9-18']
 prefix_output = './quality-checks/'
 prefix_input = './output-vectors/'
 
@@ -75,6 +75,7 @@ def export_annotated_frame(f_id, row_X, row_Y, raw_X, label, cap, export_all_pos
     COLOR_RED = (255, 0, 0)
     COLOR_BLUE = (0, 0, 255)
 
+
     print("exporting outlier")
     label_a = str(get_label_PA(row_Y))
     label_b = str(get_label_PB(row_Y))
@@ -86,6 +87,12 @@ def export_annotated_frame(f_id, row_X, row_Y, raw_X, label, cap, export_all_pos
     ret, frame_img = cap.read()
     
     height, width, channels = frame_img.shape
+
+
+    bd_box_A = ((70, 80), (200, 340))
+    bd_box_B = ((230, 130), (370, 370))
+    frame_img = cv2.rectangle(frame_img, bd_box_A[0], bd_box_A[1], COLOR_RED, 1)
+    frame_img = cv2.rectangle(frame_img, bd_box_B[0], bd_box_B[1], COLOR_BLUE, 1)
 
     # for pose in all_poses(raw_X):
     #     frame_img = add_pose_to_image(pose_a, frame_img, COLOR_BLACK)
@@ -157,12 +164,19 @@ def check_quality_and_export_trimmed(filename):
     vector_length = X_all.shape[0]
     video_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    if vector_length != video_length:
+    if video_length == 0:
+        print("Video file not found for " + filename)
+        print("If you're confident in your vectors this is fine, otherwise, might want to look into that!")
+        print("Exiting without analysis or trimming export, since slides can't be annotated")
+        print("FAILURE ON " + filename)
+        return
+
+    elif vector_length != video_length:
         print("Warning: raw video is of length " + str(video_length) + " while vector is of length " + str(vector_length))
         print("This may lead to off-by-" + str(video_length - vector_length) + " errors.")
         print("Are you trying to re-trim a clip? Careful!")
-        print("Exiting without analysis or trimming export")
         return
+
 
     # For each RestaurantFrame in the list
     for rid in range(vector_length):
@@ -197,7 +211,7 @@ def check_quality_and_export_trimmed(filename):
         #     export_annotated_frame(frame_num, row_X, row_Y, LABEL_TYPE_AWAY_BUT_POSE_DETECTED, cap, frame_group)
         #     counter += 1
 
-        if chance < .0001:
+        if chance < .00001:
             export_annotated_frame(frame_num, row_X, row_Y, raw_X, LABEL_TYPE_RANDOM, cap, filename)
             counter += 1
 
