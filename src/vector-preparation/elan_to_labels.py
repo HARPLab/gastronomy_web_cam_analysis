@@ -35,7 +35,7 @@ import matplotlib
 import numpy as np
 import pickle
 
-
+prefix_output = "output-vectors/"
 
 def parseXML(elanfile):
     tree = ET.parse(elanfile)
@@ -77,6 +77,7 @@ BLANK_LABELS = [LABEL_NONE, LABEL_NONE, LABEL_NONE]
 TYPE_WAITER = 'waiter_action'
 TYPE_CUSTOMER_STATE = 'customer_state'
 
+# INDEX_FID = 0
 INDEX_A = 0
 INDEX_B = 1
 
@@ -176,6 +177,7 @@ for meal in filenames_all:
                     for f_id in range(beginning_frame, ending_frame):
                         if activity in activitydict:
                             timeline_Y[f_id][INDEX_A] = activitydict[activity]
+                            # timeline_Y[f_id][INDEX_FID] = f_id
                         else:
                             print("Strange label: " + activity)
 
@@ -195,14 +197,14 @@ for meal in filenames_all:
                     for f_id in range(beginning_frame, ending_frame):
                         if activity in activitydict:
                             timeline_Y[f_id][INDEX_B] = activitydict[activity]
+                            # timeline_Y[f_id][INDEX_FID] = f_id
                         else:
                             print("Strange label: " + activity)
 
 
-    filehandler = open(meal + '_Y.p', 'wb') 
+    filehandler = open(prefix_output + meal + '_raw_Y.p', 'wb') 
     pickle.dump(timeline_Y, filehandler)
     filehandler.close()
-    print("Exported " + meal)
                      
 
 
