@@ -72,50 +72,6 @@ def add_pose_to_image(pose, img, color):
 
     return frame_img
 
-def unison_shuffled_copies(a, b, seed_val):
-    assert len(a) == len(b)
-    p = np.random.RandomState(seed=seed_val).permutation(len(a))
-    return a[p], b[p]
-
-def export_folds_svm(X_final, Y_final, filename, prefix_vectors_out, test_size=.2):
-    seed = 42
-
-    X_shuffled, Y_shuffled = unison_shuffled_copies(X_final, Y_final, seed)
-    index_reduc = int(len(X_shuffled) * (test_size))
-    
-    train_X     = X_shuffled[:index_reduc]
-    test_X      = X_shuffled[:index_reduc]
-
-    train_Y     = Y_shuffled[:index_reduc]
-    test_Y      = Y_shuffled[:index_reduc]
-
-    label_testsize      = str(int(test_size * 100))
-    label_trainsize     = str(int((1.0 - test_size) * 100))
-    label_random_seed   = str(seed)
-
-    core_name = filename + "_s" + label_random_seed + "_"
-    test_name   = core_name + label_testsize
-    train_name  = core_name + label_trainsize
-
-    filehandler = open(prefix_vectors_out + train_name + "_X.p", "wb")
-    pickle.dump(train_X, filehandler)
-    filehandler.close()
-
-    filehandler = open(prefix_vectors_out + train_name + "_Y.p", "wb")
-    pickle.dump(train_Y, filehandler)
-    filehandler.close()
-
-    filehandler = open(prefix_vectors_out + test_name + "_X.p", "wb")
-    pickle.dump(test_X, filehandler)
-    filehandler.close()
-
-    filehandler = open(prefix_vectors_out + test_name + "_X.p", "wb")
-    pickle.dump(test_Y, filehandler)
-    filehandler.close()
-
-def export_folds(X_final, Y_final, filename, prefix_vectors_out):
-    export_folds_svm(X_final, Y_final, filename, prefix_vectors_out)
-
 
 
 
@@ -283,27 +239,24 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
             counter += 1
 
 
-    print(frame_num)
+    # print(frame_num)
     # Final removal of incorrect away-from-table-s
 
     print("Deletion log contains " + str(len(deletion_log)) + " items")
     X_final = np.delete(X_all, deletion_log, axis=0)
     Y_final = np.delete(Y_all, deletion_log, axis=0)
 
-    print("Post-trim shape")
-    print(Y_final.shape)
+    print("Post-trim shape: " + str(Y_final.shape))
 
     # filehandler = open(prefix_qc + "QC_" + filename_root + "_X.p", "wb")
     # json.dump(X_final, filehandler)
     # filehandler.close()
 
-    export_folds(X_final, Y_final, filename, prefix_vectors_out)
-
-    filehandler = open(prefix_vectors_out + "QC_" + filename + "_X.p", "wb")
+    filehandler = open(prefix_vectors_out + "trimmed_" + filename + "_X.p", "wb")
     pickle.dump(X_final, filehandler)
     filehandler.close()
 
-    filehandler = open(prefix_vectors_out + "QC_" + filename + "_Y.p", "wb")
+    filehandler = open(prefix_vectors_out + "trimmed_" + filename + "_Y.p", "wb")
     pickle.dump(Y_final, filehandler)
     filehandler.close()
 
