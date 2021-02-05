@@ -72,8 +72,52 @@ def add_pose_to_image(pose, img, color):
 
     return frame_img
 
-def export_folds(X_final, Y_final, filename_root, prefix_vectors_out):
-    pass
+def unison_shuffled_copies(a, b, seed_val):
+    assert len(a) == len(b)
+    p = np.random.RandomState(seed=seed_val).permutation(len(a))
+    return a[p], b[p]
+
+def export_folds_svm(X_final, Y_final, filename, prefix_vectors_out, test_size=.2):
+    seed = 42
+
+    X_shuffled, Y_shuffled = unison_shuffled_copies(X_final, Y_final, seed)
+    index_reduc = int(len(X_shuffled) * (test_size))
+    
+    train_X     = X_shuffled[:index_reduc]
+    test_X      = X_shuffled[:index_reduc]
+
+    train_Y     = Y_shuffled[:index_reduc]
+    test_Y      = Y_shuffled[:index_reduc]
+
+    label_testsize      = str(int(test_size * 100))
+    label_trainsize     = str(int((1.0 - test_size) * 100))
+    label_random_seed   = str(seed)
+
+    core_name = filename + "_s" + label_random_seed + "_"
+    test_name   = core_name + label_testsize
+    train_name  = core_name + label_trainsize
+
+    filehandler = open(prefix_vectors_out + train_name + "_X.p", "wb")
+    pickle.dump(train_X, filehandler)
+    filehandler.close()
+
+    filehandler = open(prefix_vectors_out + train_name + "_Y.p", "wb")
+    pickle.dump(train_Y, filehandler)
+    filehandler.close()
+
+    filehandler = open(prefix_vectors_out + test_name + "_X.p", "wb")
+    pickle.dump(test_X, filehandler)
+    filehandler.close()
+
+    filehandler = open(prefix_vectors_out + test_name + "_X.p", "wb")
+    pickle.dump(test_Y, filehandler)
+    filehandler.close()
+
+def export_folds(X_final, Y_final, filename, prefix_vectors_out):
+    export_folds_svm(X_final, Y_final, filename, prefix_vectors_out)
+
+
+
 
 def export_annotated_frame(f_id, row_X, row_Y, raw_X, label, cap, export_all_poses=False, frame_group=0):
     COLOR_NEUTRAL = (255, 255, 255)
@@ -130,7 +174,6 @@ def export_annotated_frame(f_id, row_X, row_Y, raw_X, label, cap, export_all_pos
     color = (255, 0, 0) 
     thickness = 2
    
-    print(label_a)
     frame_imag = cv2.putText(frame_img, label_a, org_a, font,  
                    fontScale, COLOR_A, thickness, cv2.LINE_AA) 
 
@@ -159,11 +202,11 @@ LABEL_TYPE_DELETED                  = 'deleted'
 
 
 # run the experiment
-def check_quality_and_export_trimmed(filename):
+def check_quality_and_export_trimmed(filename, export_frames=False):
     print("Running quality checks")
     X_all = pickle.load(open(prefix_vectors_out + filename + '_roles_X.p',"rb"))
     X_raw = pickle.load(open(prefix_vectors_out + filename + '_raw_X.p',"rb"))
-    Y_all = pickle.load(open(prefix_vectors_out + filename + '_Y.p',"rb"))
+    Y_all = pickle.load(open(prefix_vectors_out + filename + '_raw_Y.p',"rb"))
 
     print("loaded pickle datasets for " + filename)
     print("Dimensions of input X: " + str(X_all.shape) + " (video length x 25 OpenPose Pts x (x,y,confidence))")
@@ -178,8 +221,6 @@ def check_quality_and_export_trimmed(filename):
     counter = 0
 
     prev_frame_num = -1
-    frame_group = 0
-    filename_root = filenames_all[frame_group]
     cap = cv2.VideoCapture("../../videos/" + filename + "_cropped.mp4")
 
     vector_length = X_all.shape[0]
@@ -224,20 +265,20 @@ def check_quality_and_export_trimmed(filename):
 
         if label_pa == 'away-from-table' and label_pb == 'away-from-table':
             deletion_log.append(rid)
-            if chance < .01:
+            if export_frames and chance < .001:
                 export_annotated_frame(frame_num, row_X, row_Y, raw_X, LABEL_TYPE_DELETED, cap, filename)
                 counter += 1
 
 
-        # if label_pa == 'away-from-table' and pose_pb is not None and chance < .01:
+        # if export_frames and label_pa == 'away-from-table' and pose_pb is not None and chance < .01:
         #     export_annotated_frame(frame_num, row_X, row_Y, LABEL_TYPE_AWAY_BUT_POSE_DETECTED, cap, frame_group)
         #     counter += 1
 
-        # if label_pb == 'away-from-table' and pose_pb is not None and chance < .01:
+        # if export_frames and label_pb == 'away-from-table' and pose_pb is not None and chance < .01:
         #     export_annotated_frame(frame_num, row_X, row_Y, LABEL_TYPE_AWAY_BUT_POSE_DETECTED, cap, frame_group)
         #     counter += 1
 
-        if chance < .00005:
+        if export_frames and chance < .00005:
             export_annotated_frame(frame_num, row_X, row_Y, raw_X, LABEL_TYPE_RANDOM, cap, filename)
             counter += 1
 
@@ -251,22 +292,28 @@ def check_quality_and_export_trimmed(filename):
     X_final = np.delete(X_all, deletion_log, axis=0)
     Y_final = np.delete(Y_all, deletion_log, axis=0)
 
+    print("Deletion log contains " + str(len(deletion_log)) + " items")
+
+    print("Pose trim shape")
+    print(Y_final.shape)
+
     # filehandler = open(prefix_qc + "QC_" + filename_root + "_X.p", "wb")
     # json.dump(X_final, filehandler)
     # filehandler.close()
 
-    export_folds(X_final, Y_final, filename_root, prefix_vectors_out)
+    export_folds(X_final, Y_final, filename, prefix_vectors_out)
 
-    filehandler = open(prefix_vectors_out + "QC_" + filename_root + "_X.p", "wb")
+    filehandler = open(prefix_vectors_out + "QC_" + filename + "_X.p", "wb")
     pickle.dump(X_final, filehandler)
     filehandler.close()
 
-    filehandler = open(prefix_vectors_out + "QC_" + filename_root + "_Y.p", "wb")
+    filehandler = open(prefix_vectors_out + "QC_" + filename + "_Y.p", "wb")
     pickle.dump(Y_final, filehandler)
     filehandler.close()
 
-    print("Exported trimmmed final clip for " + filename_root)
+    print("Exported trimmmed final clip for " + filename)
+    print("\n")
 
 
 for filename in filenames_all:
-    check_quality_and_export_trimmed(filename)
+    check_quality_and_export_trimmed(filename, export_frames=False)
