@@ -3,6 +3,8 @@ import cv2
 import random
 import pickle
 import pandas as pd
+import numpy as np
+import json
 
 activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
                         'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
@@ -22,8 +24,8 @@ keypoint_labels = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder",
 
 
 filenames_all = ['8-13-18', '8-18-18', '8-17-18', '8-21-18', '8-9-18']
-prefix_output = './quality-checks/'
-prefix_input = './output-vectors/'
+prefix_qc = './quality-checks/'
+prefix_vectors_out = './output-vectors/'
 
 INDEX_PA = 0
 INDEX_PB = 1
@@ -70,18 +72,26 @@ def add_pose_to_image(pose, img, color):
 
     return frame_img
 
+def export_folds(X_final, Y_final, filename_root, prefix_vectors_out):
+    pass
+
 def export_annotated_frame(f_id, row_X, row_Y, raw_X, label, cap, export_all_poses=False, frame_group=0):
-    COLOR_BLACK = (0, 0, 0)
-    COLOR_RED = (255, 0, 0)
-    COLOR_BLUE = (0, 0, 255)
+    COLOR_NEUTRAL = (255, 255, 255)
+    COLOR_A = (255, 0, 0)
+    COLOR_B = (0, 0, 255)
 
 
-    print("exporting outlier")
+    output_file = {}
+
+    print("exporting outlier: " + label)
     label_a = str(get_label_PA(row_Y))
     label_b = str(get_label_PB(row_Y))
     pose_a  = get_PA(row_X)
     pose_b  = get_PB(row_X)
     frame_num = int(f_id)
+
+    output_file['pose-A'] = pose_a.tolist()
+    output_file['pose-B'] = pose_b.tolist()
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
     ret, frame_img = cap.read()
@@ -91,38 +101,48 @@ def export_annotated_frame(f_id, row_X, row_Y, raw_X, label, cap, export_all_pos
 
     bd_box_A = ((70, 80), (200, 340))
     bd_box_B = ((230, 130), (370, 370))
-    frame_img = cv2.rectangle(frame_img, bd_box_A[0], bd_box_A[1], COLOR_RED, 1)
-    frame_img = cv2.rectangle(frame_img, bd_box_B[0], bd_box_B[1], COLOR_BLUE, 1)
+    frame_img = cv2.rectangle(frame_img, bd_box_A[0], bd_box_A[1], COLOR_A, 1)
+    frame_img = cv2.rectangle(frame_img, bd_box_B[0], bd_box_B[1], COLOR_B, 1)
 
-    # for pose in all_poses(raw_X):
-    #     frame_img = add_pose_to_image(pose_a, frame_img, COLOR_BLACK)
+    # TODO read in additional poses from the raw pose export
+    all_poses = []
+    for pose in raw_X:
+        all_poses.append(pose)
+        # pslice = pose_size * pid
+        # pose = raw_X[pslice : pslice + pose_size]
+        pose = np.array(pose).reshape((25, 3))
+        frame_img = add_pose_to_image(pose, frame_img, COLOR_NEUTRAL)
+        
+    output_file['all-poses'] = all_poses
 
-
-    frame_img = add_pose_to_image(pose_a, frame_img, COLOR_RED)
-    frame_img = add_pose_to_image(pose_b, frame_img, COLOR_BLUE)
+    frame_img = add_pose_to_image(pose_a, frame_img, COLOR_A)
+    frame_img = add_pose_to_image(pose_b, frame_img, COLOR_B)
 
 
     halfway = int(width / 2)
 
     org_a = (50, 50) 
-    org_b = (50 + halfway, 50) 
+    org_b = (45 + halfway, 50) 
       
 
     font = cv2.FONT_HERSHEY_SIMPLEX 
-    fontScale = .25
+    fontScale = .6
     color = (255, 0, 0) 
     thickness = 2
    
     print(label_a)
     frame_imag = cv2.putText(frame_img, label_a, org_a, font,  
-                   fontScale, COLOR_RED, thickness, cv2.LINE_AA) 
+                   fontScale, COLOR_A, thickness, cv2.LINE_AA) 
 
-    frame_imag = cv2.putText(frame_img, label_b, org_b, font, fontScale, COLOR_RED, thickness, cv2.LINE_AA) 
+    frame_imag = cv2.putText(frame_img, label_b, org_b, font, fontScale, COLOR_B, thickness, cv2.LINE_AA) 
 
 
-    title = filename + "_shows_" + label + "_f" + str(frame_num) + ".jpg"
-    cv2.imwrite(prefix_output + title, frame_img) 
+    title = filename + "_shows_" + label + "_f" + str(frame_num)
+    cv2.imwrite(prefix_qc + title + ".jpg", frame_img) 
     print("Exported outlier " + title)
+
+    with open(prefix_qc + title + ".json", 'w') as outfile:  
+        json.dump(output_file, outfile)
 
 
 EXPORT_DROPOUT_STATS                = True
@@ -135,18 +155,19 @@ LABEL_TOO_MANY_POSES                = 'err-too-many-poses'
 LABEL_TYPE_AWAY_BUT_POSE_DETECTED   = 'err-away-but-pose'
 LABEL_TYPE_RANDOM                   = 'quality-check-random'
 LABEL_WAITER_MOMENTS                = 'quality-check-waiter'
+LABEL_TYPE_DELETED                  = 'deleted'
 
 
 # run the experiment
 def check_quality_and_export_trimmed(filename):
     print("Running quality checks")
-    X_all = pickle.load(open(prefix_input + filename + '_roles_X.p',"rb"))
-    X_raw = pickle.load(open(prefix_input + filename + '_raw_X.p',"rb"))
-    Y_all = pickle.load(open(prefix_input + filename + '_Y.p',"rb"))
+    X_all = pickle.load(open(prefix_vectors_out + filename + '_roles_X.p',"rb"))
+    X_raw = pickle.load(open(prefix_vectors_out + filename + '_raw_X.p',"rb"))
+    Y_all = pickle.load(open(prefix_vectors_out + filename + '_Y.p',"rb"))
 
     print("loaded pickle datasets for " + filename)
-    print(X_all.shape)
-    print(Y_all.shape)
+    print("Dimensions of input X: " + str(X_all.shape) + " (video length x 25 OpenPose Pts x (x,y,confidence))")
+    print("Dimensions of input Y: " + str(Y_all.shape) + " (video length x (labela, labelb))")
 
     # Verify that the two input vectors line up
     # Always guaranteed to start at 0, and be the length of the clip
@@ -178,6 +199,8 @@ def check_quality_and_export_trimmed(filename):
         return
 
 
+    deletion_log = []
+
     # For each RestaurantFrame in the list
     for rid in range(vector_length):
         row_X = X_all[rid]
@@ -199,8 +222,11 @@ def check_quality_and_export_trimmed(filename):
         # if label_pa == 'leaving-table' and label_pb == 'leaving-table':
         #     print("meal finish lt noted at " + str(frame_num))
 
-        # if label_pa == 'away-from-table' and label_pb == 'away-from-table':
-        #     print("meal finish aa noted at " + str(frame_num))
+        if label_pa == 'away-from-table' and label_pb == 'away-from-table':
+            deletion_log.append(rid)
+            if chance < .01:
+                export_annotated_frame(frame_num, row_X, row_Y, raw_X, LABEL_TYPE_DELETED, cap, filename)
+                counter += 1
 
 
         # if label_pa == 'away-from-table' and pose_pb is not None and chance < .01:
@@ -211,42 +237,36 @@ def check_quality_and_export_trimmed(filename):
         #     export_annotated_frame(frame_num, row_X, row_Y, LABEL_TYPE_AWAY_BUT_POSE_DETECTED, cap, frame_group)
         #     counter += 1
 
-        if chance < .00001:
+        if chance < .00005:
             export_annotated_frame(frame_num, row_X, row_Y, raw_X, LABEL_TYPE_RANDOM, cap, filename)
             counter += 1
-
 
 
     print(frame_num)
     print(label_pa)
     print(label_pb)
 
-    
+    # Final removal of incorrect away-from-table-s
 
-    filehandler = open(prefix_output + "QC_" + filename_root + "_X.p", "wb")
-    pickle.dump(X_all, filehandler)
+    X_final = np.delete(X_all, deletion_log, axis=0)
+    Y_final = np.delete(Y_all, deletion_log, axis=0)
+
+    # filehandler = open(prefix_qc + "QC_" + filename_root + "_X.p", "wb")
+    # json.dump(X_final, filehandler)
+    # filehandler.close()
+
+    export_folds(X_final, Y_final, filename_root, prefix_vectors_out)
+
+    filehandler = open(prefix_vectors_out + "QC_" + filename_root + "_X.p", "wb")
+    pickle.dump(X_final, filehandler)
     filehandler.close()
 
-    filehandler = open(prefix_output + "QC_" + filename_root + "_X.p", "wb")
-    pickle.dump(Y_all, open(prefix_output + "QC_" + filename_root + "_Y.p", "wb"))
+    filehandler = open(prefix_vectors_out + "QC_" + filename_root + "_Y.p", "wb")
+    pickle.dump(Y_final, filehandler)
     filehandler.close()
 
+    print("Exported trimmmed final clip for " + filename_root)
 
-    # for filename_root in filenames_all:
-    #     print("parsing file " + filename_root)
-    #     root = parseXML('../Annotations/' + filename_root + '-michael.eaf')
-
-    #     cap = cv2.VideoCapture("../videos/" + filename_root + "_cropped.mp4")
-    #     frames = {}
-    #     frame_id = 0
-    #     while True:
-    #         ret,frame =cap.read()
-    #         if not ret:
-    #             break
-    #         frames[frame_id] = frame
-    #         frame_id = frame_id + 1
-    #         if frame_id % 1000 == 0:
-    #             print("processing through frame " + str(f_id))
 
 for filename in filenames_all:
     check_quality_and_export_trimmed(filename)
