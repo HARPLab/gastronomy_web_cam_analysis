@@ -17,7 +17,7 @@ keypoint_labels = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder",
 
 
 # filenames_all = ['8-13-18']
-filenames_all = ['8-13-18', '8-17-18', '8-18-18', '8-21-18', '8-9-18']
+filenames_all = ['8-13-18', '8-18-18', '8-17-18', '8-21-18', '8-9-18']
 # root = parseXML('../../Annotations/' + meal + '-michael.eaf')
 # filename format 8-13-18_cropped_000000000000_keypoints.json
 max_poses = 5
@@ -143,7 +143,8 @@ def process_vectors_for_filename(group_name):
 		datum = [group_name, frame_index, pose_a, pose_b, row_raw_poses]
 		pandas_data.append(datum)
 
-
+		# if (frame_index % 1000 == 0):
+		# 	print(frame_index)
 
 
 
