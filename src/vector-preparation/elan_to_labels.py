@@ -107,6 +107,8 @@ for meal in filenames_all:
     indices = [get_file_frame_index(e) for e in entries]
     max_frame = max(indices) + 1
 
+    print(max_frame)
+
     timeline_Y = np.ndarray((max_frame, 2))
 
     ## start looping through annotation labels
