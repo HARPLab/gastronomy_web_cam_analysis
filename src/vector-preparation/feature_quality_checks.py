@@ -284,17 +284,13 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
 
 
     print(frame_num)
-    print(label_pa)
-    print(label_pb)
-
     # Final removal of incorrect away-from-table-s
 
+    print("Deletion log contains " + str(len(deletion_log)) + " items")
     X_final = np.delete(X_all, deletion_log, axis=0)
     Y_final = np.delete(Y_all, deletion_log, axis=0)
 
-    print("Deletion log contains " + str(len(deletion_log)) + " items")
-
-    print("Pose trim shape")
+    print("Post-trim shape")
     print(Y_final.shape)
 
     # filehandler = open(prefix_qc + "QC_" + filename_root + "_X.p", "wb")
