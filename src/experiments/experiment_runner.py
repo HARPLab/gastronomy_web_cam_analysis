@@ -14,35 +14,67 @@ import pickle
 def experiment_duo_vs_solo_just_label_svm(all_svm_vectors):
 	pass
 
+def svm_train(X, Y):
+	pass
+
+def svm_test(svm, X, Y):
+	pass
+
+
+def unpack_dict(input_set):
+	X_test 	= input_set['xtest']
+	X_train = input_set['xtrain']
+	Y_test 	= input_set['ytest']
+	Y_train = input_set['ytrain']
+
+	return X_train, X_test, Y_train, Y_test
+
+def get_A(X_array, Y_array):
+	og_dim_X = X_array.shape
+	og_dim_Y = Y_array.shape
+
+	half_dim_X = int(og_dim_X[1] / 2)
+	half_dim_Y = int(og_dim_Y[1] / 2)
+
+	return X_array[:, :half_dim_X, :], Y_array[:, 	:half_dim_Y]
+
+def get_B(X_array, Y_array):
+	og_dim_X = X_array.shape
+	og_dim_Y = Y_array.shape
+
+	half_dim_X = int(og_dim_X[1] / 2)
+	half_dim_Y = int(og_dim_Y[1] / 2)
+
+	return X_array[:, half_dim_X:, :], Y_array[:, 	half_dim_Y:]
+
 
 def experiment_duo_vs_solo_svm(vector_dict):
 
 	for key_group in vector_dict.keys():
 		input_set = vector_dict[key_group]
 
-		X_test_AB 	= input_set['xtest']
-		X_train_AB 	= input_set['xtrain']
-		Y_test_AB 	= input_set['ytest']
-		Y_train_AB 	= input_set['ytrain']
+		X_train_AB, X_test_AB, Y_train_AB, Y_test_AB = unpack_dict(input_set)
 
-		og_dim_X = X_test_AB.shape
-		og_dim_Y = Y_test_AB.shape
+		X_train_A, Y_train_A 	= get_A(X_train_AB, Y_train_AB)
+		X_test_A, Y_test_A 		= get_A(X_test_AB, Y_test_AB)
 
-		half_dim_X = int(og_dim_X[1] / 2)
-		half_dim_Y = int(og_dim_Y[1] / 2)
+		X_train_B, Y_train_B 	= get_B(X_train_AB, Y_train_AB)
+		X_test_B, Y_test_B 		= get_B(X_test_AB, Y_test_AB)
 
-		X_test_A 	= X_test_AB[:, 	:half_dim_X, :]
-		X_train_A 	= X_train_AB[:, :half_dim_X, :]
-		Y_test_A 	= Y_test_AB[:, 	:half_dim_Y]
-		Y_train_A 	= Y_train_AB[:, :half_dim_Y]
+		svm_a_a = svm_train(X_train_A, Y_train_A)
+		svm_b_b = svm_train(X_train_B, Y_train_B)
 
-		X_test_B 	= X_test_AB[:, 	half_dim_X:, :]
-		X_train_B 	= X_train_AB[:, half_dim_X:, :]
-		Y_test_B 	= Y_test_AB[:, 	half_dim_Y:]
-		Y_train_B 	= Y_train_AB[:, half_dim_Y:]
+		svm_ab_a = svm_train(X_train_AB, Y_train_A)
+		svm_ab_b = svm_train(X_train_AB, Y_train_B)
 
-		print()
-		svm_train_test(X_train_AB, Y_test_AB)
+		svm_test(svm_a_a, X_test_A, Y_test_A)
+		svm_test(svm_b_b, X_test_B, Y_test_B)
+
+		svm_test(svm_ab_a, X_test_AB, Y_test_A)
+		svm_test(svm_ab_b, X_test_AB, Y_test_B)
+
+
+
 
 		# run the experiment
 
