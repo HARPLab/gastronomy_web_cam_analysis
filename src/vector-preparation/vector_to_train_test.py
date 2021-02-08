@@ -92,8 +92,8 @@ def export_folds_svm(filenames_all, prefix_vectors_out, seed, test_size=.2):
 			# print(test_X.shape)
 			
 
-			label_testsize	  = str(int(test_size * 100))
-			label_trainsize	 = str(int((1.0 - test_size) * 100))
+			label_testsize	  = str(int(test_size * 100)) + "_test"
+			label_trainsize	 = str(int((1.0 - test_size) * 100)) + "_train"
 			label_random_seed   = str(seed)
 
 			total_test_X[f] = np.concatenate((total_test_X[f], test_X))
@@ -123,6 +123,7 @@ def export_folds_svm(filenames_all, prefix_vectors_out, seed, test_size=.2):
 			filehandler = open(prefix_vectors_out + test_name + "_X.p", "wb")
 			pickle.dump(test_Y, filehandler)
 			filehandler.close()
+
 		print()
 
 	for f in range(num_folds):
@@ -147,11 +148,11 @@ def export_folds_svm(filenames_all, prefix_vectors_out, seed, test_size=.2):
 		pickle.dump(fold_test_X, filehandler)
 		filehandler.close()
 
-		filehandler = open(prefix_vectors_out + test_name + "_X.p", "wb")
+		filehandler = open(prefix_vectors_out + test_name + "_Y.p", "wb")
 		pickle.dump(fold_test_Y, filehandler)
 		filehandler.close()
 
-		print("These dimensions should be consistent across folds:")
+		print("These dimensions should be consistent across folds for an SVM:")
 		print(fold_train_X.shape)
 		print(fold_train_Y.shape)
 		print(fold_test_X.shape)
@@ -164,8 +165,7 @@ def export_folds(filenames_all, prefix_vectors_out, seed):
 	export_folds_svm(filenames_all, prefix_vectors_out, seed)
 
 
-
-def export_all_folds():		
+def export_all_folds():
 	seed = 42
 	export_folds(filenames_all, prefix_vectors_out, seed)
 
