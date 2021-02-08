@@ -37,6 +37,12 @@ def get_classifier(key):
 
 	return None
 
+def export_result(obj, long_prefix, label):
+	filehandler = open(long_prefix  + label  + "_resultY.p", "wb")
+	pickle.dump(obj, filehandler)
+	filehandler.close()
+	print("Exported to " + long_prefix + label)
+
 def classifier_train(X, Y, classifier_key):
 	Y = Y.astype(int).ravel()
 	print(X.shape)
@@ -132,6 +138,7 @@ def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, exp_id):
 	prefix_export = 'results/'
 	label_alb_a = "_alb_a"
 	label_bla_b = "_bla_b"
+	long_prefix = prefix_export + unique_title + '_f' + str(key_group) + exp_id
 
 	experiment_blob_all = {}
 
@@ -150,16 +157,9 @@ def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, exp_id):
 		svm_alb_a = classifier_train(X_train_AlB, Y_train_A, exp_id)
 		result_alb_a = classifier_test(svm_alb_a, X_test_AlB, Y_test_A)
 
-		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id  + label_alb_a  + "_resultY.p", "wb")
-		pickle.dump(result_alb_a, filehandler)
-		filehandler.close()
-
 		svm_bla_b = classifier_train(X_train_BlA, Y_train_B, exp_id)
 		result_bla_b = classifier_test(svm_bla_b, X_test_BlA, Y_test_B)
-
-		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id  + label_bla_b  + "_resultY.p", "wb")
-		pickle.dump(result_bla_b, filehandler)
-		filehandler.close()
+		export_result(result_bla_b, long_prefix, label_bla_b)
 
 		# store for future examination
 		experiment_blob['alb_a_predict'] = result_alb_a
@@ -202,34 +202,20 @@ def experiment_duo_vs_solo_svm(vector_dict, unique_title, exp_id):
 
 		svm_a_a = classifier_train(X_train_A, Y_train_A, exp_id)
 		result_a_a = classifier_test(svm_a_a, X_test_A, Y_test_A)
-
-		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id + label_a_a + "_resultY.p", "wb")
-		pickle.dump(result_a_a, filehandler)
-		filehandler.close()
-
+		export_result(result_a_a, long_prefix, label_a_a)
 
 		svm_b_b = classifier_train(X_train_B, Y_train_B, exp_id)
 		result_b_b = classifier_test(svm_b_b, X_test_B, Y_test_B)
-
-		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id  + label_b_b  + "_resultY.p", "wb")
-		pickle.dump(result_b_b, filehandler)
-		filehandler.close()
-
+		export_result(result_b_b, long_prefix, label_b_b)
 
 		svm_ab_a = classifier_train(X_train_AB, Y_train_A, exp_id)
 		result_ab_a = classifier_test(svm_ab_a, X_test_AB, Y_test_A)
-
-		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id  + label_ab_a  + "_resultY.p", "wb")
-		pickle.dump(result_ab_a, filehandler)
-		filehandler.close()
+		export_result(result_ab_a, long_prefix, label_ab_a)
 
 
 		svm_ab_b = classifier_train(X_train_AB, Y_train_B, exp_id)
 		result_ab_b = classifier_test(svm_ab_b, X_test_AB, Y_test_B)
-
-		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id  + label_ab_b  + "_resultY.p", "wb")
-		pickle.dump(result_ab_b, filehandler)
-		filehandler.close()
+		export_result(result_ab_b, long_prefix, label_ab_b)
 
 		
 		# store for future examination
@@ -311,14 +297,12 @@ def run_experiments():
 
 	all_svm_vectors = get_svm_vectors(folds, unique_title)
 
-	exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_SGDC, CLASSIFIER_SVM, CLASSIFIER_KNN3]
+	exp_types = [CLASSIFIER_SGDC, CLASSIFIER_SVM, CLASSIFIER_KNN3]
 	for i in range(len(exp_types)):
 		exp_id = exp_types[i]
 		experiment_duo_vs_solo_svm(all_svm_vectors, unique_title, exp_id)
 		experiment_duo_vs_solo_just_labels(all_svm_vectors, unique_title, exp_id)
 
-	# experiment_duo_vs_solo_lstm()
-	# experiment_duo_vs_solo_just_label_lstm()
 
 def main():
     run_experiments()
