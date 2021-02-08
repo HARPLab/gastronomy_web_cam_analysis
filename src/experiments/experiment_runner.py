@@ -7,27 +7,45 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import SGDClassifier
+from sklearn.svm import LinearSVC
+from sklearn.tree import DecisionTreeClassifier
 
-# experiment runner
-# 	for each type of trial
-# 		
-#		looks for appropriate vectors from to-vectors for the calls on vector train to test 
-# 		
 
-# class Experiment:
-#     def __init__(self):
-# 		pass
+CLASSIFIER_ADABOOST = '_adaboost'
+CLASSIFIER_SGDC = '_sgdc'
+CLASSIFIER_SVM = '_svm'
+CLASSIFIER_KNN9 = '_kNN9'
+CLASSIFIER_KNN5 = '_kNN5'
+CLASSIFIER_KNN3 = '_kNN3'
+CLASSIFIER_DecisionTree = '_dectree'
 
-def classifier_train(X, Y):
-	clf = svm.SVC()
+def get_classifier(key):
+	if key == CLASSIFIER_ADABOOST:
+		return AdaBoostClassifier()
+	if key == CLASSIFIER_SGDC:
+		return SGDClassifier()
+	if key == CLASSIFIER_SVM:
+		return LinearSVC()
+	if key == CLASSIFIER_KNN3:
+		return KNeighborsClassifier(n_neighbors=3)
+	if key == CLASSIFIER_KNN5:
+		return KNeighborsClassifier(n_neighbors=5)
+	if key == CLASSIFIER_KNN9:
+		return KNeighborsClassifier(n_neighbors=9)
+	if key == CLASSIFIER_DecisionTree:
+		return DecisionTreeClassifier()
+
+	return None
+
+def classifier_train(X, Y, classifier_key):
 	Y = Y.astype(int).ravel()
 	print(X.shape)
 	print(Y.shape)
 
 	print(Y)
-	print("Building AB")
+	print("Building " + classifier_key)
 	# classifier = KNeighborsClassifier(n_neighbors=9)
-	classifier = AdaBoostClassifier()
+	classifier = get_classifier(classifier_key)
 
 	time_start = time.perf_counter()
 	classifier.fit(X, Y)
@@ -110,17 +128,14 @@ def get_B(X_array, Y_array):
 
 
 
-def experiment_duo_vs_solo_just_labels(vector_dict, unique_title):
+def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, exp_id):
 	prefix_export = 'results/'
 	label_alb_a = "_alb_a"
 	label_bla_b = "_bla_b"
 
-	exp_id = "_adaboost"
-
-
 	experiment_blob_all = {}
 
-	for key_group in vector_dict.keys():
+	for key_group in [5]:
 		experiment_blob = {}
 		input_set = vector_dict[key_group]
 
@@ -132,14 +147,14 @@ def experiment_duo_vs_solo_just_labels(vector_dict, unique_title):
 		X_train_BlA, Y_train_B 	= get_BlA(X_train_AB, Y_train_AB)
 		X_test_BlA, Y_test_B 		= get_BlA(X_test_AB, Y_test_AB)
 
-		svm_alb_a = classifier_train(X_train_AlB, Y_train_A)
+		svm_alb_a = classifier_train(X_train_AlB, Y_train_A, exp_id)
 		result_alb_a = classifier_test(svm_alb_a, X_test_AlB, Y_test_A)
 
 		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id  + label_alb_a  + "_resultY.p", "wb")
 		pickle.dump(result_alb_a, filehandler)
 		filehandler.close()
 
-		svm_bla_b = classifier_train(X_train_BlA, Y_train_B)
+		svm_bla_b = classifier_train(X_train_BlA, Y_train_B, exp_id)
 		result_bla_b = classifier_test(svm_bla_b, X_test_BlA, Y_test_B)
 
 		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id  + label_bla_b  + "_resultY.p", "wb")
@@ -160,12 +175,19 @@ def experiment_duo_vs_solo_just_labels(vector_dict, unique_title):
 
 
 
-def experiment_duo_vs_solo_svm(vector_dict, unique_title):
+def experiment_duo_vs_solo_svm(vector_dict, unique_title, exp_id):
 	prefix_export = 'results/'
+	label_a_a = "_a_a"
+	label_b_b = "_b_b"
+
+	label_ab_a = "_ab_a"
+	label_ab_b = "_ab_b"
+
+
 
 	experiment_blob_all = {}
 
-	for key_group in vector_dict.keys():
+	for key_group in [5]:
 		experiment_blob = {}
 		input_set = vector_dict[key_group]
 
@@ -177,43 +199,39 @@ def experiment_duo_vs_solo_svm(vector_dict, unique_title):
 		X_train_B, Y_train_B 	= get_B(X_train_AB, Y_train_AB)
 		X_test_B, Y_test_B 		= get_B(X_test_AB, Y_test_AB)
 
-		svm_a_a = classifier_train(X_train_A, Y_train_A)
+
+		svm_a_a = classifier_train(X_train_A, Y_train_A, exp_id)
 		result_a_a = classifier_test(svm_a_a, X_test_A, Y_test_A)
-
-		svm_b_b = classifier_train(X_train_B, Y_train_B)
-		result_b_b = classifier_test(svm_b_b, X_test_B, Y_test_B)
-
-		svm_ab_a = classifier_train(X_train_AB, Y_train_A)
-		result_ab_a = classifier_test(svm_ab_a, X_test_AB, Y_test_A)
-
-		svm_ab_b = classifier_train(X_train_AB, Y_train_B)
-		result_ab_b = classifier_test(svm_ab_b, X_test_AB, Y_test_B)
-
-		label_a_a = "_a_a"
-		label_b_b = "_b_b"
-
-		label_ab_a = "_ab_a"
-		label_ab_b = "_ab_b"
-
-		exp_id = "_adaboost"
-
 
 		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id + label_a_a + "_resultY.p", "wb")
 		pickle.dump(result_a_a, filehandler)
 		filehandler.close()
 
+
+		svm_b_b = classifier_train(X_train_B, Y_train_B, exp_id)
+		result_b_b = classifier_test(svm_b_b, X_test_B, Y_test_B)
+
 		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id  + label_b_b  + "_resultY.p", "wb")
 		pickle.dump(result_b_b, filehandler)
 		filehandler.close()
+
+
+		svm_ab_a = classifier_train(X_train_AB, Y_train_A, exp_id)
+		result_ab_a = classifier_test(svm_ab_a, X_test_AB, Y_test_A)
 
 		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id  + label_ab_a  + "_resultY.p", "wb")
 		pickle.dump(result_ab_a, filehandler)
 		filehandler.close()
 
+
+		svm_ab_b = classifier_train(X_train_AB, Y_train_B, exp_id)
+		result_ab_b = classifier_test(svm_ab_b, X_test_AB, Y_test_B)
+
 		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id  + label_ab_b  + "_resultY.p", "wb")
 		pickle.dump(result_ab_b, filehandler)
 		filehandler.close()
 
+		
 		# store for future examination
 		experiment_blob['a_a_predict'] = result_a_a
 		experiment_blob['a_a_correct'] = Y_test_A
@@ -226,9 +244,9 @@ def experiment_duo_vs_solo_svm(vector_dict, unique_title):
 		experiment_blob['ab_b_correct'] = Y_test_B
 		experiment_blob_all[key_group] = experiment_blob
 
-	filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id + "_results.p", "wb")
-	pickle.dump(experiment_blob_all, filehandler)
-	filehandler.close()
+		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id + "_results.p", "wb")
+		pickle.dump(experiment_blob_all, filehandler)
+		filehandler.close()
 
 
 # Given a file location, return the four test/train vectors
@@ -293,8 +311,11 @@ def run_experiments():
 
 	all_svm_vectors = get_svm_vectors(folds, unique_title)
 
-	experiment_duo_vs_solo_svm(all_svm_vectors, unique_title)
-	experiment_duo_vs_solo_just_labels(all_svm_vectors, unique_title)
+	exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_SGDC, CLASSIFIER_SVM, CLASSIFIER_KNN3]
+	for i in range(len(exp_types)):
+		exp_id = exp_types[i]
+		experiment_duo_vs_solo_svm(all_svm_vectors, unique_title, exp_id)
+		experiment_duo_vs_solo_just_labels(all_svm_vectors, unique_title, exp_id)
 
 	# experiment_duo_vs_solo_lstm()
 	# experiment_duo_vs_solo_just_label_lstm()
