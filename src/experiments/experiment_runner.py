@@ -133,12 +133,54 @@ def get_B(X_array, Y_array):
 	return X_array[:, half_dim_X:], Y_array[:, 	half_dim_Y:]
 
 
+def experiment_duo_vs_solo_swapped(vector_dict, unique_title, classifier_type, exp_batch_id):
+	prefix_export = 'results/' + exp_batch_id
+	label_b_a = "_b_a"
+	label_a_b = "_a_b"
+	
+	experiment_blob_all = {}
+
+	for key_group in [5]:
+		experiment_blob = {}
+		input_set = vector_dict[key_group]
+		long_prefix = prefix_export + unique_title + '_f' + str(key_group) + classifier_type
+
+		X_train_AB, X_test_AB, Y_train_AB, Y_test_AB = unpack_dict(input_set)
+
+		X_train_A, 	Y_train_A 	= get_A(X_train_AB, Y_train_AB)
+		X_test_A, 	Y_test_A 	= get_A(X_test_AB, Y_test_AB)
+
+		X_train_B, 	Y_train_B 	= get_B(X_train_AB, Y_train_AB)
+		X_test_B, 	Y_test_B 	= get_B(X_test_AB, Y_test_AB)
+
+		svm_a_b = classifier_train(X_train_A, Y_train_B, classifier_type)
+		result_a_b = classifier_test(svm_a_b, X_test_A, Y_test_B)
+		export_result(result_a_b, long_prefix, label_a_b)
+
+		svm_b_a = classifier_train(X_train_B, Y_train_A, classifier_type)
+		result_b_a = classifier_test(svm_b_a, X_test_B, Y_test_A)
+		export_result(result_b_a, long_prefix, label_b_a)
+
+		# store for future examination
+		experiment_blob['a_b_predict'] = result_a_b
+		experiment_blob['a_b_correct'] = Y_test_B
+		experiment_blob['b_a_predict'] = result_b_a
+		experiment_blob['b_a_correct'] = Y_test_A
+
+		experiment_blob_all[key_group] = experiment_blob
+
+		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + classifier_type + "_results.p", "wb")
+		pickle.dump(experiment_blob_all, filehandler)
+		filehandler.close()
+
+
+
 
 def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, classifier_type, exp_batch_id):
 	prefix_export = 'results/' + exp_batch_id
 	label_alb_a = "_alb_a"
 	label_bla_b = "_bla_b"
-	long_prefix = prefix_export + exp_batch_id + unique_title + '_f' + str(key_group) + classifier_type
+	long_prefix = prefix_export + unique_title + '_f' + str(key_group) + classifier_type
 
 	experiment_blob_all = {}
 
@@ -156,11 +198,11 @@ def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, classifier_typ
 
 		svm_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type)
 		result_alb_a = classifier_test(svm_alb_a, X_test_AlB, Y_test_A)
-		export_result(result_alb_a, long_prefix, label_alb_a, exp_batch_id)
+		export_result(result_alb_a, long_prefix, label_alb_a)
 
 		svm_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type)
 		result_bla_b = classifier_test(svm_bla_b, X_test_BlA, Y_test_B)
-		export_result(result_bla_b, long_prefix, label_bla_b, exp_batch_id)
+		export_result(result_bla_b, long_prefix, label_bla_b)
 
 		# store for future examination
 		experiment_blob['alb_a_predict'] = result_alb_a
@@ -178,6 +220,7 @@ def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, classifier_typ
 
 def experiment_duo_vs_solo_svm(vector_dict, unique_title, classifier_type, exp_batch_id):
 	prefix_export = 'results/' + exp_batch_id
+
 	label_a_a = "_a_a"
 	label_b_b = "_b_b"
 
@@ -187,10 +230,15 @@ def experiment_duo_vs_solo_svm(vector_dict, unique_title, classifier_type, exp_b
 	experiment_blob_all = {}
 
 	for key_group in [5]:
+		long_prefix = prefix_export + unique_title + '_f' + str(key_group) + classifier_type
+
 		experiment_blob = {}
 		input_set = vector_dict[key_group]
 
 		X_train_AB, X_test_AB, Y_train_AB, Y_test_AB = unpack_dict(input_set)
+
+		export_result(Y_train_AB, 	'results/', 'Ytruetrain_f' + str(key_group))
+		export_result(Y_test_AB, 	'results/', 'Ytruetest_f' + str(key_group))
 
 		X_train_A, Y_train_A 	= get_A(X_train_AB, Y_train_AB)
 		X_test_A, Y_test_A 		= get_A(X_test_AB, Y_test_AB)
@@ -201,20 +249,20 @@ def experiment_duo_vs_solo_svm(vector_dict, unique_title, classifier_type, exp_b
 
 		svm_a_a = classifier_train(X_train_A, Y_train_A, classifier_type)
 		result_a_a = classifier_test(svm_a_a, X_test_A, Y_test_A)
-		export_result(result_a_a, long_prefix, label_a_a, exp_batch_id)
+		export_result(result_a_a, long_prefix, label_a_a)
 
 		svm_b_b = classifier_train(X_train_B, Y_train_B, classifier_type)
 		result_b_b = classifier_test(svm_b_b, X_test_B, Y_test_B)
-		export_result(result_b_b, long_prefix, label_b_b, exp_batch_id)
+		export_result(result_b_b, long_prefix, label_b_b)
 
 		svm_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type)
 		result_ab_a = classifier_test(svm_ab_a, X_test_AB, Y_test_A)
-		export_result(result_ab_a, long_prefix, label_ab_a, exp_batch_id)
+		export_result(result_ab_a, long_prefix, label_ab_a)
 
 
 		svm_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type)
 		result_ab_b = classifier_test(svm_ab_b, X_test_AB, Y_test_B)
-		export_result(result_ab_b, long_prefix, label_ab_b, exp_batch_id)
+		export_result(result_ab_b, long_prefix, label_ab_b)
 
 		
 		# store for future examination
@@ -286,6 +334,9 @@ def get_svm_vectors(folds, unique_title, seed=42):
 		print("Geting svm data for fold " + str(fold_id))
 		X_train, X_test, Y_train, Y_test = import_vectors(unique_title, prefix, fold_id)
 
+		export_result(Y_train, 	'results/', 'Ytruetrain_f' + str(fold_id))
+		export_result(Y_test, 	'results/', 'Ytruetest_f' + str(fold_id))	
+
 		exp_sets[folds] = {'xtest': X_test, 'xtrain': X_train, 'ytest': Y_test, 'ytrain': Y_train}
 
 	return exp_sets
@@ -293,20 +344,28 @@ def get_svm_vectors(folds, unique_title, seed=42):
 def run_experiments():
 	folds = 5
 	unique_title = 'total_forsvm_s42_'
-	all_svm_vectors = get_svm_vectors(folds, unique_title)
 
 	exp_batch_id = 2
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_export = 'results/' + exp_batch_id
+
+	all_svm_vectors = get_svm_vectors(folds, unique_title)
 
 	try:
 		os.mkdir(prefix_export)  
 	except OSError as error:  
 		print("This directory already exists; do you want a fresh experiment ID?")
 
-	exp_types = [CLASSIFIER_KNN3, CLASSIFIER_SGDC, CLASSIFIER_SVM, CLASSIFIER_KNN3]
-	for i in range(len(exp_types)):
+
+	exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SVM, CLASSIFIER_SGDC]
+
+	for i in range(len(exp_types)):		
 		classifier_type = exp_types[i]
+		experiment_duo_vs_solo_swapped(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
+
+	for i in range(len(exp_types)):		
+		classifier_type = exp_types[i]
+
 		experiment_duo_vs_solo_svm(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
 		experiment_duo_vs_solo_just_labels(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
 
