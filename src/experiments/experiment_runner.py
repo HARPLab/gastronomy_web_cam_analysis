@@ -134,11 +134,11 @@ def get_B(X_array, Y_array):
 
 
 
-def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, exp_id):
-	prefix_export = 'results/'
+def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, classifier_type, exp_batch_id):
+	prefix_export = 'results/' + exp_batch_id
 	label_alb_a = "_alb_a"
 	label_bla_b = "_bla_b"
-	long_prefix = prefix_export + unique_title + '_f' + str(key_group) + exp_id
+	long_prefix = prefix_export + exp_batch_id + unique_title + '_f' + str(key_group) + classifier_type
 
 	experiment_blob_all = {}
 
@@ -154,12 +154,13 @@ def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, exp_id):
 		X_train_BlA, Y_train_B 	= get_BlA(X_train_AB, Y_train_AB)
 		X_test_BlA, Y_test_B 		= get_BlA(X_test_AB, Y_test_AB)
 
-		svm_alb_a = classifier_train(X_train_AlB, Y_train_A, exp_id)
+		svm_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type)
 		result_alb_a = classifier_test(svm_alb_a, X_test_AlB, Y_test_A)
+		export_result(result_alb_a, long_prefix, label_alb_a, exp_batch_id)
 
-		svm_bla_b = classifier_train(X_train_BlA, Y_train_B, exp_id)
+		svm_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type)
 		result_bla_b = classifier_test(svm_bla_b, X_test_BlA, Y_test_B)
-		export_result(result_bla_b, long_prefix, label_bla_b)
+		export_result(result_bla_b, long_prefix, label_bla_b, exp_batch_id)
 
 		# store for future examination
 		experiment_blob['alb_a_predict'] = result_alb_a
@@ -169,21 +170,19 @@ def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, exp_id):
 
 		experiment_blob_all[key_group] = experiment_blob
 
-	filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id + "_results.p", "wb")
+	filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + classifier_type + "_results.p", "wb")
 	pickle.dump(experiment_blob_all, filehandler)
 	filehandler.close()
 
 
 
-def experiment_duo_vs_solo_svm(vector_dict, unique_title, exp_id):
-	prefix_export = 'results/'
+def experiment_duo_vs_solo_svm(vector_dict, unique_title, classifier_type, exp_batch_id):
+	prefix_export = 'results/' + exp_batch_id
 	label_a_a = "_a_a"
 	label_b_b = "_b_b"
 
 	label_ab_a = "_ab_a"
 	label_ab_b = "_ab_b"
-
-
 
 	experiment_blob_all = {}
 
@@ -200,22 +199,22 @@ def experiment_duo_vs_solo_svm(vector_dict, unique_title, exp_id):
 		X_test_B, Y_test_B 		= get_B(X_test_AB, Y_test_AB)
 
 
-		svm_a_a = classifier_train(X_train_A, Y_train_A, exp_id)
+		svm_a_a = classifier_train(X_train_A, Y_train_A, classifier_type)
 		result_a_a = classifier_test(svm_a_a, X_test_A, Y_test_A)
-		export_result(result_a_a, long_prefix, label_a_a)
+		export_result(result_a_a, long_prefix, label_a_a, exp_batch_id)
 
-		svm_b_b = classifier_train(X_train_B, Y_train_B, exp_id)
+		svm_b_b = classifier_train(X_train_B, Y_train_B, classifier_type)
 		result_b_b = classifier_test(svm_b_b, X_test_B, Y_test_B)
-		export_result(result_b_b, long_prefix, label_b_b)
+		export_result(result_b_b, long_prefix, label_b_b, exp_batch_id)
 
-		svm_ab_a = classifier_train(X_train_AB, Y_train_A, exp_id)
+		svm_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type)
 		result_ab_a = classifier_test(svm_ab_a, X_test_AB, Y_test_A)
-		export_result(result_ab_a, long_prefix, label_ab_a)
+		export_result(result_ab_a, long_prefix, label_ab_a, exp_batch_id)
 
 
-		svm_ab_b = classifier_train(X_train_AB, Y_train_B, exp_id)
+		svm_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type)
 		result_ab_b = classifier_test(svm_ab_b, X_test_AB, Y_test_B)
-		export_result(result_ab_b, long_prefix, label_ab_b)
+		export_result(result_ab_b, long_prefix, label_ab_b, exp_batch_id)
 
 		
 		# store for future examination
@@ -230,7 +229,7 @@ def experiment_duo_vs_solo_svm(vector_dict, unique_title, exp_id):
 		experiment_blob['ab_b_correct'] = Y_test_B
 		experiment_blob_all[key_group] = experiment_blob
 
-		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + exp_id + "_results.p", "wb")
+		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + classifier_type + "_results.p", "wb")
 		pickle.dump(experiment_blob_all, filehandler)
 		filehandler.close()
 
@@ -294,14 +293,22 @@ def get_svm_vectors(folds, unique_title, seed=42):
 def run_experiments():
 	folds = 5
 	unique_title = 'total_forsvm_s42_'
-
 	all_svm_vectors = get_svm_vectors(folds, unique_title)
 
-	exp_types = [CLASSIFIER_SGDC, CLASSIFIER_SVM, CLASSIFIER_KNN3]
+	exp_batch_id = 2
+	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
+	prefix_export = 'results/' + exp_batch_id
+
+	try:
+		os.mkdir(prefix_export)  
+	except OSError as error:  
+		print("This directory already exists; do you want a fresh experiment ID?")
+
+	exp_types = [CLASSIFIER_KNN3, CLASSIFIER_SGDC, CLASSIFIER_SVM, CLASSIFIER_KNN3]
 	for i in range(len(exp_types)):
-		exp_id = exp_types[i]
-		experiment_duo_vs_solo_svm(all_svm_vectors, unique_title, exp_id)
-		experiment_duo_vs_solo_just_labels(all_svm_vectors, unique_title, exp_id)
+		classifier_type = exp_types[i]
+		experiment_duo_vs_solo_svm(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
+		experiment_duo_vs_solo_just_labels(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
 
 
 def main():
