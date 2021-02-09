@@ -1,3 +1,8 @@
+import os
+import pickle
+import pandas as pd
+from sklearn.metrics import classification_report
+
 LABEL_ADABOOST = '_adaboost'
 LABEL_SGDC = '_sgdc'
 LABEL_SVM = '_svm'
@@ -6,74 +11,101 @@ LABEL_KNN5 = '_kNN5'
 LABEL_KNN3 = '_kNN3'
 LABEL_DecisionTree = '_dectree'
 
-
-# entries = os.listdir(prefix)
-# entries = list(filter(lambda k: unique_title in k, entries))
-
-# fold_group = "f" + str(fold_id) + "_"
-# fold_entries = list(filter(lambda k: fold_group in k, entries))
-
-# test 	= list(filter(lambda k: 'test' 	in k, fold_entries))
-# train 	= list(filter(lambda k: 'train' in k, fold_entries))
-
-# X_test_label 	= list(filter(lambda k: '_X' 	in k, test))
-# X_train_label 	= list(filter(lambda k: '_X' 	in k, train))
-# Y_test_label 	= list(filter(lambda k: '_Y' 	in k, test))
-# Y_train_label 	= list(filter(lambda k: '_Y' 	in k, train))
+activity_labels = ['away-from-table', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 
+					'talking:waiter', 'looking:window', 'looking:waiter', 'reading:bill', 'reading:menu',
+					'paying:check', 'using:phone', 'using:napkin', 'using:purse', 'using:glasses',
+					'using:wallet', 'looking:PersonA', 'looking:PersonB', 'takeoutfood', 'leaving-table', 'cleaning-up', 'NONE']
 
 
-def import_original_vectors(unique_title, prefix, fold_id):
+def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classifier_type):
+	Y_correct_a = Ytrue_test[:,:1]
+	Y_correct_b = Ytrue_test[:,1:]
+
+	sub_experiments = list(results_dict.keys())
+	if '' in sub_experiments:
+		sub_experiments.remove('')
+	if 'results' in sub_experiments:
+		sub_experiments.remove('results')
+
+	for subexp_label in sub_experiments:
+
+		Y_test = results_dict[subexp_label]
+
+		if '_a' in subexp_label:
+			Y_correct = Y_correct_a
+		elif '_b' in subexp_label:
+			Y_correct = Y_correct_b
+		else:
+			print("Error, no correct set found for " + subexp_label)
+
+		Y_correct = Y_correct.astype(int).ravel()
+
+		# print(Y_test)
+		# print(Y_correct)
+
+		# print(Y_correct.shape)
+		# print(Y_test.shape)
+
+		print(subexp_label)
+		# labels=activity_labels
+		report = classification_report(Y_correct, Y_test, output_dict=True)
+		df = pd.DataFrame(report).T
+
+
+		save_location = "results-analysis/" + exp_batch_id + classifier_type[1:] + "_" + subexp_label
+		df.to_csv(save_location + ".csv")
+
+
+
+
+
+def import_results(unique_title, prefix, fold_id, classifier_type):
+	result_dict = {}
+
 	# Given a file location, return the four test/train vectors
 	entries = os.listdir(prefix)
-
-	# get all the input files from this video
-	entries = list(filter(lambda k: unique_title in k, entries))
-
-	fold_group = "f" + str(fold_id) + "_"
-	fold_entries = list(filter(lambda k: fold_group in k, entries))
-
-	test 	= list(filter(lambda k: 'test' 	in k, fold_entries))
-	train 	= list(filter(lambda k: 'train' in k, fold_entries))
-
-	Y_test_label 	= list(filter(lambda k: '_Y' 	in k, test))
-	Y_train_label 	= list(filter(lambda k: '_Y' 	in k, train))
-
-	if len(Y_test_label) > 1  or len(Y_train_label) > 1:
-		print("Error in import: multiple matching batches for this unique key")
-		print("Please provide a key that aligns with only one of the following")
-		print(X_test)
-
-	Y_test_label 	= Y_test_label[0]
-	Y_train_label 	= Y_train_label[0]
-
-	Y_test 		= pickle.load(open(prefix + Y_test_label, 'rb'))
-	Y_train 	= pickle.load(open(prefix + Y_train_label, 'rb'))
 	
-	return Y_train, Y_test
+	# get all the input files from this video
+	entries = list(filter(lambda k: classifier_type in k, entries))
+	fold_group = "f" + str(fold_id) + "_"
+	fold_entries = list(filter(lambda k: fold_group in k, entries))
+	
+	# test 	= list(filter(lambda k: 'test' 	in k, fold_entries))
+	# train 	= list(filter(lambda k: 'train' in k, fold_entries))
+
+	# Y_test_label 	= list(filter(lambda k: '_Y' 	in k, test))
+	# Y_train_label 	= list(filter(lambda k: '_Y' 	in k, train))
+
+	for item in fold_entries:
+		start = item.find(classifier_type) + len(classifier_type) + len("_")
+		label = item[start : item.rfind("_")]
+		
+		Y_test 		= pickle.load(open(prefix + item, 'rb'))
+		result_dict[label] = Y_test
+	
+	return result_dict
 
 def import_original_vectors(unique_title, prefix, fold_id):
 	# Given a file location, return the four test/train vectors
 	entries = os.listdir(prefix)
 
 	# get all the input files from this video
-	entries = list(filter(lambda k: unique_title in k, entries))
-
+	# true is the keyword for the correct vectors
+	entries = list(filter(lambda k: 'true' in k, entries))
+	
 	fold_group = "f" + str(fold_id) + "_"
 	fold_entries = list(filter(lambda k: fold_group in k, entries))
-
+	
 	test 	= list(filter(lambda k: 'test' 	in k, fold_entries))
 	train 	= list(filter(lambda k: 'train' in k, fold_entries))
-
-	Y_test_label 	= list(filter(lambda k: '_Y' 	in k, test))
-	Y_train_label 	= list(filter(lambda k: '_Y' 	in k, train))
-
-	if len(Y_test_label) > 1  or len(Y_train_label) > 1:
+	
+	if len(test) > 1  or len(train) > 1:
 		print("Error in import: multiple matching batches for this unique key")
 		print("Please provide a key that aligns with only one of the following")
-		print(X_test)
 
-	Y_test_label 	= Y_test_label[0]
-	Y_train_label 	= Y_train_label[0]
+
+	Y_test_label 	= test[0]
+	Y_train_label 	= train[0]
 
 	Y_test 		= pickle.load(open(prefix + Y_test_label, 'rb'))
 	Y_train 	= pickle.load(open(prefix + Y_train_label, 'rb'))
@@ -92,13 +124,21 @@ def main():
 	LABEL_KNN3 = '_kNN3'
 	LABEL_DecisionTree = '_dectree'
 
-	experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST]
+	experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3]
+	
+	exp_batch_id = 1
+	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
+	prefix_import = 'results/' + exp_batch_id
+	fold_id = 5
 
 	# Import set of results
-	Ytrue_train, Ytrue_test = import_original_vectors(unique_title, prefix, fold_id)
-	for i in experiment_titles:
-		Yexp_train, Yexp_test = import_results(unique_title, prefix, fold_id, exp_id)
-		analyze_resutls(Ytrue_train, Ytrue_test, Yexp_train, Y_exp_test)
+	Ytrue_train, Ytrue_test = import_original_vectors(unique_title, prefix_import, fold_id)
+
+	for classifier_type in experiment_titles:
+		print("Getting results for " + classifier_type)
+		results_dict = import_results(unique_title, prefix_import, fold_id, classifier_type)
+
+		analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classifier_type)
 
 
 
