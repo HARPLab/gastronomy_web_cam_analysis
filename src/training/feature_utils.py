@@ -54,7 +54,7 @@ LABELS_SET_PB = 1
 FLAG_FEATURE_SET = FEATURES_SET_BOTH
 FLAG_FEATURE_TYPE = FEATURES_TYPE_POSES_ROLES
 FLAG_ROLE_ASSIGNMENT = ROLES_BY_BUCKET
-FLAG_LABEL_SET = LABELS_SET_PA
+FLAG_LABEL_SET = LABELS_SET_PB
 
 nexuses = [(170, 146), (329, 221)]
 
@@ -150,7 +150,7 @@ def get_role_labels(cleaned_poses):
 
         return assignments
 """
-def get_feature_vector(frame): # TODO add cleaned feature type here
+def get_feature_vector(frame, feature_flag=FLAG_FEATURE_SET): # TODO add cleaned feature type here
         feature_vector = []
         if FLAG_FEATURE_TYPE is FEATURES_TYPE_POSES_RAW:
                 if len(frame.get_poses_raw()) > 1:
@@ -171,14 +171,14 @@ def get_feature_vector(frame): # TODO add cleaned feature type here
                 feature_vector.append(raw.flatten())
 
         elif FLAG_FEATURE_TYPE is FEATURES_TYPE_POSES_ROLES:
-                if FLAG_FEATURE_SET is FEATURES_SET_PA:
+                if feature_flag is FEATURES_SET_PA:
                         #print("PA: " + str(frame.get_PA()))
                         feature_vector.append(np.array(frame.get_PA()[0])[:,0:2].flatten())
                         #print("feature A")
-                elif FLAG_FEATURE_SET is FEATURES_SET_PB:
+                elif feature_flag is FEATURES_SET_PB:
                         feature_vector.append(np.array(frame.get_PB()[0])[:,0:2].flatten())
                         #print("feature B")
-                elif FLAG_FEATURE_SET is FEATURES_SET_BOTH:
+                elif feature_flag is FEATURES_SET_BOTH:
                         b_feats = np.array(frame.get_PB()[0])[:,0:2].flatten()
                         a_feats = np.array(frame.get_PA()[0])[:,0:2].flatten()
                         both_feats = np.concatenate((a_feats, b_feats), axis=None)
@@ -187,33 +187,33 @@ def get_feature_vector(frame): # TODO add cleaned feature type here
 
         elif FLAG_FEATURE_TYPE is FEATURES_TYPE_ALSO_VEL:
 
-                if FLAG_FEATURE_SET is FEATURES_SET_PA:
+                if feature_flag is FEATURES_SET_PA:
                         feature_vector.append(frame.get_delta_PA())
 
-                elif FLAG_FEATURE_SET is FEATURES_SET_PB:
+                elif feature_flag is FEATURES_SET_PB:
                         feature_vector.append(frame.get_label_PB())
 
-                elif FLAG_FEATURE_SET is FEATURES_SET_PA:
+                elif feature_flag is FEATURES_SET_PA:
                         feature_vector.append(frame.get_label_PA())
                         feature_vector.append(frame.get_label_PB())
         #rev_temp = copy.deepcopy(feature_vector)
         #rev_temp.reverse()
         return feature_vector, True#, rev_temp, True #list of flattend poses, up to two poses per list for PA and PB
 
-def get_labels_vector(frame):
+def get_labels_vector(frame, feature_flag=FLAG_FEATURE_SET, label_flag=FLAG_LABEL_SET):
         newY = []
 
-        if FLAG_FEATURE_SET is FEATURES_SET_PA:
+        if feature_flag is FEATURES_SET_PA:
                 newY.append(frame.get_label_PA())
                 #print("a label")
-        elif FLAG_FEATURE_SET is FEATURES_SET_PB:
+        elif feature_flag is FEATURES_SET_PB:
                 newY.append(frame.get_label_PB())
                 #print("b label")
-        elif FLAG_FEATURE_SET is FEATURES_SET_BOTH:
-                if FLAG_LABEL_SET is LABELS_SET_PA:
+        elif feature_flag is FEATURES_SET_BOTH:
+                if label_flag is LABELS_SET_PA:
                         newY.append(frame.get_label_PA())
                        # print("a label both")
-                if FLAG_LABEL_SET is LABELS_SET_PB:
+                if label_flag is LABELS_SET_PB:
                         newY.append(frame.get_label_PB())
                        # print("b label both")
         #rev_temp = copy.deepcopy(newY)
@@ -221,13 +221,13 @@ def get_labels_vector(frame):
         return newY#, rev_temp #up to two labels per list
 
 
-def frame_to_vectors(frame):
+def frame_to_vectors(frame, feat_flag, lab_flag):
         newX = []
         newrX = []
         newY = []
 
-        newY = get_labels_vector(frame)
-        feature_vector, ret = get_feature_vector(frame)
+        newY = get_labels_vector(frame, feature_flag=feat_flag, label_flag=lab_flag)
+        feature_vector, ret = get_feature_vector(frame, feature_flag=feat_flag)
        # print(newY)
         #print("feat:" + str(feature_vector))
         assert len(newY) == len(feature_vector)

@@ -1,0 +1,1744 @@
+testtraining for 0'th fold of data
+start_time: 1610689849.0330806fiting model....models/A_A/CVLSTM0_702560.180Accuracy: 64.291% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 70, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 80}
+end_time: 1610690250.9908
+minutes elapsed: 6.699295322100322
+avg acc: 12.858110666275024
+training for 0'th fold of data
+start_time: 1610692643.170293fiting model....models/A_A/CVLSTM0_802560.180finished training model models/A_A/CVLSTM0_802560.180 with accuracy of 64.9227499961853
+fiting model....models/A_A/CVLSTM0_1002560.1100finished training model models/A_A/CVLSTM0_1002560.1100 with accuracy of 66.37744903564453
+fiting model....models/A_A/CVLSTM0_1202560.1120finished training model models/A_A/CVLSTM0_1202560.1120 with accuracy of 70.17062902450562
+fiting model....models/A_A/CVLSTM0_802560.180finished training model models/A_A/CVLSTM0_802560.180 with accuracy of 68.28371286392212
+fiting model....models/A_A/CVLSTM0_1002560.1100finished training model models/A_A/CVLSTM0_1002560.1100 with accuracy of 64.50343728065491
+fiting model....models/A_A/CVLSTM0_1202560.1120finished training model models/A_A/CVLSTM0_1202560.1120 with accuracy of 69.5706844329834
+Accuracy: 67.305% (+/-2.187)
+best config: {'verbose': 0, 'epochs': 120, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 120}
+end_time: 1610696063.899783
+minutes elapsed: 57.01215816338857
+avg acc: 14.034125804901123
+training for 0'th fold of data
+start_time: 1610698909.9700797fiting model....models/A_A/CVLSTM0_802560.180finished training model models/A_A/CVLSTM0_802560.180 with accuracy of 63.51965665817261
+fiting model....models/A_A/CVLSTM0_1002560.1100finished training model models/A_A/CVLSTM0_1002560.1100 with accuracy of 65.5065655708313
+fiting model....models/A_A/CVLSTM0_1202560.1120finished training model models/A_A/CVLSTM0_1202560.1120 with accuracy of 70.36738395690918
+fiting model....models/A_A/CVLSTM0_802560.180finished training model models/A_A/CVLSTM0_802560.180 with accuracy of 60.49737334251404
+fiting model....models/A_A/CVLSTM0_1002560.1100finished training model models/A_A/CVLSTM0_1002560.1100 with accuracy of 69.735187292099
+fiting model....models/A_A/CVLSTM0_1202560.1120finished training model models/A_A/CVLSTM0_1202560.1120 with accuracy of 71.08989357948303
+Accuracy: 66.786% (+/-3.914)
+best config: {'verbose': 0, 'epochs': 120, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 120}
+end_time: 1610702391.349941
+minutes elapsed: 58.022997689247134
+avg acc: 14.217978715896606
+training for 0'th fold of data
+start_time: 1610706567.8666952fiting model....models/AB_A/CVLSTM0_1002560.1100finished training model models/AB_A/CVLSTM0_1002560.1100 with accuracy of 54.227012395858765
+fiting model....models/AB_A/CVLSTM0_1202560.1120finished training model models/AB_A/CVLSTM0_1202560.1120 with accuracy of 59.24265384674072
+fiting model....models/AB_A/CVLSTM0_1402560.1140finished training model models/AB_A/CVLSTM0_1402560.1140 with accuracy of 59.5619797706604
+fiting model....models/AB_A/CVLSTM0_1002560.1100finished training model models/AB_A/CVLSTM0_1002560.1100 with accuracy of 62.30687499046326
+fiting model....models/AB_A/CVLSTM0_1202560.1120finished training model models/AB_A/CVLSTM0_1202560.1120 with accuracy of 62.26171851158142
+fiting model....models/AB_A/CVLSTM0_1402560.1140finished training model models/AB_A/CVLSTM0_1402560.1140 with accuracy of 64.45505023002625
+fiting model....models/AB_A/CVLSTM0_1002560.1100finished training model models/AB_A/CVLSTM0_1002560.1100 with accuracy of 53.66255044937134
+fiting model....models/AB_A/CVLSTM0_1202560.1120finished training model models/AB_A/CVLSTM0_1202560.1120 with accuracy of 55.71073889732361
+fiting model....models/AB_A/CVLSTM0_1402560.1140finished training model models/AB_A/CVLSTM0_1402560.1140 with accuracy of 63.09711933135986
+Accuracy: 59.392% (+/-3.789)
+best config: {'verbose': 0, 'epochs': 140, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 140}
+end_time: 1610714084.0312657
+minutes elapsed: 125.26940950949987
+avg acc: 64.45505023002625
+training for 0'th fold of data
+start_time: 1610734777.922673fiting model....models/AB_A/CVLSTM0_3202560.1320finished training model models/AB_A/CVLSTM0_3202560.1320 with accuracy of 69.79001760482788
+Accuracy: 69.790% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 320, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 320}
+end_time: 1610738698.607262
+minutes elapsed: 65.34474314848582
+avg acc: 69.79001760482788
+training for 0'th fold of data
+start_time: 1610962802.0494528training for 0'th fold of data
+start_time: 1610962848.3729599training for 0'th fold of data
+start_time: 1610962898.0061681training for 0'th fold of data
+start_time: 1610951108.7694612fiting model....models/AB_A/CVLSTM0_3202560.1320finished training model models/AB_A/CVLSTM0_3202560.1320 with accuracy of 69.93516683578491
+fiting model....models/AB_A/CVLSTM0_3502560.1350finished training model models/AB_A/CVLSTM0_3502560.1350 with accuracy of 73.67996573448181
+fiting model....models/AB_A/CVLSTM0_4002560.1400finished training model models/AB_A/CVLSTM0_4002560.1400 with accuracy of 74.50569272041321
+Accuracy: 72.707% (+/-1.989)
+best config: {'verbose': 0, 'epochs': 400, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 400}
+end_time: 1610965847.9464083
+minutes elapsed: 245.6529491186142
+avg acc: 74.50569272041321
+training for 0'th fold of data
+start_time: 1610999228.1093187fiting model....models/A_A/CVLSTM0_802560.180finished training model models/A_A/CVLSTM0_802560.180 with accuracy of 62.78747320175171
+fiting model....models/A_A/CVLSTM0_1202560.1120finished training model models/A_A/CVLSTM0_1202560.1120 with accuracy of 73.17356467247009
+fiting model....models/A_A/CVLSTM0_1502560.1150finished training model models/A_A/CVLSTM0_1502560.1150 with accuracy of 74.3057131767273
+Accuracy: 70.089% (+/-5.184)
+best config: {'verbose': 0, 'epochs': 150, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 150}
+end_time: 1611001340.0606408
+minutes elapsed: 35.19918870131175
+avg acc: 74.3057131767273
+training for 0'th fold of data
+start_time: 1611007629.8867102fiting model....models/A_A/CVLSTM0_802560.180finished training model models/A_A/CVLSTM0_802560.180 with accuracy of 62.80360221862793
+fiting model....models/A_A/CVLSTM0_1202560.1120finished training model models/A_A/CVLSTM0_1202560.1120 with accuracy of 71.2092399597168
+fiting model....models/A_A/CVLSTM0_1502560.1150finished training model models/A_A/CVLSTM0_1502560.1150 with accuracy of 72.41557240486145
+Accuracy: 68.809% (+/-4.275)
+best config: {'verbose': 0, 'epochs': 150, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 150}
+end_time: 1611009737.77036
+minutes elapsed: 35.131394163767496
+avg acc: 72.41557240486145
+training for 0'th fold of data
+start_time: 1611010981.9215252fiting model....models/A_A/CVLSTM0_1502560.1150finished training model models/A_A/CVLSTM0_1502560.1150 with accuracy of 74.05089735984802
+fiting model....models/A_A/CVLSTM0_2002560.1200finished training model models/A_A/CVLSTM0_2002560.1200 with accuracy of 76.85385346412659
+fiting model....models/A_A/CVLSTM0_3202560.1320finished training model models/A_A/CVLSTM0_3202560.1320 with accuracy of 85.83362698554993
+fiting model....models/A_A/CVLSTM0_1502560.1150finished training model models/A_A/CVLSTM0_1502560.1150 with accuracy of 75.20884871482849
+fiting model....models/A_A/CVLSTM0_2002560.1200finished training model models/A_A/CVLSTM0_2002560.1200 with accuracy of 79.53746318817139
+fiting model....models/A_A/CVLSTM0_3202560.1320finished training model models/A_A/CVLSTM0_3202560.1320 with accuracy of 83.79511833190918
+Accuracy: 79.213% (+/-4.343)
+best config: {'verbose': 0, 'epochs': 320, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 320}
+end_time: 1611022912.1809115
+minutes elapsed: 198.83765643835068
+avg acc: 85.83362698554993
+training for 0'th fold of data
+start_time: 1611119902.2792072fiting model....models/A_A/CVLSTM0_1202560.1320finished training model models/A_A/CVLSTM0_1202560.1320 with accuracy of 81.27923011779785
+fiting model....models/A_A/CVLSTM0_1202560.1700finished training model models/A_A/CVLSTM0_1202560.1700 with accuracy of 87.26252317428589
+fiting model....models/A_A/CVLSTM0_1202560.11000finished training model models/A_A/CVLSTM0_1202560.11000 with accuracy of 86.81095242500305
+fiting model....models/A_A/CVLSTM0_1502560.1320finished training model models/A_A/CVLSTM0_1502560.1320 with accuracy of 82.72102475166321
+fiting model....models/A_A/CVLSTM0_1502560.1700finished training model models/A_A/CVLSTM0_1502560.1700 with accuracy of 89.06557559967041
+fiting model....models/A_A/CVLSTM0_1502560.11000finished training model models/A_A/CVLSTM0_1502560.11000 with accuracy of 87.20768690109253
+fiting model....models/A_A/CVLSTM0_2002560.1320finished training model models/A_A/CVLSTM0_2002560.1320 with accuracy of 82.06302523612976
+fiting model....models/A_A/CVLSTM0_2002560.1700finished training model models/A_A/CVLSTM0_2002560.1700 with accuracy of 88.33661079406738
+fiting model....models/A_A/CVLSTM0_2002560.11000finished training model models/A_A/CVLSTM0_2002560.11000 with accuracy of 89.46231007575989
+Accuracy: 86.023% (+/-2.964)
+best config: {'verbose': 0, 'epochs': 200, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 1000}
+end_time: 1611160586.8906858
+minutes elapsed: 678.0768579761187
+avg acc: 89.46231007575989
+training for 0'th fold of data
+start_time: 1611171319.723973fiting model....models/A_A/CVLSTM0_1502560.1600finished training model models/A_A/CVLSTM0_1502560.1600 with accuracy of 85.31432151794434
+fiting model....models/A_A/CVLSTM0_1502560.1700finished training model models/A_A/CVLSTM0_1502560.1700 with accuracy of 87.24961876869202
+fiting model....models/A_A/CVLSTM0_1502560.1800finished training model models/A_A/CVLSTM0_1502560.1800 with accuracy of 86.88191175460815
+Accuracy: 86.482% (+/-0.839)
+best config: {'verbose': 0, 'epochs': 150, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1611184071.4203691
+minutes elapsed: 212.5282732685407
+avg acc: 87.24961876869202
+training for 0'th fold of data
+start_time: 1611184868.223429fiting model....models/AB_A/CVLSTM0_1502560.1400finished training model models/AB_A/CVLSTM0_1502560.1400 with accuracy of 70.68025469779968
+fiting model....models/AB_A/CVLSTM0_1502560.1700finished training model models/AB_A/CVLSTM0_1502560.1700 with accuracy of 75.04757642745972
+fiting model....models/AB_A/CVLSTM0_1502560.11000finished training model models/AB_A/CVLSTM0_1502560.11000 with accuracy of 70.9318459033966
+fiting model....models/AB_A/CVLSTM0_2002560.1400finished training model models/AB_A/CVLSTM0_2002560.1400 with accuracy of 68.47401857376099
+fiting model....models/AB_A/CVLSTM0_2002560.1700finished training model models/AB_A/CVLSTM0_2002560.1700 with accuracy of 75.71848034858704
+fiting model....models/AB_A/CVLSTM0_2002560.11000finished training model models/AB_A/CVLSTM0_2002560.11000 with accuracy of 74.42182898521423
+Accuracy: 72.546% (+/-2.662)
+best config: {'verbose': 0, 'epochs': 200, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 1000}
+end_time: 1611217431.2626772
+minutes elapsed: 542.7173208038013
+avg acc: 75.71848034858704
+training for 0'th fold of data
+start_time: 1611219217.3642237fiting model....models/AB_A/CVLSTM0_12560.16away-from-tableprecision: 0.0 recall: 0.0
+idleprecision: 0.056458759835826516 recall: 0.9952329360780066
+eatingprecision: 0.0 recall: 0.0
+drinkingprecision: 0.0 recall: 0.0
+talkingprecision: 0.0 recall: 0.0
+orderingprecision: 0.0 recall: 0.0
+standingprecision: 0.0 recall: 0.0
+talking:waiterprecision: 0.0 recall: 0.0
+looking:windowprecision: 0.0 recall: 0.0
+looking:waiterprecision: 0.0 recall: 0.0
+reading:billprecision: 0.0 recall: 0.0
+reading:menuprecision: 0.06501433710754623 recall: 0.0009708737864077671
+paying:checkprecision: 0.0 recall: 0.0
+using:phoneprecision: 0.015149797839275945 recall: 0.005008347245409015
+using:napkinprecision: 0.0 recall: 0.0
+using:purseprecision: 0.0 recall: 0.0
+using:glassesprecision: 0.0 recall: 0.0
+using:walletprecision: 0.0 recall: 0.0
+looking:PersonAprecision: 0.0 recall: 0.0
+looking:PersonBprecision: 0.0 recall: 0.0
+takeoutfoodprecision: 0.0 recall: 0.0
+leaving-tableprecision: 0.0 recall: 0.0
+cleaning-upprecision: 0.0 recall: 0.0
+NONEprecision: 0.0 recall: 0.0
+finished training model models/AB_A/CVLSTM0_12560.16 with accuracy of 14.901784062385559
+Accuracy: 14.902% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 1, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 6}
+end_time: 1611219249.6021392
+minutes elapsed: 0.537298591931661
+avg acc: 14.901784062385559
+training for 0'th fold of data
+start_time: 1611219391.2051039fiting model....models/AB_A/CVLSTM0_1502560.1600away-from-table precision: 0.9718476492176816 recall: 0.9880325514600287
+idle precision: 0.32046560010755587 recall: 0.7654454801647518
+eating precision: 0.38230978127086296 recall: 0.8055783429040196
+drinking precision: 0.3213080038201265 recall: 0.5638575152041703
+talking precision: 0.40835487420575867 recall: 0.8051054384017758
+ordering precision: 0.0 recall: 0.0
+standing precision: 0.9551248548641432 recall: 0.9613899613899615
+talking:waiter precision: 0.41978025573408717 recall: 0.8258426966292134
+looking:window precision: 0.3318426657612044 recall: 0.7854862119013063
+looking:waiter precision: 0.9370586744639593 recall: 0.6124401913875598
+reading:bill precision: 0.9438880050132425 recall: 0.8252427184466019
+reading:menu precision: 0.7825907060292621 recall: 0.9019414281013491
+paying:check precision: 0.9996177302064121 recall: 0.8604651162790697
+using:phone precision: 0.7088171156322896 recall: 0.8843595794893798
+using:napkin precision: 0.963019110948417 recall: 0.6434634974533108
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.0 recall: 0.0
+using:wallet precision: 0.9792441962526134 recall: 0.8625954198473282
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.562927209038553 recall: 0.492462311557789
+takeoutfood precision: 0.0 recall: 0.0
+leaving-table precision: 0.0 recall: 0.0
+cleaning-up precision: 0.0 recall: 0.0
+NONE precision: 0.96770528012116 recall: 0.19732441471571907
+finished training model models/AB_A/CVLSTM0_1502560.1600 with accuracy of 78.52466106414795
+fiting model....models/AB_A/CVLSTM0_1502560.1700away-from-table precision: 0.9745307821151726 recall: 0.9875538535184297
+idle precision: 0.26475001453356517 recall: 0.7817038803381748
+eating precision: 0.33780249954875996 recall: 0.8388022969647252
+drinking precision: 0.27222273850459666 recall: 0.4092093831450912
+talking precision: 0.3254460223658141 recall: 0.5780244173140955
+ordering precision: 0.0 recall: 0.0
+standing precision: 0.9699807049394946 recall: 0.9034749034749034
+talking:waiter precision: 0.4034106859103002 recall: 0.7509363295880149
+looking:window precision: 0.3239970534679884 recall: 0.7486211901306241
+looking:waiter precision: 0.887787682674429 recall: 0.7416267942583732
+reading:bill precision: 0.993051026204539 recall: 0.5048543689320388
+reading:menu precision: 0.7300667814856624 recall: 0.7650542941757157
+paying:check precision: 0.9977104342539599 recall: 0.872093023255814
+using:phone precision: 0.6448066784303363 recall: 0.7923192447972538
+using:napkin precision: 0.9151383208096595 recall: 0.4550084889643463
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.0 recall: 0.0
+using:wallet precision: 0.9018538313713353 recall: 0.9618320610687023
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.5002119250997794 recall: 0.4134307903152124
+takeoutfood precision: 0.0 recall: 0.0
+leaving-table precision: 0.0 recall: 0.0
+cleaning-up precision: 0.0 recall: 0.0
+NONE precision: 0.7473537493671286 recall: 0.20903010033444816
+finished training model models/AB_A/CVLSTM0_1502560.1700 with accuracy of 71.06409072875977
+fiting model....models/AB_A/CVLSTM0_1502560.1800away-from-table precision: 0.9675765078820155 recall: 0.9693633317376734
+idle precision: 0.2674442129769461 recall: 0.709083026230219
+eating precision: 0.36770592574451744 recall: 0.7514356029532404
+drinking precision: 0.30317707952956 recall: 0.5021720243266724
+talking precision: 0.3945702655800671 recall: 0.7556048834628192
+ordering precision: 0.0 recall: 0.0
+standing precision: 0.9620342739905219 recall: 0.918918918918919
+talking:waiter precision: 0.4258200513622224 recall: 0.8183520599250937
+looking:window precision: 0.33624772790109597 recall: 0.7611030478955007
+looking:waiter precision: 0.9208763121026892 recall: 0.6698564593301435
+reading:bill precision: 0.9491605016218081 recall: 0.5728155339805825
+reading:menu precision: 0.7401000331625357 recall: 0.8696939782823296
+paying:check precision: 0.9967917941898539 recall: 0.8992248062015503
+using:phone precision: 0.6543808876758853 recall: 0.8757777301008367
+using:napkin precision: 0.8651013027832901 recall: 0.6129032258064516
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.0 recall: 0.0
+using:wallet precision: 0.910165180859673 recall: 0.816793893129771
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.4591529305801432 recall: 0.46596619460941074
+takeoutfood precision: 0.0 recall: 0.0
+leaving-table precision: 0.0 recall: 0.0
+cleaning-up precision: 0.0 recall: 0.0
+NONE precision: 0.8266516296338691 recall: 0.18227424749163879
+finished training model models/AB_A/CVLSTM0_1502560.1800 with accuracy of 75.15401840209961
+Accuracy: 74.914% (+/-3.050)
+best config: {'verbose': 0, 'epochs': 150, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1611232881.4637597
+minutes elapsed: 224.83764426310856
+avg acc: 78.52466106414795
+training for 0'th fold of data
+start_time: 1611272722.8136692training for 0'th fold of data
+start_time: 1611273402.8370192fiting model....models/A_A/CVLSTM0_12560.17away-from-table precision: 0.20970885962583358 recall: 0.00021691973969631238
+idle precision: 0.07143587831174412 recall: 0.0019402405898331393
+eating precision: 0.033332482839587264 recall: 0.00831384775266303
+drinking precision: 0.0 recall: 0.0
+talking precision: 0.045890949727019646 recall: 0.9926501766784452
+ordering precision: 0.0 recall: 0.0
+standing precision: 0.0 recall: 0.0
+talking:waiter precision: 0.0 recall: 0.0
+looking:window precision: 0.0 recall: 0.0
+looking:waiter precision: 0.0 recall: 0.0
+reading:bill precision: 0.0 recall: 0.0
+reading:menu precision: 0.0 recall: 0.0
+paying:check precision: 0.0 recall: 0.0
+using:phone precision: 0.0 recall: 0.0
+using:napkin precision: 0.0 recall: 0.0
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.0 recall: 0.0
+using:wallet precision: 0.0 recall: 0.0
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.0 recall: 0.0
+takeoutfood precision: 0.0 recall: 0.0
+leaving-table precision: 0.0 recall: 0.0
+cleaning-up precision: 0.0 recall: 0.0
+NONE precision: 0.0 recall: 0.0
+finished training model models/A_A/CVLSTM0_12560.17 with accuracy of 18.248936533927917
+Accuracy: 18.249% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 1, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 7}
+end_time: 1611273479.379885
+minutes elapsed: 1.275714429219564
+avg acc: 18.248936533927917
+training for 0'th fold of data
+start_time: 1611273817.7752929fiting model....models/A_A/CVLSTM0_1502560.1650away-from-table precision: 0.7953417237823198 recall: 0.9075921908893709
+idle precision: 0.31347806190805466 recall: 0.3870779976717113
+eating precision: 0.202299794342762 recall: 0.7317918073958604
+drinking precision: 0.6375619293706825 recall: 0.2149618320610687
+talking precision: 0.1737396103365482 recall: 0.6726501766784452
+ordering precision: 0.4445481386918494 recall: 0.8064516129032256
+standing precision: 0.9446982255958307 recall: 0.7193347193347194
+talking:waiter precision: 0.7011787411506767 recall: 0.8097199341021417
+looking:window precision: 0.2721226344191777 recall: 0.5933481913252185
+looking:waiter precision: 0.8836387099929615 recall: 0.4442675159235669
+reading:bill precision: 0.9265038299936827 recall: 0.33458646616541354
+reading:menu precision: 0.7072495307660389 recall: 0.6256360078277886
+paying:check precision: 0.9652325160519294 recall: 0.2939189189189189
+using:phone precision: 0.45622405253412807 recall: 0.7282239819004525
+using:napkin precision: 0.817305479806998 recall: 0.10689310689310691
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.0 recall: 0.0
+using:wallet precision: 0.9057972387496512 recall: 0.2517780938833571
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.2038897553261777 recall: 0.2870061213133
+takeoutfood precision: 0.9736497436761844 recall: 0.8097826086956521
+leaving-table precision: 0.9965568471422814 recall: 0.9024390243902439
+cleaning-up precision: 0.9945059908338715 recall: 0.6049382716049383
+NONE precision: 0.36646771671419953 recall: 0.026184538653366583
+finished training model models/A_A/CVLSTM0_1502560.1650 with accuracy of 56.50431513786316
+fiting model....models/A_A/CVLSTM0_1502560.1700away-from-table precision: 0.8532103058195974 recall: 0.9375271149674619
+idle precision: 0.24526558210745478 recall: 0.5199844780752814
+eating precision: 0.2169397416003046 recall: 0.7368147570797611
+drinking precision: 0.6321980616253923 recall: 0.23694656488549617
+talking precision: 0.21214848010986773 recall: 0.6465017667844524
+ordering precision: 0.46922649427369334 recall: 0.8924731182795699
+standing precision: 0.9577986697494582 recall: 0.6153846153846154
+talking:waiter precision: 0.7093305920988122 recall: 0.7240527182866556
+looking:window precision: 0.28368659246714445 recall: 0.6110063432196126
+looking:waiter precision: 0.772565407522586 recall: 0.5780254777070064
+reading:bill precision: 0.9697264633857771 recall: 0.30451127819548873
+reading:menu precision: 0.7382598035029522 recall: 0.7502935420743639
+paying:check precision: 0.9756530186316048 recall: 0.43412162162162166
+using:phone precision: 0.47848052950028785 recall: 0.7386877828054298
+using:napkin precision: 0.5664047481484726 recall: 0.17232767232767232
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.9906172498846462 recall: 0.5000000000000001
+using:wallet precision: 0.7842294155963503 recall: 0.2887624466571835
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.3378776390599362 recall: 0.2634947134112409
+takeoutfood precision: 0.9918980132985267 recall: 0.5797101449275363
+leaving-table precision: 0.9963297557485778 recall: 0.8617886178861789
+cleaning-up precision: 0.9936015814003974 recall: 0.691358024691358
+NONE precision: 0.729164393535014 recall: 0.05112219451371571
+finished training model models/A_A/CVLSTM0_1502560.1700 with accuracy of 59.10836458206177
+fiting model....models/A_A/CVLSTM0_1502560.1750away-from-table precision: 0.7956171671589801 recall: 0.9195227765726681
+idle precision: 0.1809650321985075 recall: 0.5018432285603415
+eating precision: 0.2329621835867561 recall: 0.7185416125400537
+drinking precision: 0.5250576527076094 recall: 0.24702290076335875
+talking precision: 0.1921496141738826 recall: 0.6465724381625442
+ordering precision: 0.4684576563946737 recall: 0.921146953405018
+standing precision: 0.9236362521487211 recall: 0.5925155925155925
+talking:waiter precision: 0.6598228811008446 recall: 0.771004942339374
+looking:window precision: 0.2677231328046897 recall: 0.5528887364992284
+looking:waiter precision: 0.8816910678382345 recall: 0.3662420382165605
+reading:bill precision: 0.9300689843474539 recall: 0.29699248120300753
+reading:menu precision: 0.6272225054364683 recall: 0.6767123287671233
+paying:check precision: 0.9518074843430153 recall: 0.3597972972972973
+using:phone precision: 0.48935676912402143 recall: 0.6125565610859729
+using:napkin precision: 0.7488969810433592 recall: 0.14935064935064934
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.9971252566714874 recall: 0.2857142857142857
+using:wallet precision: 0.7504992471791296 recall: 0.26884779516358465
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.3213020643328791 recall: 0.22690595436839175
+takeoutfood precision: 0.9703756755954926 recall: 0.7318840579710145
+leaving-table precision: 0.9900048838336761 recall: 0.8536585365853658
+cleaning-up precision: 0.9934570914517804 recall: 0.6296296296296297
+NONE precision: 0.7238112128561155 recall: 0.04488778054862843
+finished training model models/A_A/CVLSTM0_1502560.1750 with accuracy of 55.968302488327026
+Accuracy: 57.194% (+/-1.371)
+best config: {'verbose': 0, 'epochs': 150, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 750}
+end_time: 1611307888.7137449
+minutes elapsed: 567.8489742000897
+avg acc: 59.10836458206177
+training for 0'th fold of data
+start_time: 1611339674.7786305fiting model....models/AB_A/CVLSTM0_1502560.1320away-from-table precision: 0.6507406719528607 recall: 0.9267461669505962
+idle precision: 0.16011808109728987 recall: 0.4450619089402359
+eating precision: 0.20712859523362143 recall: 0.6580387388169895
+drinking precision: 0.5491414280922247 recall: 0.17355371900826447
+talking precision: 0.15839912657754826 recall: 0.5683757669793357
+ordering precision: 0.44703475815514115 recall: 0.8447653429602888
+standing precision: 0.7914816598345493 recall: 0.3514644351464435
+talking:waiter precision: 0.6022091069845794 recall: 0.7043973941368078
+looking:window precision: 0.2490185357276023 recall: 0.536968264686023
+looking:waiter precision: 0.8670011944604917 recall: 0.4446308724832215
+reading:bill precision: 0.9429719966152861 recall: 0.26523297491039427
+reading:menu precision: 0.6428142547265049 recall: 0.6790724863600935
+paying:check precision: 0.9860706957941039 recall: 0.25359712230215825
+using:phone precision: 0.4384873623805733 recall: 0.5952069716775599
+using:napkin precision: 0.8829938258070138 recall: 0.09516616314199397
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.0 recall: 0.0
+using:wallet precision: 0.916391012430637 recall: 0.22758620689655173
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.19786583484117568 recall: 0.1845940319222762
+takeoutfood precision: 0.9534447577673156 recall: 0.70018281535649
+leaving-table precision: 0.986428923790018 recall: 0.9366197183098591
+cleaning-up precision: 0.9950450411912949 recall: 0.5393258426966292
+NONE precision: 0.45396911072121965 recall: 0.032043530834340986
+finished training model models/AB_A/CVLSTM0_1502560.1320 with accuracy of 51.45084261894226
+fiting model....models/AB_A/CVLSTM0_1502560.1350away-from-table precision: 0.7333023313548317 recall: 0.9373935264054515
+idle precision: 0.23400838753167685 recall: 0.5428487861947937
+eating precision: 0.2144837301346064 recall: 0.7757317814644314
+drinking precision: 0.5026628034930248 recall: 0.23109886746250383
+talking precision: 0.2453575778454836 recall: 0.48726990619930877
+ordering precision: 0.4243481208097596 recall: 0.7617328519855596
+standing precision: 0.8060268712227165 recall: 0.5815899581589958
+talking:waiter precision: 0.6793732778278901 recall: 0.8021172638436482
+looking:window precision: 0.24842067674017257 recall: 0.5212694125590818
+looking:waiter precision: 0.7866026769881597 recall: 0.37416107382550334
+reading:bill precision: 0.9654102228186383 recall: 0.27240143369175623
+reading:menu precision: 0.6481971111510366 recall: 0.61730319563523
+paying:check precision: 0.8736835068767 recall: 0.368705035971223
+using:phone precision: 0.5165209389540669 recall: 0.7295570079883804
+using:napkin precision: 0.7608701084793787 recall: 0.18630412890231624
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.0 recall: 0.0
+using:wallet precision: 0.7038897207712309 recall: 0.4068965517241379
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.21012534109763872 recall: 0.3870922970159612
+takeoutfood precision: 0.8932160114115019 recall: 0.736745886654479
+leaving-table precision: 0.9961928466879296 recall: 0.8309859154929577
+cleaning-up precision: 0.9990283868239389 recall: 0.6179775280898876
+NONE precision: 0.826698469263467 recall: 0.04292623941958887
+finished training model models/AB_A/CVLSTM0_1502560.1350 with accuracy of 56.59450888633728
+fiting model....models/AB_A/CVLSTM0_1502560.1400away-from-table precision: 0.6904413032304114 recall: 0.9227001703577513
+idle precision: 0.2362987872779202 recall: 0.4902993077898021
+eating precision: 0.23560870487907526 recall: 0.6776687223139061
+drinking precision: 0.6784651520272441 recall: 0.18824609733700642
+talking precision: 0.17192581232286472 recall: 0.6790323718174766
+ordering precision: 0.48284277212400245 recall: 0.9422382671480144
+standing precision: 0.8727805705897143 recall: 0.5983263598326359
+talking:waiter precision: 0.7425185226440711 recall: 0.8078175895765473
+looking:window precision: 0.258226614333879 recall: 0.5898041863605672
+looking:waiter precision: 0.9333265171179594 recall: 0.2684563758389261
+reading:bill precision: 0.9278260413754517 recall: 0.39068100358422936
+reading:menu precision: 0.5884426377297464 recall: 0.7022603273577553
+paying:check precision: 0.9401715233461747 recall: 0.34532374100719426
+using:phone precision: 0.4556213149697372 recall: 0.5994190268700073
+using:napkin precision: 0.7337450188611659 recall: 0.14803625377643506
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.0 recall: 0.0
+using:wallet precision: 0.7726132985130995 recall: 0.30482758620689654
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.2850902299001564 recall: 0.24732824427480912
+takeoutfood precision: 0.9553137404908861 recall: 0.6252285191956124
+leaving-table precision: 0.9973438760564148 recall: 0.8591549295774648
+cleaning-up precision: 0.9938511755991751 recall: 0.7865168539325843
+NONE precision: 0.512196986156538 recall: 0.05925030229746071
+finished training model models/AB_A/CVLSTM0_1502560.1400 with accuracy of 56.12807869911194
+Accuracy: 54.724% (+/-2.323)
+best config: {'verbose': 0, 'epochs': 150, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 400}
+end_time: 1611354778.3249655
+minutes elapsed: 251.72577224969865
+avg acc: 56.59450888633728
+training for 0'th fold of data
+start_time: 1611365943.1033258fiting model....models/AB_A/CVLSTM0_1502560.1400away-from-table precision: 0.6466739699496897 recall: 0.8986371379897785
+idle precision: 0.22139964757003025 recall: 0.3637515842839037
+eating precision: 0.23526451677374507 recall: 0.570224963085208
+drinking precision: 0.5524547370693517 recall: 0.12794612794612795
+talking precision: 0.13290300740123134 recall: 0.705620988786233
+ordering precision: 0.47500811129596826 recall: 0.9277978339350181
+standing precision: 0.9039713510466744 recall: 0.34518828451882844
+talking:waiter precision: 0.6371857887148766 recall: 0.6815960912052116
+looking:window precision: 0.2528962007031834 recall: 0.5420324105334233
+looking:waiter precision: 0.6354692972356368 recall: 0.45973154362416113
+reading:bill precision: 0.9302083337209761 recall: 0.2150537634408602
+reading:menu precision: 0.6003269125865102 recall: 0.6381527669524552
+paying:check precision: 0.9764612974343041 recall: 0.2697841726618705
+using:phone precision: 0.4433104827533621 recall: 0.6495279593318809
+using:napkin precision: 0.6759239746228629 recall: 0.053373615307150055
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.9931257581844748 recall: 0.1176470588235294
+using:wallet precision: 0.7544161581310294 recall: 0.303448275862069
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.15638229539038 recall: 0.16766134628730048
+takeoutfood precision: 0.947139417571286 recall: 0.5648994515539306
+leaving-table precision: 0.983315142672975 recall: 0.8169014084507044
+cleaning-up precision: 0.9965833390382083 recall: 0.4943820224719101
+NONE precision: 0.5312299199285497 recall: 0.05139056831922613
+finished training model models/AB_A/CVLSTM0_1502560.1400 with accuracy of 51.19185447692871
+fiting model....models/AB_A/CVLSTM0_1502560.1500away-from-table precision: 0.7343525334038885 recall: 0.9175894378194207
+idle precision: 0.1605089036985663 recall: 0.476260115043385
+eating precision: 0.2218044622966277 recall: 0.5060366542169721
+drinking precision: 0.46223491031628583 recall: 0.18947046219773492
+talking precision: 0.1788416548110262 recall: 0.625361450031737
+ordering precision: 0.4580631304974088 recall: 0.8592057761732852
+standing precision: 0.8486034435812454 recall: 0.5502092050209205
+talking:waiter precision: 0.5955044874802147 recall: 0.7312703583061888
+looking:window precision: 0.2497599935925654 recall: 0.5059081701553004
+looking:waiter precision: 0.7579310269466578 recall: 0.3976510067114094
+reading:bill precision: 0.9322973014308615 recall: 0.13261648745519714
+reading:menu precision: 0.6364378778913218 recall: 0.6693296960249415
+paying:check precision: 0.9355212441603088 recall: 0.27697841726618705
+using:phone precision: 0.4759905640152795 recall: 0.7509077705156136
+using:napkin precision: 0.6531859228411766 recall: 0.13141993957703926
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.0 recall: 0.0
+using:wallet precision: 0.8868269191640467 recall: 0.2731034482758621
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.2133420574182501 recall: 0.3558639833448994
+takeoutfood precision: 0.9518175857951748 recall: 0.5740402193784278
+leaving-table precision: 0.9812003791073609 recall: 0.823943661971831
+cleaning-up precision: 0.9988868509618447 recall: 0.5393258426966292
+NONE precision: 0.38802118056410556 recall: 0.02357920193470375
+finished training model models/AB_A/CVLSTM0_1502560.1500 with accuracy of 53.44156622886658
+fiting model....models/AB_A/CVLSTM0_1502560.1700away-from-table precision: 0.8034578931355364 recall: 0.9335604770017035
+idle precision: 0.27006432427067756 recall: 0.49566149946378085
+eating precision: 0.19462776037556218 recall: 0.7356900894640841
+drinking precision: 0.48417572877394244 recall: 0.23660850933578206
+talking precision: 0.18745479873832402 recall: 0.6183792933211086
+ordering precision: 0.4428269490113414 recall: 0.8086642599277978
+standing precision: 0.9675136228049003 recall: 0.696652719665272
+talking:waiter precision: 0.6707612860777261 recall: 0.8550488599348534
+looking:window precision: 0.27635893337124645 recall: 0.5577312626603647
+looking:waiter precision: 0.8678833273089329 recall: 0.4614093959731544
+reading:bill precision: 0.9829722554222351 recall: 0.3870967741935483
+reading:menu precision: 0.6640202611413315 recall: 0.6845284489477788
+paying:check precision: 0.9605646168708739 recall: 0.6061151079136691
+using:phone precision: 0.4636914094414977 recall: 0.7392883079157588
+using:napkin precision: 0.8089727592270826 recall: 0.10120845921450151
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.9931257581844748 recall: 0.1176470588235294
+using:wallet precision: 0.9123765219009992 recall: 0.2013793103448276
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.3636426125886294 recall: 0.23219986120749478
+takeoutfood precision: 0.978394268584803 recall: 0.6892138939670932
+leaving-table precision: 0.9992394442939257 recall: 0.908450704225352
+cleaning-up precision: 0.9955440695618797 recall: 0.5842696629213483
+NONE precision: 0.686697628159571 recall: 0.07376058041112454
+finished training model models/AB_A/CVLSTM0_1502560.1700 with accuracy of 57.22845196723938
+Accuracy: 53.954% (+/-2.491)
+best config: {'verbose': 0, 'epochs': 150, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 700}
+end_time: 1611389909.2369614
+minutes elapsed: 399.4355605920156
+avg acc: 57.22845196723938
+training for 0'th fold of data
+start_time: 1611565792.139669fiting model....models/AB_A/CVLSTM0_1502560.1700away-from-table precision: 0.7620002414530932 recall: 0.934625212947189
+idle precision: 0.2609119784275332 recall: 0.36852880959344836
+eating precision: 0.22087391706924808 recall: 0.6637713888647615
+drinking precision: 0.6801946633603674 recall: 0.13070094888276707
+talking precision: 0.15284557626866258 recall: 0.7810141758939276
+ordering precision: 0.47970724524645625 recall: 0.9494584837545126
+standing precision: 0.9630167854962411 recall: 0.5083682008368201
+talking:waiter precision: 0.788222967167147 recall: 0.755700325732899
+looking:window precision: 0.2803114202397962 recall: 0.6120864280891289
+looking:waiter precision: 0.8792131807734002 recall: 0.6140939597315437
+reading:bill precision: 0.9483579140204095 recall: 0.2759856630824372
+reading:menu precision: 0.6677491918646522 recall: 0.6301636788776307
+paying:check precision: 0.8631789103187162 recall: 0.38489208633093525
+using:phone precision: 0.546425699293549 recall: 0.6573710965867828
+using:napkin precision: 0.7358244096965767 recall: 0.09466263846928498
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.9886633677277447 recall: 0.1764705882352941
+using:wallet precision: 0.8435939012328258 recall: 0.28137931034482755
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.24634287234234975 recall: 0.20721721027064538
+takeoutfood precision: 0.9643143123143506 recall: 0.6745886654478976
+leaving-table precision: 0.9999043976411734 recall: 0.9084507042253521
+cleaning-up precision: 0.9974046065282178 recall: 0.6179775280898876
+NONE precision: 0.5996180878886361 recall: 0.06529625151148731
+finished training model models/AB_A/CVLSTM0_1502560.1700 with accuracy of 55.84074258804321
+fiting model....models/AB_A/CVLSTM0_1502560.1800away-from-table precision: 0.7958181056414501 recall: 0.9254684838160135
+idle precision: 0.27727913457269576 recall: 0.4813298235351468
+eating precision: 0.2641350791314428 recall: 0.7724311647702597
+drinking precision: 0.6696449774028915 recall: 0.20110192837465565
+talking precision: 0.21075129512208646 recall: 0.678750264475633
+ordering precision: 0.4628178591307765 recall: 0.8844765342960289
+standing precision: 0.9481084510816773 recall: 0.5418410041841003
+talking:waiter precision: 0.6814345708312225 recall: 0.8322475570032573
+looking:window precision: 0.26033085736530864 recall: 0.6044902093180283
+looking:waiter precision: 0.8527505627265716 recall: 0.5050335570469799
+reading:bill precision: 0.9208802138411402 recall: 0.3333333333333333
+reading:menu precision: 0.7318763302088609 recall: 0.7225253312548713
+paying:check precision: 0.9626951297511037 recall: 0.3615107913669065
+using:phone precision: 0.48761734337727597 recall: 0.7712418300653595
+using:napkin precision: 0.7742115943921597 recall: 0.14904330312185296
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.9972389150544364 recall: 0.29411764705882354
+using:wallet precision: 0.754645705252895 recall: 0.23862068965517239
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.24113978445056486 recall: 0.3702984038861901
+takeoutfood precision: 0.9739274645802038 recall: 0.7495429616087751
+leaving-table precision: 0.9948969402334427 recall: 0.9577464788732394
+cleaning-up precision: 0.997745225657857 recall: 0.5730337078651685
+NONE precision: 0.5325947980468455 recall: 0.04353083434099153
+finished training model models/AB_A/CVLSTM0_1502560.1800 with accuracy of 60.54374575614929
+fiting model....models/AB_A/CVLSTM0_1502560.11000away-from-table precision: 0.8453559785777276 recall: 0.938671209540034
+idle precision: 0.27808987382024125 recall: 0.43034025543531246
+eating precision: 0.2750743114063635 recall: 0.7457656562147138
+drinking precision: 0.5029098279199963 recall: 0.18702173247627793
+talking precision: 0.19215089861627274 recall: 0.6791028986529375
+ordering precision: 0.4864747685900087 recall: 0.9530685920577616
+standing precision: 0.970467712516944 recall: 0.6736401673640168
+talking:waiter precision: 0.7400051293888229 recall: 0.8664495114006515
+looking:window precision: 0.2882855687593133 recall: 0.5872721134368669
+looking:waiter precision: 0.8397705836679009 recall: 0.4932885906040268
+reading:bill precision: 0.949123110024722 recall: 0.38351254480286734
+reading:menu precision: 0.6750537807090916 recall: 0.7708495713172253
+paying:check precision: 0.9171878736545961 recall: 0.591726618705036
+using:phone precision: 0.5541080294116919 recall: 0.7312999273783587
+using:napkin precision: 0.7464529299627528 recall: 0.162134944612286
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.9976980365592635 recall: 0.3529411764705882
+using:wallet precision: 0.8266445856870118 recall: 0.43724137931034485
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.2156348000505842 recall: 0.2709229701596114
+takeoutfood precision: 0.9157291154460286 recall: 0.663619744058501
+leaving-table precision: 0.9995920869509974 recall: 0.9295774647887324
+cleaning-up precision: 0.9990283868239389 recall: 0.6179775280898876
+NONE precision: 0.6595096166366695 recall: 0.08706166868198306
+finished training model models/AB_A/CVLSTM0_1502560.11000 with accuracy of 58.99884104728699
+Accuracy: 58.461% (+/-1.957)
+best config: {'verbose': 0, 'epochs': 150, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 1000}
+end_time: 1611608389.049361
+minutes elapsed: 709.9484948674838
+avg acc: 60.54374575614929
+training for 0'th fold of data
+start_time: 1611621383.0404744fiting model....models/41A_A/CVLSTM0_1502560.1500away-from-table precision: 0.19096792215722255 recall: 0.2786466645387807
+idle precision: 0.03393914442956424 recall: 0.06755799539578537
+eating precision: 0.08913019674992734 recall: 0.4066748650679784
+drinking precision: 0.046703986581812296 recall: 0.10049865746068277
+talking precision: 0.12456186037047252 recall: 0.3301476976542137
+ordering precision: 0.0 recall: 0.0
+standing precision: 0.0 recall: 0.0
+talking:waiter precision: 0.0 recall: 0.0
+looking:window precision: 0.018363707842284784 recall: 0.03249590387766248
+looking:waiter precision: 0.43921287872947945 recall: 0.1740858505564388
+reading:bill precision: 0.0 recall: 0.0
+reading:menu precision: 0.06105398671273555 recall: 0.08800666296501944
+paying:check precision: 0.0 recall: 0.0
+using:phone precision: 0.013291760835468555 recall: 0.015737530008002133
+using:napkin precision: 0.0973809316907581 recall: 0.0037491479209270616
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.0 recall: 0.0
+using:wallet precision: 0.0 recall: 0.0
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.37061680757324117 recall: 0.24466159971045962
+takeoutfood precision: 0.0 recall: 0.0
+leaving-table precision: 0.0 recall: 0.0
+cleaning-up precision: 0.0 recall: 0.0
+NONE precision: 0.03255154409424512 recall: 0.028275212064090484
+finished training model models/41A_A/CVLSTM0_1502560.1500 with accuracy of 19.21398490667343
+fiting model....models/41A_A/CVLSTM0_1502560.1650away-from-table precision: 0.12806917552867464 recall: 0.1177784870730929
+idle precision: 0.03150237338143822 recall: 0.04984947759872499
+eating precision: 0.09704370649169589 recall: 0.5746396119423379
+drinking precision: 0.062364931837404436 recall: 0.08975834292289989
+talking precision: 0.1346006329553714 recall: 0.3240660295395309
+ordering precision: 0.0 recall: 0.0
+standing precision: 0.19459461369757874 recall: 0.2887931034482759
+talking:waiter precision: 0.0 recall: 0.0
+looking:window precision: 0.014279556145083782 recall: 0.023484434735117424
+looking:waiter precision: 0.16684499149701126 recall: 0.02861685214626391
+reading:bill precision: 0.0 recall: 0.0
+reading:menu precision: 0.02482973136518411 recall: 0.03331482509716824
+paying:check precision: 0.0 recall: 0.0
+using:phone precision: 0.014446979769700217 recall: 0.020965590824219792
+using:napkin precision: 0.08231018838499146 recall: 0.016700749829584183
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.0 recall: 0.0
+using:wallet precision: 0.0 recall: 0.0
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.09253929037715262 recall: 0.03257328990228013
+takeoutfood precision: 0.0 recall: 0.0
+leaving-table precision: 0.0 recall: 0.0
+cleaning-up precision: 0.0 recall: 0.0
+NONE precision: 0.0659857823501847 recall: 0.12064090480678605
+finished training model models/41A_A/CVLSTM0_1502560.1650 with accuracy of 23.51379543542862
+fiting model....models/41A_A/CVLSTM0_1502560.1800away-from-table precision: 0.08479944839117752 recall: 0.15448451962974782
+idle precision: 0.02033493092212931 recall: 0.03302638569151761
+eating precision: 0.09383942042753614 recall: 0.2581471613035458
+drinking precision: 0.060785244781665554 recall: 0.13041810510164942
+talking precision: 0.09636448228504753 recall: 0.24066029539530842
+ordering precision: 0.0 recall: 0.0
+standing precision: 0.02403044247563584 recall: 0.030172413793103446
+talking:waiter precision: 0.005618135879010512 recall: 0.007168458781362008
+looking:window precision: 0.10449555410904197 recall: 0.2621518296013108
+looking:waiter precision: 0.41967436915461365 recall: 0.20588235294117646
+reading:bill precision: 0.0 recall: 0.0
+reading:menu precision: 0.058287015422105716 recall: 0.10299833425874515
+paying:check precision: 0.0 recall: 0.0
+using:phone precision: 0.031044103420567907 recall: 0.056228327554014405
+using:napkin precision: 0.08336690850961308 recall: 0.0030674846625766868
+using:purse precision: 0.0 recall: 0.0
+using:glasses precision: 0.0 recall: 0.0
+using:wallet precision: 0.0 recall: 0.0
+looking:PersonA precision: 0.0 recall: 0.0
+looking:PersonB precision: 0.08248194626733484 recall: 0.03944987332609482
+takeoutfood precision: 0.0 recall: 0.0
+leaving-table precision: 0.0 recall: 0.0
+cleaning-up precision: 0.0 recall: 0.0
+NONE precision: 0.08956749655214179 recall: 0.10838831291234685
+finished training model models/41A_A/CVLSTM0_1502560.1800 with accuracy of 14.457158744335175
+Accuracy: 19.062% (+/-3.699)
+best config: {'verbose': 0, 'epochs': 150, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1611656521.3830264
+minutes elapsed: 585.639042532444
+avg acc: 23.51379543542862
+training for 0'th fold of data
+start_time: 1611690394.6234128fiting model....models/shiftedA_A/CVLSTM0_102560.180away-from-table precision: 0.9736560321605919 recall: 0.9989014581834826 total: 0.9999999999998693
+idle precision: 0.005747126493592284 recall: 0.005780346820809248 total: 0.9999999999421965
+eating precision: 0.03786915318179832 recall: 0.10555555555555557 total: 0.9999999999444443
+drinking precision: 0.0 recall: 0.0 total: 0.9999999997826087
+talking precision: 0.05442757304454721 recall: 0.823529411764706 total: 0.9999999999547511
+ordering precision: 0.0 recall: 0.0 total: 0.999999995
+standing precision: 0.0 recall: 0.0 total: 0.9999999987499999
+talking:waiter precision: 0.0 recall: 0.0 total: 0.9999999995
+looking:window precision: 0.0 recall: 0.0 total: 0.9999999998913044
+looking:waiter precision: 0.0 recall: 0.0 total: 0.999999999090909
+reading:bill precision: 0.0 recall: 0.0 total: 0.9999999966666666
+reading:menu precision: 0.0 recall: 0.0 total: 0.9999999998630137
+paying:check precision: 0.0 recall: 0.0 total: 0.9999999980000001
+using:phone precision: 0.0 recall: 0.0 total: 0.9999999999115045
+using:napkin precision: 0.0 recall: 0.0 total: 0.9999999996666666
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.999999995
+using:wallet precision: 0.0 recall: 0.0 total: 0.9999999993333333
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.6519174041208309 recall: 0.00847457627118644 total: 0.9999999999152542
+takeoutfood precision: 0.0 recall: 0.0 total: 0.9999999992857143
+leaving-table precision: 0.0 recall: 0.0 total: 0.9999999966666666
+cleaning-up precision: 0.0 recall: 0.0 total: 0.9999999900000002
+NONE precision: 0.0 recall: 0.0 total: 0.9999999997297296
+finished training model models/shiftedA_A/CVLSTM0_102560.180 with accuracy of 98.6780047416687
+Accuracy: 98.678% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 10, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 80}
+end_time: 1611690574.4373627
+minutes elapsed: 2.996899163722992
+avg acc: 98.6780047416687
+training for 0'th fold of data
+start_time: 1611707558.9074314fiting model....models/shiftedA_A/CVLSTM0_102560.180away-from-table precision: 0.5383828535031441 recall: 0.8576795580110498 total: 0.99999999999779
+idle precision: 0.09621196503946622 recall: 0.3695177614606073 total: 0.9999999999990076
+eating precision: 0.12544263900025737 recall: 0.5455789293654866 total: 0.9999999999991448
+drinking precision: 0.5780010816144188 recall: 0.013751199232491207 total: 0.999999999996802
+talking precision: 0.1087009919816986 recall: 0.5399414470932664 total: 0.9999999999993029
+ordering precision: 0.1978351828844104 recall: 0.2569444444444445 total: 0.9999999999652778
+standing precision: 0.701742879902005 recall: 0.07157464212678938 total: 0.99999999997955
+talking:waiter precision: 0.4103367762933886 recall: 0.40127388535031844 total: 0.9999999999920384
+looking:window precision: 0.16153661721087126 recall: 0.4597941740798883 total: 0.9999999999982558
+looking:waiter precision: 0.8592887499533405 recall: 0.13573883161512026 total: 0.9999999999828179
+reading:bill precision: 0.0 recall: 0.0 total: 0.9999999999630995
+reading:menu precision: 0.3758808361401624 recall: 0.2813333333333333 total: 0.9999999999980953
+paying:check precision: 0.9425438547682999 recall: 0.054009819967266774 total: 0.9999999999836333
+using:phone precision: 0.28925647611229094 recall: 0.570688911261326 total: 0.9999999999985617
+using:napkin precision: 0.5470279816630005 recall: 0.013459621136590228 total: 0.9999999999950151
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999992857141
+using:wallet precision: 0.0 recall: 0.0 total: 0.9999999999863013
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.24241333054983458 recall: 0.03980782429649966 total: 0.9999999999986273
+takeoutfood precision: 0.3214808894204942 recall: 0.007017543859649122 total: 0.9999999999824563
+leaving-table precision: 0.9966068665317317 recall: 0.45522388059701496 total: 0.999999999925373
+cleaning-up precision: 0.9929699251053012 recall: 0.38372093023255816 total: 0.999999999883721
+NONE precision: 0.3549473343828147 recall: 0.0012468827930174563 total: 0.9999999999937657
+finished training model models/shiftedA_A/CVLSTM0_102560.180 with accuracy of 39.93944227695465
+Accuracy: 39.939% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 10, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 80}
+end_time: 1611707734.6325114
+minutes elapsed: 2.928751333554586
+avg acc: 39.93944227695465
+training for 0'th fold of data
+start_time: 1611708797.5556893fiting model....models/shiftedA_A/CVLSTM0_102560.180away-from-table precision: 0.4602907295467972 recall: 0.9962380355243733 total: 0.9999999999998415
+idle precision: 0.0650502044578105 recall: 0.3951690821256038 total: 0.9999999999951692
+eating precision: 0.08486015119720565 recall: 0.22316865417376489 total: 0.9999999999957412
+drinking precision: 0.0 recall: 0.0 total: 0.9999999999844236
+talking precision: 0.06178609127298557 recall: 0.23164048227986844 total: 0.9999999999963465
+ordering precision: 0.0 recall: 0.0 total: 0.999999999787234
+standing precision: 0.0 recall: 0.0 total: 0.9999999999159664
+talking:waiter precision: 0.2365912381658051 recall: 0.2874015748031496 total: 0.9999999999606299
+looking:window precision: 0.11845267462653641 recall: 0.483843537414966 total: 0.9999999999914967
+looking:waiter precision: 0.0 recall: 0.0 total: 0.9999999999122808
+reading:bill precision: 0.0 recall: 0.0 total: 0.999999999846154
+reading:menu precision: 0.04942630185724502 recall: 0.0009285051067780873 total: 0.999999999990715
+paying:check precision: 0.0 recall: 0.0 total: 0.9999999999107143
+using:phone precision: 0.11992477610528246 recall: 0.3591199432221433 total: 0.9999999999929029
+using:napkin precision: 0.0 recall: 0.0 total: 0.999999999974227
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999980000001
+using:wallet precision: 0.0 recall: 0.0 total: 0.9999999999270073
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.0 recall: 0.0 total: 0.999999999993146
+takeoutfood precision: 0.0 recall: 0.0 total: 0.9999999999186993
+leaving-table precision: 0.0 recall: 0.0 total: 0.9999999996153847
+cleaning-up precision: 0.0 recall: 0.0 total: 0.9999999992307691
+NONE precision: 0.0 recall: 0.0 total: 0.9999999999679487
+finished training model models/shiftedA_A/CVLSTM0_102560.180 with accuracy of 84.89498496055603
+Accuracy: 84.895% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 10, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 80}
+end_time: 1611708971.9499786
+minutes elapsed: 2.9065714875857034
+avg acc: 84.89498496055603
+training for 0'th fold of data
+start_time: 1611710387.5024257fiting model....models/shiftedA_A/CVLSTM0_102560.180away-from-table precision: 0.5148523292530539 recall: 0.9930379646003601 total: 0.9999999999998407
+idle precision: 0.05953215736956971 recall: 0.12710640346653826 total: 0.9999999999951854
+eating precision: 0.08270755394751107 recall: 0.2813177286519289 total: 0.9999999999956655
+drinking precision: 0.0 recall: 0.0 total: 0.9999999999854228
+talking precision: 0.0597192024737135 recall: 0.720356408498972 total: 0.999999999996573
+ordering precision: 0.0 recall: 0.0 total: 0.9999999998387097
+standing precision: 0.0 recall: 0.0 total: 0.9999999998979592
+talking:waiter precision: 0.0 recall: 0.0 total: 0.9999999999635036
+looking:window precision: 0.081776243172257 recall: 0.2158703071672355 total: 0.9999999999914677
+looking:waiter precision: 0.0 recall: 0.0 total: 0.999999999919355
+reading:bill precision: 0.0 recall: 0.0 total: 0.9999999997674418
+reading:menu precision: 0.0 recall: 0.0 total: 0.9999999999903102
+paying:check precision: 0.0 recall: 0.0 total: 0.9999999999099098
+using:phone precision: 0.3662743324362457 recall: 0.1549687282835302 total: 0.9999999999930509
+using:napkin precision: 0.22487278224376514 recall: 0.0024390243902439024 total: 0.9999999999756097
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999966666666
+using:wallet precision: 0.0 recall: 0.0 total: 0.9999999999333333
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.8886858535096365 recall: 0.0027359781121751026 total: 0.9999999999931601
+takeoutfood precision: 0.0 recall: 0.0 total: 0.9999999999074075
+leaving-table precision: 0.0 recall: 0.0 total: 0.9999999996551724
+cleaning-up precision: 0.0 recall: 0.0 total: 0.9999999994444444
+NONE precision: 0.0 recall: 0.0 total: 0.9999999999705882
+finished training model models/shiftedA_A/CVLSTM0_102560.180 with accuracy of 84.8189651966095
+Accuracy: 84.819% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 10, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 80}
+end_time: 1611710562.7289937
+minutes elapsed: 2.920442799727122
+avg acc: 84.8189651966095
+training for 0'th fold of data
+start_time: 1611710743.12903fiting model....models/shiftedA_A/CVLSTM0_102560.180away-from-table precision: 0.584450122191959 recall: 0.8798911906256539 total: 0.9999999999979075
+idle precision: 0.13076990030469252 recall: 0.2813976377952756 total: 0.9999999999990157
+eating precision: 0.12373599417026772 recall: 0.45996178565224943 total: 0.9999999999991314
+drinking precision: 0.3107127173538682 recall: 0.029183483390251477 total: 0.9999999999968954
+talking precision: 0.10665864579267889 recall: 0.6607439159292036 total: 0.9999999999993086
+ordering precision: 0.35644454785173507 recall: 0.5754385964912281 total: 0.9999999999649123
+standing precision: 0.7782331975621176 recall: 0.23568281938325988 total: 0.9999999999779736
+talking:waiter precision: 0.4486744539747564 recall: 0.5584206285253828 total: 0.999999999991942
+looking:window precision: 0.19108881147469967 recall: 0.41688111168296443 total: 0.9999999999982845
+looking:waiter precision: 0.8380025716727667 recall: 0.22058823529411767 total: 0.9999999999816176
+reading:bill precision: 0.8098189541358628 recall: 0.13307984790874527 total: 0.9999999999619771
+reading:menu precision: 0.44432802535451904 recall: 0.45497724124282607 total: 0.9999999999980209
+paying:check precision: 0.9003657487972685 recall: 0.19471947194719472 total: 0.9999999999834984
+using:phone precision: 0.3100264828754254 recall: 0.567556179775281 total: 0.9999999999985955
+using:napkin precision: 0.5938307916341802 recall: 0.010147133434804667 total: 0.9999999999949265
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999995
+using:wallet precision: 0.9107912654407524 recall: 0.0470756062767475 total: 0.9999999999857347
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.23986115240812814 recall: 0.036758444507522 total: 0.9999999999985808
+takeoutfood precision: 0.9018088418732754 recall: 0.075043630017452 total: 0.999999999982548
+leaving-table precision: 0.9579003980987626 recall: 0.6583333333333333 total: 0.9999999999166667
+cleaning-up precision: 0.9946386991613818 recall: 0.48888888888888893 total: 0.9999999998888889
+NONE precision: 0.521550009720619 recall: 0.0031685678073510777 total: 0.9999999999936628
+finished training model models/shiftedA_A/CVLSTM0_102560.180 with accuracy of 41.8773353099823
+Accuracy: 41.877% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 10, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 80}
+end_time: 1611710912.4354749
+minutes elapsed: 2.8217740813891092
+avg acc: 41.8773353099823
+training for 0'th fold of data
+start_time: 1611815266.7736783fiting model....models/shiftedA_A/CVLSTM0_102560.180away-from-table precision: 0.3904493686533126 recall: 0.8271865121180191 total: 0.9999999999894625
+idle precision: 0.05932121477628958 recall: 0.3118594436310395 total: 0.9999999999951197
+eating precision: 0.0845602433884743 recall: 0.3956091261300043 total: 0.9999999999956952
+drinking precision: 0.0 recall: 0.0 total: 0.9999999999847793
+talking precision: 0.1033962238471666 recall: 0.5285118219749653 total: 0.999999999996523
+ordering precision: 0.17248880664483734 recall: 0.21153846153846154 total: 0.9999999998076923
+standing precision: 0.7089947089913496 recall: 0.01818181818181818 total: 0.999999999909091
+talking:waiter precision: 0.290480294470875 recall: 0.3106060606060606 total: 0.9999999999621212
+looking:window precision: 0.17630961685646707 recall: 0.45890410958904115 total: 0.9999999999914384
+looking:waiter precision: 0.8583333333273437 recall: 0.014705882352941176 total: 0.9999999999264706
+reading:bill precision: 0.0 recall: 0.0 total: 0.9999999998039215
+reading:menu precision: 0.298129363978359 recall: 0.12235067437379576 total: 0.9999999999903662
+paying:check precision: 0.9689893732632652 recall: 0.05263157894736842 total: 0.9999999999122808
+using:phone precision: 0.3758640710779974 recall: 0.4515895953757226 total: 0.9999999999927746
+using:napkin precision: 0.20834378824151564 recall: 0.0024271844660194173 total: 0.9999999999757282
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999975
+using:wallet precision: 0.0 recall: 0.0 total: 0.999999999925373
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.06867612068497574 recall: 0.011535688536409518 total: 0.9999999999927902
+takeoutfood precision: 0.0 recall: 0.0 total: 0.99999999989899
+leaving-table precision: 0.0 recall: 0.0 total: 0.9999999996774193
+cleaning-up precision: 0.0 recall: 0.0 total: 0.999999999375
+NONE precision: 0.0 recall: 0.0 total: 0.9999999999655171
+finished training model models/shiftedA_A/CVLSTM0_102560.180 with accuracy of 33.958253264427185
+Accuracy: 33.958% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 10, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 80}
+end_time: 1611815313.3092902
+minutes elapsed: 0.7755935311317443
+avg acc: 33.958253264427185
+training for 0'th fold of data
+start_time: 1611815730.3142083fiting model....models/shiftedA_A/CVLSTM0_102560.180away-from-table precision: 0.2984952139574708 recall: 0.6489925768822905 total: 0.9999999999893956
+idle precision: 0.062262815883838134 recall: 0.29196729196729193 total: 0.9999999999951901
+eating precision: 0.08025132964690705 recall: 0.3190819081908191 total: 0.9999999999954996
+drinking precision: 0.0 recall: 0.0 total: 0.9999999999848942
+talking precision: 0.08080083838865822 recall: 0.6036946671314046 total: 0.9999999999965146
+ordering precision: 0.0 recall: 0.0 total: 0.9999999998113208
+standing precision: 0.0 recall: 0.0 total: 0.9999999999029126
+talking:waiter precision: 0.22116330975428813 recall: 0.18181818181818182 total: 0.9999999999604743
+looking:window precision: 0.1425949964036995 recall: 0.3107394366197183 total: 0.9999999999911973
+looking:waiter precision: 0.0 recall: 0.0 total: 0.9999999999242423
+reading:bill precision: 0.0 recall: 0.0 total: 0.9999999998181817
+reading:menu precision: 0.08381356033350365 recall: 0.00784313725490196 total: 0.9999999999901961
+paying:check precision: 0.0 recall: 0.0 total: 0.9999999999107143
+using:phone precision: 0.21867104644745508 recall: 0.32950466618808333 total: 0.9999999999928213
+using:napkin precision: 0.0 recall: 0.0 total: 0.9999999999760192
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999975
+using:wallet precision: 0.0 recall: 0.0 total: 0.999999999924812
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.11136807130616919 recall: 0.0020646937370956643 total: 0.9999999999931176
+takeoutfood precision: 0.0 recall: 0.0 total: 0.9999999999082569
+leaving-table precision: 0.0 recall: 0.0 total: 0.9999999996000001
+cleaning-up precision: 0.0 recall: 0.0 total: 0.9999999996153845
+NONE precision: 0.0 recall: 0.0 total: 0.9999999999711815
+finished training model models/shiftedA_A/CVLSTM0_102560.180 with accuracy of 29.174181818962097
+Accuracy: 29.174% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 10, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 80}
+end_time: 1611815765.2970965
+minutes elapsed: 0.583048137029012
+avg acc: 29.174181818962097
+training for 0'th fold of data
+start_time: 1611816684.9487653fiting model....models/shiftedA_A/CVLSTM0_1502560.1500away-from-table precision: 0.6148976130483005 recall: 0.9167591564927857 total: 0.9999999999889012
+idle precision: 0.16997009057638052 recall: 0.48289156626506025 total: 0.9999999999951807
+eating precision: 0.19561101037081766 recall: 0.623753792804508 total: 0.9999999999956655
+drinking precision: 0.3820244311820721 recall: 0.14551083591331268 total: 0.9999999999845202
+talking precision: 0.15029650352977472 recall: 0.5160380683820938 total: 0.999999999996475
+ordering precision: 0.42362276647219044 recall: 0.7419354838709677 total: 0.9999999998387097
+standing precision: 0.9032440262562113 recall: 0.45263157894736844 total: 0.9999999998947369
+talking:waiter precision: 0.6347244672135578 recall: 0.5797665369649806 total: 0.9999999999610895
+looking:window precision: 0.25226727262648935 recall: 0.49831081081081086 total: 0.9999999999915541
+looking:waiter precision: 0.8150526812738023 recall: 0.5144927536231885 total: 0.999999999927536
+reading:bill precision: 0.790103476397364 recall: 0.17391304347826086 total: 0.9999999997826088
+reading:menu precision: 0.530956263943824 recall: 0.6330724070450098 total: 0.9999999999902152
+paying:check precision: 0.9262319477403526 recall: 0.21666666666666665 total: 0.9999999999166668
+using:phone precision: 0.3952308568495906 recall: 0.6572463768115941 total: 0.9999999999927538
+using:napkin precision: 0.7236141561448242 recall: 0.06787330316742081 total: 0.9999999999773755
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999987499999
+using:wallet precision: 0.6999736460668087 recall: 0.18248175182481752 total: 0.9999999999270073
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.16774681870398192 recall: 0.2605886575735822 total: 0.9999999999928213
+takeoutfood precision: 0.936194995472571 recall: 0.4067796610169492 total: 0.9999999999152542
+leaving-table precision: 0.9978757753344568 recall: 0.725 total: 0.99999999975
+cleaning-up precision: 0.992284277025966 recall: 0.35294117647058826 total: 0.9999999994117647
+NONE precision: 0.4981737585848767 recall: 0.06853582554517133 total: 0.9999999999688474
+finished training model models/shiftedA_A/CVLSTM0_1502560.1500 with accuracy of 50.47023892402649
+fiting model....models/shiftedA_A/CVLSTM0_1502560.1650away-from-table precision: 0.6540593790739014 recall: 0.9156492785793563 total: 0.9999999999889011
+idle precision: 0.1759970021340217 recall: 0.4327710843373494 total: 0.9999999999951807
+eating precision: 0.14848883441370012 recall: 0.6887732986562636 total: 0.9999999999956652
+drinking precision: 0.6145332294237961 recall: 0.13777089783281735 total: 0.9999999999845202
+talking precision: 0.15448734988751958 recall: 0.5710257314064152 total: 0.9999999999964752
+ordering precision: 0.40644724703418345 recall: 0.6935483870967742 total: 0.9999999998387096
+standing precision: 0.9325066053507497 recall: 0.4 total: 0.9999999998947369
+talking:waiter precision: 0.6186607859458518 recall: 0.5992217898832685 total: 0.9999999999610895
+looking:window precision: 0.25362658785530157 recall: 0.44256756756756754 total: 0.9999999999915542
+looking:waiter precision: 0.7676729959440284 recall: 0.30434782608695654 total: 0.9999999999275361
+reading:bill precision: 0.8884548927211596 recall: 0.3043478260869565 total: 0.9999999997826088
+reading:menu precision: 0.5018838702186836 recall: 0.5714285714285714 total: 0.9999999999902152
+paying:check precision: 0.9868735743914572 recall: 0.19999999999999998 total: 0.9999999999166668
+using:phone precision: 0.5195895721320186 recall: 0.639855072463768 total: 0.9999999999927538
+using:napkin precision: 0.6243467047842933 recall: 0.08823529411764706 total: 0.9999999999773755
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999987499999
+using:wallet precision: 0.7053926130727004 recall: 0.11678832116788321 total: 0.9999999999270073
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.22629992574822025 recall: 0.2519741564967696 total: 0.9999999999928213
+takeoutfood precision: 0.9792805070265234 recall: 0.6610169491525424 total: 0.9999999999152542
+leaving-table precision: 0.9921638654442947 recall: 0.775 total: 0.99999999975
+cleaning-up precision: 0.9933792254419189 recall: 0.4117647058823529 total: 0.9999999994117648
+NONE precision: 0.568049070921866 recall: 0.06230529595015577 total: 0.9999999999688473
+finished training model models/shiftedA_A/CVLSTM0_1502560.1650 with accuracy of 50.68925619125366
+fiting model....models/shiftedA_A/CVLSTM0_1502560.1800away-from-table precision: 0.6074008737183622 recall: 0.9334073251942288 total: 0.9999999999889011
+idle precision: 0.21921859952315606 recall: 0.339277108433735 total: 0.9999999999951807
+eating precision: 0.18075410324333585 recall: 0.5851755526657997 total: 0.9999999999956655
+drinking precision: 0.3139936870270356 recall: 0.16253869969040247 total: 0.9999999999845202
+talking precision: 0.14805380186483896 recall: 0.6179062389848431 total: 0.9999999999964753
+ordering precision: 0.4484389215238555 recall: 0.8225806451612904 total: 0.9999999998387097
+standing precision: 0.7376749397940786 recall: 0.4421052631578947 total: 0.999999999894737
+talking:waiter precision: 0.6743913900307636 recall: 0.556420233463035 total: 0.9999999999610893
+looking:window precision: 0.2328790624044189 recall: 0.5489864864864865 total: 0.9999999999915541
+looking:waiter precision: 0.8890377505222794 recall: 0.463768115942029 total: 0.9999999999275362
+reading:bill precision: 0.9494629566303668 recall: 0.32608695652173914 total: 0.9999999997826087
+reading:menu precision: 0.41424613508973057 recall: 0.5547945205479452 total: 0.9999999999902152
+paying:check precision: 0.9906324257442045 recall: 0.21666666666666665 total: 0.9999999999166668
+using:phone precision: 0.42220934926815856 recall: 0.7130434782608696 total: 0.9999999999927538
+using:napkin precision: 0.42497658887359135 recall: 0.07692307692307693 total: 0.9999999999773755
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.9698113207192595 recall: 0.125 total: 0.9999999987499999
+using:wallet precision: 0.7539833678464681 recall: 0.17518248175182483 total: 0.9999999999270073
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.25238103738755674 recall: 0.22110552763819094 total: 0.9999999999928214
+takeoutfood precision: 0.8067069140078317 recall: 0.5338983050847458 total: 0.9999999999152542
+leaving-table precision: 0.9980125497134648 recall: 0.775 total: 0.99999999975
+cleaning-up precision: 0.9983641262500095 recall: 0.29411764705882354 total: 0.9999999994117648
+NONE precision: 0.4807142666408052 recall: 0.04361370716510903 total: 0.9999999999688474
+finished training model models/shiftedA_A/CVLSTM0_1502560.1800 with accuracy of 50.083738565444946
+Accuracy: 50.414% (+/-0.250)
+best config: {'verbose': 0, 'epochs': 150, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1611819621.305665
+minutes elapsed: 48.9392816623052
+avg acc: 50.68925619125366
+training for 0'th fold of data
+start_time: 1611824277.8295171fiting model....models/shiftedAB_A/CVLSTM0_1502560.1500away-from-table precision: 0.4379610943278384 recall: 0.8760964912280702 total: 0.9999999999890351
+idle precision: 0.10319591526412217 recall: 0.31545587518283763 total: 0.9999999999951243
+eating precision: 0.15478727381714988 recall: 0.39094471049194607 total: 0.9999999999956464
+drinking precision: 0.40333338856807927 recall: 0.027439024390243903 total: 0.9999999999847562
+talking precision: 0.1039127872305646 recall: 0.5971978984238178 total: 0.9999999999964975
+ordering precision: 0.3721847468154105 recall: 0.631578947368421 total: 0.9999999998245614
+standing precision: 0.6546424618054336 recall: 0.1368421052631579 total: 0.999999999894737
+talking:waiter precision: 0.3835284314669708 recall: 0.7521008403361344 total: 0.9999999999579832
+looking:window precision: 0.20222890620800954 recall: 0.49016253207869975 total: 0.9999999999914457
+looking:waiter precision: 0.790710101925325 recall: 0.06923076923076923 total: 0.9999999999230769
+reading:bill precision: 0.9170420160776719 recall: 0.0847457627118644 total: 0.9999999998305085
+reading:menu precision: 0.24788038470100016 recall: 0.3868882733148661 total: 0.9999999999907665
+paying:check precision: 0.9512175508260269 recall: 0.10344827586206896 total: 0.9999999999137932
+using:phone precision: 0.404225789979799 recall: 0.43362831858407086 total: 0.9999999999926253
+using:napkin precision: 0.042991414962441736 recall: 0.007389162561576354 total: 0.9999999999753695
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999980000001
+using:wallet precision: 0.5204940818317153 recall: 0.012987012987012988 total: 0.9999999999350648
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.11722572997598026 recall: 0.06676136363636363 total: 0.9999999999928979
+takeoutfood precision: 0.714632794101953 recall: 0.11214953271028037 total: 0.9999999999065421
+leaving-table precision: 0.9009824648151387 recall: 0.3235294117647059 total: 0.9999999997058824
+cleaning-up precision: 0.993220338978274 recall: 0.07142857142857142 total: 0.9999999992857143
+NONE precision: 0.7264968500162031 recall: 0.008720930232558138 total: 0.9999999999709304
+finished training model models/shiftedAB_A/CVLSTM0_1502560.1500 with accuracy of 38.82375657558441
+fiting model....models/shiftedAB_A/CVLSTM0_1502560.1650away-from-table precision: 0.4612365241681734 recall: 0.8344298245614035 total: 0.9999999999890351
+idle precision: 0.11605483469856388 recall: 0.39102876645538764 total: 0.9999999999951243
+eating precision: 0.13277334977852676 recall: 0.4749673487157162 total: 0.9999999999956464
+drinking precision: 0.6533398784194464 recall: 0.025914634146341462 total: 0.9999999999847562
+talking precision: 0.10400454912199705 recall: 0.5047285464098074 total: 0.9999999999964975
+ordering precision: 0.065033478368566 recall: 0.07017543859649122 total: 0.9999999998245614
+standing precision: 0.707837568982818 recall: 0.14736842105263157 total: 0.9999999998947369
+talking:waiter precision: 0.36518837804019905 recall: 0.726890756302521 total: 0.9999999999579833
+looking:window precision: 0.18890555931405476 recall: 0.4071856287425149 total: 0.9999999999914458
+looking:waiter precision: 0.43885371525614825 recall: 0.21538461538461537 total: 0.9999999999230769
+reading:bill precision: 0.9583038869193173 recall: 0.01694915254237288 total: 0.9999999998305085
+reading:menu precision: 0.4317905863065161 recall: 0.27331486611265005 total: 0.9999999999907665
+paying:check precision: 0.940856215348986 recall: 0.09482758620689655 total: 0.9999999999137932
+using:phone precision: 0.29012259247130373 recall: 0.4837758112094395 total: 0.9999999999926255
+using:napkin precision: 0.6914893617132833 recall: 0.017241379310344827 total: 0.9999999999753695
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999980000001
+using:wallet precision: 0.5186979283783039 recall: 0.012987012987012988 total: 0.9999999999350649
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.12240247647700318 recall: 0.10085227272727273 total: 0.9999999999928978
+takeoutfood precision: 0.775343282007384 recall: 0.26168224299065423 total: 0.9999999999065422
+leaving-table precision: 0.9730243871670797 recall: 0.5294117647058824 total: 0.9999999997058824
+cleaning-up precision: 0.9977298524388019 recall: 0.21428571428571427 total: 0.9999999992857143
+NONE precision: 0.36742023688602937 recall: 0.005813953488372093 total: 0.9999999999709301
+finished training model models/shiftedAB_A/CVLSTM0_1502560.1650 with accuracy of 38.47590684890747
+fiting model....models/shiftedAB_A/CVLSTM0_1502560.1800away-from-table precision: 0.5548508710010138 recall: 0.8048245614035088 total: 0.9999999999890351
+idle precision: 0.11579105573006047 recall: 0.34519746465138956 total: 0.9999999999951245
+eating precision: 0.11173913234956569 recall: 0.6060078363082281 total: 0.9999999999956465
+drinking precision: 0.5957891930323461 recall: 0.05030487804878049 total: 0.9999999999847561
+talking precision: 0.1590922777223925 recall: 0.5891418563922942 total: 0.9999999999964974
+ordering precision: 0.4014416500563141 recall: 0.719298245614035 total: 0.9999999998245614
+standing precision: 0.5549945763155781 recall: 0.37894736842105264 total: 0.9999999998947369
+talking:waiter precision: 0.5138869447824179 recall: 0.8025210084033613 total: 0.9999999999579832
+looking:window precision: 0.2153147858964691 recall: 0.40718562874251496 total: 0.9999999999914457
+looking:waiter precision: 0.7385603785563788 recall: 0.2846153846153846 total: 0.9999999999230769
+reading:bill precision: 0.978708047632854 recall: 0.03389830508474576 total: 0.9999999998305085
+reading:menu precision: 0.3692848851919885 recall: 0.22437673130193905 total: 0.9999999999907665
+paying:check precision: 0.6559306087206329 recall: 0.13793103448275862 total: 0.9999999999137932
+using:phone precision: 0.30248627292264096 recall: 0.5892330383480826 total: 0.9999999999926255
+using:napkin precision: 0.08893732909091864 recall: 0.014778325123152709 total: 0.9999999999753695
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999980000001
+using:wallet precision: 0.6247083673254851 recall: 0.03246753246753247 total: 0.9999999999350648
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.34544863510439305 recall: 0.05894886363636363 total: 0.9999999999928978
+takeoutfood precision: 0.9077503295480042 recall: 0.07476635514018692 total: 0.9999999999065421
+leaving-table precision: 0.9992956433467332 recall: 0.6176470588235294 total: 0.9999999997058824
+cleaning-up precision: 0.9884063724696417 recall: 0.07142857142857144 total: 0.9999999992857141
+NONE precision: 0.29090771290684925 recall: 0.01744186046511628 total: 0.9999999999709303
+finished training model models/shiftedAB_A/CVLSTM0_1502560.1800 with accuracy of 41.99948608875275
+Accuracy: 39.766% (+/-1.585)
+best config: {'verbose': 0, 'epochs': 150, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1611827381.0052636
+minutes elapsed: 51.71959577401479
+avg acc: 41.99948608875275
+training for 0'th fold of data
+start_time: 1611875248.2466822fiting model....models/shiftedAB_A/CVLSTM0_1502560.1700away-from-table precision: 0.5645553049526919 recall: 0.7532894736842106 total: 0.999999999989035
+idle precision: 0.10978550347946044 recall: 0.2891272549975622 total: 0.9999999999951243
+eating precision: 0.11830483962837206 recall: 0.5598606878537222 total: 0.9999999999956466
+drinking precision: 0.5614948230217894 recall: 0.019817073170731704 total: 0.9999999999847562
+talking precision: 0.12613679754186674 recall: 0.5663747810858144 total: 0.9999999999964974
+ordering precision: 0.32313230521086406 recall: 0.49122807017543857 total: 0.9999999998245614
+standing precision: 0.5168834470267688 recall: 0.2736842105263158 total: 0.999999999894737
+talking:waiter precision: 0.3820622411406136 recall: 0.6932773109243698 total: 0.9999999999579832
+looking:window precision: 0.22728222309032667 recall: 0.42600513259195893 total: 0.9999999999914457
+looking:waiter precision: 0.5664991796912796 recall: 0.38461538461538464 total: 0.9999999999230769
+reading:bill precision: 0.976474521971315 recall: 0.05084745762711864 total: 0.9999999998305085
+reading:menu precision: 0.4313024376979799 recall: 0.5087719298245614 total: 0.9999999999907665
+paying:check precision: 0.9940846506879717 recall: 0.15517241379310345 total: 0.9999999999137931
+using:phone precision: 0.28708083624286596 recall: 0.5553097345132744 total: 0.9999999999926255
+using:napkin precision: 0.08533679519504196 recall: 0.014778325123152709 total: 0.9999999999753695
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999980000001
+using:wallet precision: 0.6923029022059699 recall: 0.045454545454545456 total: 0.9999999999350648
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.24151066941856664 recall: 0.030539772727272728 total: 0.9999999999928978
+takeoutfood precision: 0.9483541024480698 recall: 0.14018691588785046 total: 0.9999999999065423
+leaving-table precision: 0.9958069299807288 recall: 0.35294117647058826 total: 0.9999999997058824
+cleaning-up precision: 0.993220338978274 recall: 0.07142857142857142 total: 0.9999999992857143
+NONE precision: 0.48045997008543884 recall: 0.03488372093023256 total: 0.9999999999709301
+finished training model models/shiftedAB_A/CVLSTM0_1502560.1700 with accuracy of 41.12342298030853
+fiting model....models/shiftedAB_A/CVLSTM0_1502560.1800away-from-table precision: 0.5341693137507574 recall: 0.8530701754385965 total: 0.9999999999890351
+idle precision: 0.12762119256542367 recall: 0.3008288639687957 total: 0.9999999999951243
+eating precision: 0.13544485664475578 recall: 0.46538963865912064 total: 0.9999999999956465
+drinking precision: 0.5859083174826195 recall: 0.028963414634146343 total: 0.999999999984756
+talking precision: 0.10609380031792595 recall: 0.615061295971979 total: 0.9999999999964975
+ordering precision: 0.39462054239345584 recall: 0.6842105263157894 total: 0.9999999998245616
+standing precision: 0.5676569125775001 recall: 0.23157894736842105 total: 0.9999999998947369
+talking:waiter precision: 0.450581236815331 recall: 0.6470588235294118 total: 0.9999999999579832
+looking:window precision: 0.20286830046024015 recall: 0.4123182207014542 total: 0.9999999999914458
+looking:waiter precision: 0.5377209840436519 recall: 0.10769230769230768 total: 0.9999999999230769
+reading:bill precision: 0.0 recall: 0.0 total: 0.9999999998305085
+reading:menu precision: 0.47498869690652823 recall: 0.5420129270544783 total: 0.9999999999907664
+paying:check precision: 0.651236726490822 recall: 0.14655172413793102 total: 0.9999999999137932
+using:phone precision: 0.3170511870155695 recall: 0.5051622418879056 total: 0.9999999999926255
+using:napkin precision: 0.1684917695809261 recall: 0.03201970443349753 total: 0.9999999999753695
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999980000001
+using:wallet precision: 0.35052895923339555 recall: 0.03896103896103895 total: 0.9999999999350649
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.09288328023747797 recall: 0.05468750000000001 total: 0.9999999999928977
+takeoutfood precision: 0.9207054437356442 recall: 0.12149532710280374 total: 0.9999999999065421
+leaving-table precision: 0.9839896779282548 recall: 0.8235294117647058 total: 0.9999999997058824
+cleaning-up precision: 0.993220338978274 recall: 0.07142857142857144 total: 0.9999999992857141
+NONE precision: 0.15121434434255962 recall: 0.005813953488372093 total: 0.9999999999709301
+finished training model models/shiftedAB_A/CVLSTM0_1502560.1800 with accuracy of 41.09121263027191
+fiting model....models/shiftedAB_A/CVLSTM0_1502560.11000away-from-table precision: 0.5081976697126028 recall: 0.8475877192982457 total: 0.999999999989035
+idle precision: 0.10933743308954895 recall: 0.26864943929790347 total: 0.9999999999951243
+eating precision: 0.1986493961389609 recall: 0.457117979973879 total: 0.9999999999956465
+drinking precision: 0.47302360764311735 recall: 0.04878048780487805 total: 0.9999999999847561
+talking precision: 0.10080173718763483 recall: 0.6518388791593696 total: 0.9999999999964974
+ordering precision: 0.36750034483052807 recall: 0.5964912280701754 total: 0.9999999998245614
+standing precision: 0.6982239092611426 recall: 0.34736842105263155 total: 0.999999999894737
+talking:waiter precision: 0.5157490714575611 recall: 0.7268907563025211 total: 0.9999999999579832
+looking:window precision: 0.20614878186758986 recall: 0.48075278015397777 total: 0.9999999999914457
+looking:waiter precision: 0.7021212129859454 recall: 0.27692307692307694 total: 0.9999999999230769
+reading:bill precision: 0.9873253517596512 recall: 0.11864406779661019 total: 0.9999999998305084
+reading:menu precision: 0.4700864115423076 recall: 0.5263157894736843 total: 0.9999999999907665
+paying:check precision: 0.6662527800675073 recall: 0.14655172413793102 total: 0.9999999999137932
+using:phone precision: 0.2626735805911657 recall: 0.48967551622418876 total: 0.9999999999926255
+using:napkin precision: 0.5755151038776736 recall: 0.04433497536945812 total: 0.9999999999753696
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999980000001
+using:wallet precision: 0.8643923083845286 recall: 0.08441558441558443 total: 0.9999999999350648
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.10696552082541265 recall: 0.056818181818181816 total: 0.9999999999928978
+takeoutfood precision: 0.8301692157258261 recall: 0.11214953271028037 total: 0.9999999999065422
+leaving-table precision: 0.9895143643260474 recall: 0.2647058823529412 total: 0.9999999997058824
+cleaning-up precision: 0.9977298524388019 recall: 0.21428571428571427 total: 0.9999999992857143
+NONE precision: 0.22351625677205375 recall: 0.01744186046511628 total: 0.9999999999709303
+finished training model models/shiftedAB_A/CVLSTM0_1502560.11000 with accuracy of 41.89641773700714
+fiting model....models/shiftedAB_A/CVLSTM0_2002560.1700away-from-table precision: 0.5194092862512585 recall: 0.8421052631578947 total: 0.9999999999890351
+idle precision: 0.14060116729548724 recall: 0.2793759141882009 total: 0.9999999999951245
+eating precision: 0.12151137639144392 recall: 0.5241619503700478 total: 0.9999999999956466
+drinking precision: 0.7065131603034367 recall: 0.05030487804878049 total: 0.9999999999847561
+talking precision: 0.13125802932471825 recall: 0.521891418563923 total: 0.9999999999964975
+ordering precision: 0.3593741147225441 recall: 0.6140350877192982 total: 0.9999999998245614
+standing precision: 0.80482954381055 recall: 0.30526315789473685 total: 0.9999999998947369
+talking:waiter precision: 0.4963714638939741 recall: 0.6722689075630253 total: 0.9999999999579832
+looking:window precision: 0.21839622346981785 recall: 0.47647562018819506 total: 0.9999999999914457
+looking:waiter precision: 0.62192955616634 recall: 0.27692307692307694 total: 0.9999999999230769
+reading:bill precision: 0.9665589913106154 recall: 0.03389830508474576 total: 0.9999999998305085
+reading:menu precision: 0.37373677913614695 recall: 0.5032317636195752 total: 0.9999999999907664
+paying:check precision: 0.6831468643726318 recall: 0.1896551724137931 total: 0.9999999999137932
+using:phone precision: 0.25345028629288185 recall: 0.5309734513274337 total: 0.9999999999926253
+using:napkin precision: 0.13478805381725667 recall: 0.024630541871921183 total: 0.9999999999753695
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.9794238682732984 recall: 0.19999999999999998 total: 0.9999999980000001
+using:wallet precision: 0.8430918808818323 recall: 0.05844155844155844 total: 0.9999999999350649
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.14516048337044318 recall: 0.08096590909090909 total: 0.9999999999928978
+takeoutfood precision: 0.887120530259068 recall: 0.21495327102803738 total: 0.9999999999065422
+leaving-table precision: 0.9880926078965085 recall: 0.7647058823529411 total: 0.9999999997058824
+cleaning-up precision: 0.993220338978274 recall: 0.07142857142857144 total: 0.9999999992857141
+NONE precision: 0.2679699691363115 recall: 0.023255813953488372 total: 0.9999999999709301
+finished training model models/shiftedAB_A/CVLSTM0_2002560.1700 with accuracy of 41.00747108459473
+fiting model....models/shiftedAB_A/CVLSTM0_2002560.1800away-from-table precision: 0.4734080684721828 recall: 0.8453947368421053 total: 0.9999999999890351
+idle precision: 0.09281339980066877 recall: 0.33690882496343244 total: 0.9999999999951243
+eating precision: 0.13499208810237429 recall: 0.5533304309969526 total: 0.9999999999956465
+drinking precision: 0.239968532668305 recall: 0.05335365853658537 total: 0.999999999984756
+talking precision: 0.10887893750328238 recall: 0.5677758318739055 total: 0.9999999999964974
+ordering precision: 0.35811615412535336 recall: 0.631578947368421 total: 0.9999999998245614
+standing precision: 0.7063887837093084 recall: 0.33684210526315794 total: 0.9999999998947369
+talking:waiter precision: 0.5062844645708058 recall: 0.6554621848739496 total: 0.9999999999579832
+looking:window precision: 0.19991871492503074 recall: 0.3840889649272882 total: 0.999999999991446
+looking:waiter precision: 0.7294422918861848 recall: 0.21538461538461537 total: 0.9999999999230769
+reading:bill precision: 0.978708047632854 recall: 0.03389830508474577 total: 0.9999999998305084
+reading:menu precision: 0.43117382599087506 recall: 0.42197599261311175 total: 0.9999999999907665
+paying:check precision: 0.993350149047875 recall: 0.13793103448275862 total: 0.9999999999137932
+using:phone precision: 0.37290054960442925 recall: 0.35176991150442477 total: 0.9999999999926255
+using:napkin precision: 0.2373995618375236 recall: 0.024630541871921183 total: 0.9999999999753695
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999980000001
+using:wallet precision: 0.8646408014004162 recall: 0.1103896103896104 total: 0.9999999999350648
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.2913802387474364 recall: 0.07528409090909091 total: 0.9999999999928978
+takeoutfood precision: 0.7864877856264125 recall: 0.31775700934579443 total: 0.9999999999065421
+leaving-table precision: 0.9751781908813533 recall: 0.11764705882352941 total: 0.9999999997058824
+cleaning-up precision: 0.9965986394533776 recall: 0.14285714285714285 total: 0.9999999992857143
+NONE precision: 0.7020408927246233 recall: 0.014534883720930232 total: 0.9999999999709301
+finished training model models/shiftedAB_A/CVLSTM0_2002560.1800 with accuracy of 40.06699323654175
+fiting model....models/shiftedAB_A/CVLSTM0_2002560.11000away-from-table precision: 0.5549007348491392 recall: 0.8793859649122807 total: 0.9999999999890351
+idle precision: 0.13178713588073981 recall: 0.27450024378352017 total: 0.9999999999951245
+eating precision: 0.11783014120359304 recall: 0.6412712233347845 total: 0.9999999999956466
+drinking precision: 0.6037235811724482 recall: 0.041158536585365856 total: 0.999999999984756
+talking precision: 0.13481044061364242 recall: 0.5071803852889667 total: 0.9999999999964974
+ordering precision: 0.31903065723522395 recall: 0.49122807017543857 total: 0.9999999998245614
+standing precision: 0.7843548792852884 recall: 0.3157894736842105 total: 0.999999999894737
+talking:waiter precision: 0.5376335723732443 recall: 0.6722689075630253 total: 0.9999999999579832
+looking:window precision: 0.1825355918447541 recall: 0.48502994011976047 total: 0.9999999999914457
+looking:waiter precision: 0.5919461022436433 recall: 0.2538461538461539 total: 0.9999999999230769
+reading:bill precision: 0.9583038869193173 recall: 0.016949152542372885 total: 0.9999999998305084
+reading:menu precision: 0.5399438841712405 recall: 0.4939981532779317 total: 0.9999999999907665
+paying:check precision: 0.986588191510159 recall: 0.17241379310344832 total: 0.9999999999137931
+using:phone precision: 0.3224185185030783 recall: 0.5140117994100295 total: 0.9999999999926255
+using:napkin precision: 0.11345462940235528 recall: 0.019704433497536946 total: 0.9999999999753695
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999980000001
+using:wallet precision: 0.7667545097635502 recall: 0.04545454545454545 total: 0.9999999999350649
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.11675558302038092 recall: 0.11079545454545454 total: 0.9999999999928979
+takeoutfood precision: 0.9525479509679006 recall: 0.07476635514018692 total: 0.9999999999065421
+leaving-table precision: 0.9987680266682427 recall: 0.7058823529411765 total: 0.9999999997058824
+cleaning-up precision: 0.993220338978274 recall: 0.07142857142857144 total: 0.9999999992857141
+NONE precision: 0.6611192785846343 recall: 0.011627906976744184 total: 0.9999999999709303
+finished training model models/shiftedAB_A/CVLSTM0_2002560.11000 with accuracy of 42.463281750679016
+Accuracy: 41.275% (+/-0.751)
+best config: {'verbose': 0, 'epochs': 200, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 1000}
+end_time: 1611885295.1865892
+minutes elapsed: 167.4489984512329
+avg acc: 42.463281750679016
+class freqs: {0: 4629, 1: 10313, 2: 11528, 3: 3204, 4: 14266, 5: 284, 6: 494, 7: 1222, 8: 5812, 9: 603, 10: 259, 11: 5182, 12: 580, 13: 6967, 14: 2033, 15: 0, 16: 15, 17: 705, 18: 0, 19: 7165, 20: 544, 21: 138, 22: 84, 23: 1597, 24: 0}training for 0'th fold of data
+start_time: 1611888186.899132fiting model....models/shiftedAB_A/CVLSTM0_2002560.1800away-from-table precision: 0.6254100040248414 recall: 0.7848648648648648 total: 0.9999999999891892
+idle precision: 0.1269803363616956 recall: 0.19627085377821396 total: 0.9999999999950933
+eating precision: 0.1309222749724599 recall: 0.7079497907949791 total: 0.999999999995816
+drinking precision: 0.6757945335165402 recall: 0.05362776025236593 total: 0.9999999999842271
+talking precision: 0.11297774488679808 recall: 0.5182841068917018 total: 0.9999999999964839
+ordering precision: 0.42736560665552126 recall: 0.8148148148148148 total: 0.9999999998148148
+standing precision: 0.7044914752519237 recall: 0.30927835051546393 total: 0.9999999998969072
+talking:waiter precision: 0.5172102711248044 recall: 0.6577777777777778 total: 0.9999999999555556
+looking:window precision: 0.19606342449419184 recall: 0.4482456140350877 total: 0.9999999999912281
+looking:waiter precision: 0.7803458382242691 recall: 0.14285714285714285 total: 0.9999999999159664
+reading:bill precision: 0.9627024794490229 recall: 0.05882352941176471 total: 0.9999999998039215
+reading:menu precision: 0.4062713079286909 recall: 0.4657398212512413 total: 0.9999999999900695
+paying:check precision: 0.9729075760136916 recall: 0.14285714285714288 total: 0.9999999999107143
+using:phone precision: 0.313052695138724 recall: 0.5707213578500707 total: 0.9999999999929279
+using:napkin precision: 0.49245230909425186 recall: 0.013667425968109341 total: 0.9999999999772209
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999983333333
+using:wallet precision: 0.6119904719309706 recall: 0.05161290322580645 total: 0.9999999999354838
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.25913433826147303 recall: 0.11797752808988765 total: 0.9999999999929775
+takeoutfood precision: 0.8907931918991513 recall: 0.5353535353535354 total: 0.9999999998989899
+leaving-table precision: 0.9916019559360576 recall: 0.56 total: 0.9999999996
+cleaning-up precision: 0.8909080973238696 recall: 0.07692307692307693 total: 0.9999999992307691
+NONE precision: 0.8407542373996122 recall: 0.014925373134328358 total: 0.9999999999701492
+finished training model models/shiftedAB_A/CVLSTM0_2002560.1800 with accuracy of 42.68229901790619
+fiting model....models/shiftedAB_A/CVLSTM0_3502560.1800away-from-table precision: 0.6343326005646739 recall: 0.881081081081081 total: 0.9999999999891893
+idle precision: 0.1442115235477539 recall: 0.26398429833169773 total: 0.9999999999950934
+eating precision: 0.17145388030063372 recall: 0.4849372384937239 total: 0.9999999999958159
+drinking precision: 0.42890020551488506 recall: 0.05047318611987382 total: 0.9999999999842271
+talking precision: 0.11252491489563969 recall: 0.7113220815752461 total: 0.9999999999964839
+ordering precision: 0.446935637479456 recall: 0.8148148148148148 total: 0.9999999998148148
+standing precision: 0.9325342713594956 recall: 0.31958762886597936 total: 0.9999999998969074
+talking:waiter precision: 0.5671483475961436 recall: 0.7866666666666666 total: 0.9999999999555556
+looking:window precision: 0.2183877474099136 recall: 0.44385964912280707 total: 0.9999999999912281
+looking:waiter precision: 0.6457721891930767 recall: 0.3445378151260504 total: 0.9999999999159664
+reading:bill precision: 0.9701519697708452 recall: 0.09803921568627452 total: 0.9999999998039215
+reading:menu precision: 0.537116914680493 recall: 0.5789473684210527 total: 0.9999999999900695
+paying:check precision: 0.9771298965385905 recall: 0.1875 total: 0.9999999999107144
+using:phone precision: 0.34100848677221257 recall: 0.5990099009900991 total: 0.9999999999929279
+using:napkin precision: 0.6507876597546263 recall: 0.04555808656036447 total: 0.9999999999772209
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.9664313330245633 recall: 0.16666666666666666 total: 0.9999999983333334
+using:wallet precision: 0.7204921525712146 recall: 0.15483870967741933 total: 0.9999999999354838
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.24556521852049337 recall: 0.05828651685393259 total: 0.9999999999929776
+takeoutfood precision: 0.9598673415277803 recall: 0.5252525252525253 total: 0.9999999998989899
+leaving-table precision: 0.9844391917804747 recall: 0.84 total: 0.9999999996
+cleaning-up precision: 0.9936616284691012 recall: 0.07692307692307693 total: 0.9999999992307691
+NONE precision: 0.8395035708903046 recall: 0.0626865671641791 total: 0.9999999999701492
+finished training model models/shiftedAB_A/CVLSTM0_3502560.1800 with accuracy of 45.381346344947815
+fiting model....models/shiftedAB_A/CVLSTM0_5002560.1800away-from-table precision: 0.6267450027854763 recall: 0.812972972972973 total: 0.9999999999891891
+idle precision: 0.13923403463901177 recall: 0.31059862610402356 total: 0.9999999999950933
+eating precision: 0.14178928253599682 recall: 0.6343096234309623 total: 0.9999999999958159
+drinking precision: 0.48937753311759685 recall: 0.02523659305993691 total: 0.9999999999842271
+talking precision: 0.10916702417054665 recall: 0.6146272855133615 total: 0.9999999999964838
+ordering precision: 0.28269207493401016 recall: 0.4074074074074074 total: 0.9999999998148148
+standing precision: 0.6933189711779753 recall: 0.3402061855670103 total: 0.9999999998969074
+talking:waiter precision: 0.38222784432219187 recall: 0.768888888888889 total: 0.9999999999555556
+looking:window precision: 0.22420374539522445 recall: 0.44298245614035087 total: 0.9999999999912281
+looking:waiter precision: 0.8681715688512074 recall: 0.10084033613445378 total: 0.9999999999159664
+reading:bill precision: 0.7325469853235096 recall: 0.0196078431372549 total: 0.9999999998039216
+reading:menu precision: 0.528628067823249 recall: 0.5590863952333665 total: 0.9999999999900695
+paying:check precision: 0.803956042679737 recall: 0.16964285714285715 total: 0.9999999999107143
+using:phone precision: 0.3909239810140795 recall: 0.4490806223479491 total: 0.9999999999929279
+using:napkin precision: 0.15293738389135578 recall: 0.015945330296127564 total: 0.9999999999772209
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999983333333
+using:wallet precision: 0.34943569120461626 recall: 0.05161290322580645 total: 0.9999999999354838
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.15982535676767862 recall: 0.0449438202247191 total: 0.9999999999929776
+takeoutfood precision: 0.9314731804554249 recall: 0.494949494949495 total: 0.9999999998989899
+leaving-table precision: 0.9693259267322851 recall: 0.6799999999999999 total: 0.9999999996
+cleaning-up precision: 0.0 recall: 0.0 total: 0.9999999992307691
+NONE precision: 0.19132041928501184 recall: 0.008955223880597015 total: 0.9999999999701492
+finished training model models/shiftedAB_A/CVLSTM0_5002560.1800 with accuracy of 43.64854395389557
+Accuracy: 43.904% (+/-1.117)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1611897324.480132
+minutes elapsed: 152.29301666816076
+avg acc: 45.381346344947815
+class freqs: {0: 4629, 1: 10313, 2: 11528, 3: 3204, 4: 14266, 5: 284, 6: 494, 7: 1222, 8: 5812, 9: 603, 10: 259, 11: 5182, 12: 580, 13: 6967, 14: 2033, 15: 0, 16: 15, 17: 705, 18: 0, 19: 7165, 20: 544, 21: 138, 22: 84, 23: 1597, 24: 0}training for 0'th fold of data
+start_time: 1611898821.5279255fiting model....models/shiftedAB_A/CVLSTM0_3502560.1800away-from-table precision: 0.5295583805245079 recall: 0.8801036941023977 total: 0.99999999999784
+idle precision: 0.1454771899964935 recall: 0.4583333333333333 total: 0.999999999999031
+eating precision: 0.123044596063234 recall: 0.5034249544784531 total: 0.9999999999991329
+drinking precision: 0.3536041280737845 recall: 0.04175755687129947 total: 0.9999999999968838
+talking precision: 0.1251080007305431 recall: 0.5376087566657312 total: 0.9999999999992983
+ordering precision: 0.3946492131888027 recall: 0.6947368421052631 total: 0.9999999999649123
+standing precision: 0.9436731676823551 recall: 0.21862348178137653 total: 0.999999999979757
+talking:waiter precision: 0.5266177240769238 recall: 0.7341463414634146 total: 0.9999999999918701
+looking:window precision: 0.23881897706104677 recall: 0.45102427268032363 total: 0.9999999999982785
+looking:waiter precision: 0.6833712811042767 recall: 0.28046744574290483 total: 0.9999999999833055
+reading:bill precision: 0.8632579819438309 recall: 0.06538461538461539 total: 0.9999999999615384
+reading:menu precision: 0.5605723386256618 recall: 0.5997686524002313 total: 0.9999999999980722
+paying:check precision: 0.8787384777323448 recall: 0.13941480206540446 total: 0.9999999999827883
+using:phone precision: 0.3693839830698516 recall: 0.5869346733668341 total: 0.9999999999985643
+using:napkin precision: 0.4527808397048771 recall: 0.02319842053307009 total: 0.9999999999950642
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.999999999375
+using:wallet precision: 0.7692706010209773 recall: 0.1049645390070922 total: 0.9999999999858156
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.20292382137035728 recall: 0.165993594206935 total: 0.9999999999986073
+takeoutfood precision: 0.9630413266481547 recall: 0.20879120879120877 total: 0.9999999999816851
+leaving-table precision: 0.9985494950790603 recall: 0.6402877697841726 total: 0.9999999999280575
+cleaning-up precision: 0.9968728705868014 recall: 0.18823529411764706 total: 0.999999999882353
+NONE precision: 0.3591676857223933 recall: 0.01631116687578419 total: 0.9999999999937266
+finished training model models/shiftedAB_A/CVLSTM0_3502560.1800 with accuracy of 45.42210400104523
+fiting model....models/shiftedAB_A/CVLSTM0_5002560.1800away-from-table precision: 0.763195393027786 recall: 0.8433786995031325 total: 0.9999999999978396
+idle precision: 0.2510595174138507 recall: 0.40494186046511627 total: 0.9999999999990309
+eating precision: 0.12371062443612804 recall: 0.8588398508627417 total: 0.9999999999991329
+drinking precision: 0.768838523858356 recall: 0.13306325958242443 total: 0.9999999999968838
+talking precision: 0.17367562049771873 recall: 0.519155206286837 total: 0.9999999999992982
+ordering precision: 0.45040475708174127 recall: 0.8596491228070174 total: 0.9999999999649123
+standing precision: 0.8057124765425038 recall: 0.6072874493927125 total: 0.9999999999797571
+talking:waiter precision: 0.6073442187033263 recall: 0.7691056910569106 total: 0.99999999999187
+looking:window precision: 0.24240456069424152 recall: 0.48166637975555165 total: 0.9999999999982786
+looking:waiter precision: 0.8962610516561149 recall: 0.3038397328881469 total: 0.9999999999833056
+reading:bill precision: 0.9519711540337821 recall: 0.11923076923076922 total: 0.9999999999615385
+reading:menu precision: 0.6262067457535456 recall: 0.48717948717948717 total: 0.9999999999980722
+paying:check precision: 0.9238236422249696 recall: 0.19965576592082615 total: 0.9999999999827883
+using:phone precision: 0.4384150988111505 recall: 0.6099066762383345 total: 0.9999999999985643
+using:napkin precision: 0.5619443833093958 recall: 0.05972359328726554 total: 0.9999999999950643
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.9871589084994036 recall: 0.0625 total: 0.999999999375
+using:wallet precision: 0.7271296459135708 recall: 0.1375886524822695 total: 0.9999999999858156
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.5283883851573058 recall: 0.08814928282968947 total: 0.9999999999986073
+takeoutfood precision: 0.9454811143881497 recall: 0.6868131868131868 total: 0.999999999981685
+leaving-table precision: 0.9980096604609978 recall: 0.8561151079136691 total: 0.9999999999280574
+cleaning-up precision: 0.9946088913090674 recall: 0.19999999999999998 total: 0.9999999998823531
+NONE precision: 0.45042042505464663 recall: 0.043914680050188205 total: 0.9999999999937266
+finished training model models/shiftedAB_A/CVLSTM0_5002560.1800 with accuracy of 49.77906048297882
+Accuracy: 47.601% (+/-2.178)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1611910731.0154803
+minutes elapsed: 198.4914592464765
+avg acc: 49.77906048297882
+class freqs: {0: 723, 1: 1615, 2: 1801, 3: 497, 4: 2227, 5: 44, 6: 77, 7: 192, 8: 905, 9: 96, 10: 41, 11: 809, 12: 90, 13: 1091, 14: 320, 15: 0, 16: 3, 17: 110, 18: 0, 19: 1116, 20: 85, 21: 21, 22: 13, 23: 253, 24: 0}training for 0'th fold of data
+start_time: 1611911159.3268523fiting model....models/shiftedABhalf_A/CVLSTM0_3502560.1800away-from-table precision: 0.4796401581789027 recall: 0.7251381215469613 total: 0.9999999999861877
+idle precision: 0.0875595088240423 recall: 0.241635687732342 total: 0.9999999999938043
+eating precision: 0.12484689618227435 recall: 0.42111111111111116 total: 0.9999999999944444
+drinking precision: 0.16712268646085207 recall: 0.012 total: 0.9999999999799999
+talking precision: 0.09878463821053608 recall: 0.6214638527166593 total: 0.9999999999955096
+ordering precision: 0.18364642986403168 recall: 0.24444444444444444 total: 0.9999999997777778
+standing precision: 0.6585451120992345 recall: 0.03896103896103896 total: 0.99999999987013
+talking:waiter precision: 0.2935933773194119 recall: 0.6510416666666667 total: 0.9999999999479166
+looking:window precision: 0.17858314195690692 recall: 0.3936052921719956 total: 0.9999999999889746
+looking:waiter precision: 0.3865158593672445 recall: 0.11458333333333333 total: 0.9999999998958334
+reading:bill precision: 0.0 recall: 0.0 total: 0.9999999997560975
+reading:menu precision: 0.3053991711235963 recall: 0.4622991347342398 total: 0.9999999999876391
+paying:check precision: 0.9601502700502749 recall: 0.13186813186813187 total: 0.9999999998901099
+using:phone precision: 0.30754784814643915 recall: 0.4220183486238532 total: 0.9999999999908258
+using:napkin precision: 0.5462304409853321 recall: 0.012539184952978058 total: 0.999999999968652
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999966666666
+using:wallet precision: 0.5789473684309459 recall: 0.017857142857142856 total: 0.9999999999107144
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.33178240694070343 recall: 0.022381378692927483 total: 0.9999999999910476
+takeoutfood precision: 0.9616721675539983 recall: 0.33720930232558144 total: 0.9999999998837209
+leaving-table precision: 0.8895898277289508 recall: 0.13636363636363638 total: 0.9999999995454544
+cleaning-up precision: 0.9969116738707275 recall: 0.2 total: 0.9999999993333333
+NONE precision: 0.6543604768308802 recall: 0.003787878787878788 total: 0.9999999999621212
+finished training model models/shiftedABhalf_A/CVLSTM0_3502560.1800 with accuracy of 36.96100115776062
+fiting model....models/shiftedABhalf_A/CVLSTM0_5002560.1800away-from-table precision: 0.48880288046496206 recall: 0.8314917127071823 total: 0.9999999999861879
+idle precision: 0.10489832671804637 recall: 0.2608426270136307 total: 0.9999999999938043
+eating precision: 0.11475230176217452 recall: 0.5627777777777778 total: 0.9999999999944446
+drinking precision: 0.5025922355076808 recall: 0.03 total: 0.99999999998
+talking precision: 0.11019566557817559 recall: 0.6138302649303997 total: 0.9999999999955096
+ordering precision: 0.2683450502647038 recall: 0.4222222222222222 total: 0.9999999997777778
+standing precision: 0.5828284559498224 recall: 0.2077922077922078 total: 0.9999999998701299
+talking:waiter precision: 0.383760480164422 recall: 0.734375 total: 0.9999999999479167
+looking:window precision: 0.20848230270237728 recall: 0.3958103638368247 total: 0.9999999999889746
+looking:waiter precision: 0.8856574014326769 recall: 0.16666666666666666 total: 0.9999999998958334
+reading:bill precision: 0.0 recall: 0.0 total: 0.9999999997560975
+reading:menu precision: 0.38468208929796616 recall: 0.25339925834363414 total: 0.999999999987639
+paying:check precision: 0.9791619349665165 recall: 0.1098901098901099 total: 0.9999999998901099
+using:phone precision: 0.34188957193054337 recall: 0.40733944954128437 total: 0.9999999999908258
+using:napkin precision: 0.21704796949726154 recall: 0.0219435736677116 total: 0.999999999968652
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999966666666
+using:wallet precision: 0.5789473684309459 recall: 0.01785714285714286 total: 0.9999999999107143
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.2111529538334776 recall: 0.07609668755595345 total: 0.9999999999910476
+takeoutfood precision: 0.9519950705108282 recall: 0.1627906976744186 total: 0.999999999883721
+leaving-table precision: 0.9646551860193094 recall: 0.4545454545454546 total: 0.9999999995454545
+cleaning-up precision: 0.9199086817635143 recall: 0.13333333333333333 total: 0.9999999993333333
+NONE precision: 0.4190214843892297 recall: 0.030303030303030304 total: 0.9999999999621212
+finished training model models/shiftedABhalf_A/CVLSTM0_5002560.1800 with accuracy of 39.211806654930115
+Accuracy: 38.086% (+/-1.125)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1611913056.011828
+minutes elapsed: 31.61141626040141
+avg acc: 39.211806654930115
+training for 0'th fold of data
+start_time: 1612214263.741051training for 0'th fold of data
+start_time: 1612218907.623145training for 0'th fold of data
+start_time: 1612165474.4626143fiting model....models/AB_A/CVLSTM0_3502560.1800away-from-table precision: 0.794945467784415 recall: 0.920144804088586 total: 0.9999999999978705
+idle precision: 0.2332169952373416 recall: 0.46514575411913817 total: 0.999999999999025
+eating precision: 0.28567169610180504 recall: 0.7304785894206549 total: 0.9999999999991314
+drinking precision: 0.5836639755783959 recall: 0.14631160085705538 total: 0.9999999999969391
+talking precision: 0.16206231902969584 recall: 0.7175400239791241 total: 0.9999999999992946
+ordering precision: 0.4587478216888618 recall: 0.8483754512635379 total: 0.9999999999638989
+standing precision: 0.9210357401549931 recall: 0.6589958158995816 total: 0.9999999999790795
+talking:waiter precision: 0.6833864754328173 recall: 0.8151465798045603 total: 0.9999999999918568
+looking:window precision: 0.2374672503170051 recall: 0.4581363943281566 total: 0.999999999998312
+looking:waiter precision: 0.8906149874532672 recall: 0.48489932885906045 total: 0.9999999999832214
+reading:bill precision: 0.9584325481838526 recall: 0.2974910394265233 total: 0.9999999999641577
+reading:menu precision: 0.7061722858999965 recall: 0.6632891660171473 total: 0.9999999999980514
+paying:check precision: 0.9956958781423062 recall: 0.3057553956834532 total: 0.9999999999820144
+using:phone precision: 0.45198964001188646 recall: 0.7096586782861293 total: 0.9999999999985476
+using:napkin precision: 0.8330538510912358 recall: 0.13997985901309165 total: 0.9999999999949648
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999994117647
+using:wallet precision: 0.724854456299932 recall: 0.48551724137931035 total: 0.9999999999862068
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.2781793726821063 recall: 0.3224149895905621 total: 0.9999999999986121
+takeoutfood precision: 0.9754511365063057 recall: 0.5923217550274222 total: 0.9999999999817186
+leaving-table precision: 0.9980290758386832 recall: 0.9084507042253521 total: 0.9999999999295773
+cleaning-up precision: 0.9973135137844686 recall: 0.6292134831460674 total: 0.9999999998876405
+NONE precision: 0.5830314382719702 recall: 0.061064087061668694 total: 0.999999999993954
+finished training model models/AB_A/CVLSTM0_3502560.1800 with accuracy of 57.74255990982056
+fiting model....models/AB_A/CVLSTM0_5002560.1800away-from-table precision: 0.7632417499518003 recall: 0.9290885860306644 total: 0.9999999999978706
+idle precision: 0.2836263546875923 recall: 0.5081407819050404 total: 0.999999999999025
+eating precision: 0.24363117391249878 recall: 0.6983410058195083 total: 0.9999999999991315
+drinking precision: 0.5212042094083094 recall: 0.22742577288031832 total: 0.9999999999969392
+talking precision: 0.18938183492830626 recall: 0.6950419634670992 total: 0.9999999999992947
+ordering precision: 0.4415903321707399 recall: 0.7942238267148014 total: 0.999999999963899
+standing precision: 0.9536888605301636 recall: 0.502092050209205 total: 0.9999999999790795
+talking:waiter precision: 0.6919775045247462 recall: 0.8289902280130292 total: 0.9999999999918568
+looking:window precision: 0.24277738831576628 recall: 0.6659351789331532 total: 0.999999999998312
+looking:waiter precision: 0.7113373608448813 recall: 0.6006711409395972 total: 0.9999999999832216
+reading:bill precision: 0.9368476554090271 recall: 0.2795698924731183 total: 0.9999999999641576
+reading:menu precision: 0.41812641402055245 recall: 0.7032346063912706 total: 0.9999999999980513
+paying:check precision: 0.9924703675165264 recall: 0.35611510791366907 total: 0.9999999999820144
+using:phone precision: 0.6303672742129358 recall: 0.6397966594045025 total: 0.9999999999985477
+using:napkin precision: 0.7424323575680424 recall: 0.20191339375629408 total: 0.9999999999949648
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999994117647
+using:wallet precision: 0.8013372971439936 recall: 0.46068965517241384 total: 0.9999999999862068
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.4638102979536109 recall: 0.21221374045801528 total: 0.9999999999986121
+takeoutfood precision: 0.9931115260082409 recall: 0.6087751371115174 total: 0.9999999999817184
+leaving-table precision: 0.9911626886385091 recall: 0.9366197183098591 total: 0.9999999999295774
+cleaning-up precision: 0.9974508346958034 recall: 0.6292134831460674 total: 0.9999999998876405
+NONE precision: 0.6373313951790186 recall: 0.035671100362756954 total: 0.9999999999939542
+finished training model models/AB_A/CVLSTM0_5002560.1800 with accuracy of 58.1484317779541
+Accuracy: 57.945% (+/-0.203)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1612237685.2323341
+minutes elapsed: 1203.512828663985
+avg acc: 58.1484317779541
+training for 0'th fold of data
+start_time: 1612333015.1059864fiting model....models/A_A/CVLSTM0_5002560.1800away-from-table precision: 0.785380588151013 recall: 0.946637744034707 total: 0.999999999997831
+idle precision: 0.22327606358804694 recall: 0.4427629025999224 total: 0.9999999999990297
+eating precision: 0.1683126085455221 recall: 0.7087555209145231 total: 0.999999999999134
+drinking precision: 0.6522882069340709 recall: 0.22839694656488546 total: 0.9999999999969467
+talking precision: 0.1874904326048752 recall: 0.6137809187279152 total: 0.9999999999992932
+ordering precision: 0.47857713549971065 recall: 0.9211469534050178 total: 0.9999999999641578
+standing precision: 0.8714013472436227 recall: 0.5738045738045738 total: 0.99999999997921
+talking:waiter precision: 0.7533622482247166 recall: 0.7932454695222405 total: 0.9999999999917628
+looking:window precision: 0.2609782986099226 recall: 0.5952340133721927 total: 0.9999999999982856
+looking:waiter precision: 0.8279180350388805 recall: 0.4936305732484076 total: 0.9999999999840765
+reading:bill precision: 0.8798469182037602 recall: 0.4586466165413534 total: 0.999999999962406
+reading:menu precision: 0.5846508890097478 recall: 0.7452054794520547 total: 0.9999999999980431
+paying:check precision: 0.9288298436885281 recall: 0.3699324324324324 total: 0.9999999999831082
+using:phone precision: 0.5622907205258508 recall: 0.6309389140271493 total: 0.999999999998586
+using:napkin precision: 0.7908356907890204 recall: 0.15734265734265732 total: 0.9999999999950051
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999992857141
+using:wallet precision: 0.8025648451719513 recall: 0.21763869132290187 total: 0.9999999999857752
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.3270435480560041 recall: 0.23580968280467446 total: 0.9999999999986088
+takeoutfood precision: 0.9368236412008285 recall: 0.37499999999999994 total: 0.999999999981884
+leaving-table precision: 0.9974205602967978 recall: 0.8373983739837398 total: 0.9999999999186993
+cleaning-up precision: 0.9948213114533205 recall: 0.6419753086419754 total: 0.9999999998765432
+NONE precision: 0.5737507860135719 recall: 0.03802992518703242 total: 0.9999999999937657
+finished training model models/A_A/CVLSTM0_5002560.1800 with accuracy of 55.431002378463745
+Accuracy: 55.431% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1612375086.4903271
+minutes elapsed: 701.1897390127182
+avg acc: 55.431002378463745
+class freqs: {0: 1051, 1: 1778, 2: 2596, 3: 438, 4: 1595, 5: 0, 6: 85, 7: 61, 8: 1096, 9: 59, 10: 37, 11: 1008, 12: 87, 13: 298, 14: 377, 15: 39, 16: 35, 17: 80, 18: 1043, 19: 0, 20: 73, 21: 3, 22: 6, 23: 284, 24: 0}training for 0'th fold of data
+start_time: 1612506876.0497255fiting model....models/B_B/CVLSTM0_5002560.1800away-from-table precision: 0.5451155637918716 recall: 0.8317490494296579 total: 0.9999999999904943
+idle precision: 0.17567448841254343 recall: 0.4188275084554678 total: 0.9999999999943633
+eating precision: 0.11042106818729906 recall: 0.7544333076329992 total: 0.999999999996145
+drinking precision: 0.6016150133791078 recall: 0.09728506787330317 total: 0.9999999999773755
+talking precision: 0.1252700644146329 recall: 0.2824858757062147 total: 0.9999999999937226
+ordering precision: 0.0 recall: 0.0 total: 0.9999999900000002
+standing precision: 0.903336057896468 recall: 0.5116279069767442 total: 0.9999999998837209
+talking:waiter precision: 0.7520978436066724 recall: 0.484375 total: 0.9999999998437501
+looking:window precision: 0.20275369032626586 recall: 0.6318681318681318 total: 0.9999999999908427
+looking:waiter precision: 0.8019008946952838 recall: 0.22580645161290325 total: 0.9999999998387096
+reading:bill precision: 0.7125473000739707 recall: 0.34210526315789475 total: 0.9999999997368421
+reading:menu precision: 0.31800912035737994 recall: 0.5707220573689417 total: 0.9999999999901088
+paying:check precision: 0.9587482219019619 recall: 0.022988505747126436 total: 0.9999999998850575
+using:phone precision: 0.5832379681350685 recall: 0.19333333333333333 total: 0.9999999999666666
+using:napkin precision: 0.6843756772936009 recall: 0.06578947368421052 total: 0.9999999999736843
+using:purse precision: 0.970733848540363 recall: 0.22499999999999998 total: 0.9999999997500001
+using:glasses precision: 0.7537271971573192 recall: 0.07894736842105264 total: 0.9999999997368421
+using:wallet precision: 0.7610619469013495 recall: 0.03703703703703704 total: 0.9999999998765432
+looking:PersonA precision: 0.1302272914291825 recall: 0.28217349857006674 total: 0.9999999999904672
+looking:PersonB precision: 0.0 recall: 0.0 total: 0.9999999900000002
+takeoutfood precision: 0.8871338549979969 recall: 0.581081081081081 total: 0.999999999864865
+leaving-table precision: 0.9984603541147156 recall: 0.25 total: 0.9999999975
+cleaning-up precision: 0.0 recall: 0.0 total: 0.9999999985714286
+NONE precision: 0.6053364902701455 recall: 0.028268551236749116 total: 0.9999999999646643
+finished training model models/B_B/CVLSTM0_5002560.1800 with accuracy of 48.520076274871826
+Accuracy: 48.520% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1612507931.9783373
+minutes elapsed: 17.59881019592285
+avg acc: 48.520076274871826
+class freqs: {0: 1051, 1: 1778, 2: 2596, 3: 438, 4: 1595, 5: 0, 6: 85, 7: 61, 8: 1096, 9: 59, 10: 37, 11: 1008, 12: 87, 13: 298, 14: 377, 15: 39, 16: 35, 17: 80, 18: 1043, 19: 0, 20: 73, 21: 3, 22: 6, 23: 284, 24: 0}training for 0'th fold of data
+start_time: 1612508991.298162fiting model....models/AB_B/CVLSTM0_5002560.1800away-from-table precision: 0.29842027550686145 recall: 0.8174904942965779 total: 0.9999999999904944
+idle precision: 0.10534030284941623 recall: 0.4363021420518602 total: 0.9999999999943632
+eating precision: 0.0931755504314728 recall: 0.5366229760986893 total: 0.999999999996145
+drinking precision: 0.6429711609327095 recall: 0.02941176470588235 total: 0.9999999999773757
+talking precision: 0.09635039629924094 recall: 0.35342121782799746 total: 0.9999999999937227
+ordering precision: 0.0 recall: 0.0 total: 0.9999999900000002
+standing precision: 0.709727443963637 recall: 0.1511627906976744 total: 0.999999999883721
+talking:waiter precision: 0.7328500668093589 recall: 0.375 total: 0.9999999998437502
+looking:window precision: 0.20924461485534457 recall: 0.5879120879120879 total: 0.9999999999908424
+looking:waiter precision: 0.7199670839178575 recall: 0.04838709677419355 total: 0.9999999998387097
+reading:bill precision: 0.0 recall: 0.0 total: 0.9999999997368421
+reading:menu precision: 0.29103741942487593 recall: 0.4421364985163205 total: 0.9999999999901088
+paying:check precision: 0.9435776655036994 recall: 0.022988505747126436 total: 0.9999999998850575
+using:phone precision: 0.7968377999166861 recall: 0.14333333333333334 total: 0.9999999999666666
+using:napkin precision: 0.44200734547631915 recall: 0.01842105263157895 total: 0.9999999999736842
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999997499999
+using:glasses precision: 0.6050495987442329 recall: 0.02631578947368421 total: 0.9999999997368422
+using:wallet precision: 0.6339107326385564 recall: 0.024691358024691357 total: 0.9999999998765433
+looking:PersonA precision: 0.05445592708039336 recall: 0.0896091515729266 total: 0.9999999999904672
+looking:PersonB precision: 0.0 recall: 0.0 total: 0.9999999900000002
+takeoutfood precision: 0.8277711231238679 recall: 0.22972972972972971 total: 0.999999999864865
+leaving-table precision: 0.9984603541147156 recall: 0.25 total: 0.9999999975
+cleaning-up precision: 0.0 recall: 0.0 total: 0.9999999985714286
+NONE precision: 0.640101361845277 recall: 0.007067137809187279 total: 0.9999999999646643
+finished training model models/AB_B/CVLSTM0_5002560.1800 with accuracy of 40.39904475212097
+Accuracy: 40.399% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1612510102.476548
+minutes elapsed: 18.51963976621628
+avg acc: 40.39904475212097
+class freqs: {0: 723, 1: 1615, 2: 1801, 3: 497, 4: 2227, 5: 44, 6: 77, 7: 192, 8: 905, 9: 96, 10: 41, 11: 809, 12: 90, 13: 1091, 14: 320, 15: 0, 16: 3, 17: 110, 18: 0, 19: 1116, 20: 85, 21: 21, 22: 13, 23: 253, 24: 0}training for 0'th fold of data
+start_time: 1612510675.4544566fiting model....models/A_B/CVLSTM0_5002560.1800away-from-table precision: 0.690225257521115 recall: 0.8522099447513811 total: 0.9999999999861879
+idle precision: 0.21671485233631765 recall: 0.42131350681536556 total: 0.9999999999938042
+eating precision: 0.1510480801574006 recall: 0.7866666666666667 total: 0.9999999999944444
+drinking precision: 0.6520144389646308 recall: 0.136 total: 0.9999999999799999
+talking precision: 0.17812994725872672 recall: 0.5321059721598563 total: 0.9999999999955097
+ordering precision: 0.438694474313849 recall: 0.8 total: 0.9999999997777778
+standing precision: 0.9515972410580014 recall: 0.45454545454545453 total: 0.99999999987013
+talking:waiter precision: 0.5335387359330941 recall: 0.71875 total: 0.9999999999479166
+looking:window precision: 0.2539341002219904 recall: 0.5049614112458655 total: 0.9999999999889747
+looking:waiter precision: 0.8510689844635257 recall: 0.47916666666666663 total: 0.9999999998958334
+reading:bill precision: 0.994655194888597 recall: 0.17073170731707318 total: 0.9999999997560975
+reading:menu precision: 0.35630244278071516 recall: 0.6032138442521631 total: 0.9999999999876392
+paying:check precision: 0.9864160164205035 recall: 0.2197802197802198 total: 0.9999999998901099
+using:phone precision: 0.4026996148353289 recall: 0.6770642201834862 total: 0.9999999999908259
+using:napkin precision: 0.37816086780109986 recall: 0.04075235109717869 total: 0.999999999968652
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999966666666
+using:wallet precision: 0.8402667641862076 recall: 0.08928571428571429 total: 0.9999999999107143
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.29975863653634804 recall: 0.14055505819158462 total: 0.9999999999910474
+takeoutfood precision: 0.9760202910664111 recall: 0.5581395348837209 total: 0.999999999883721
+leaving-table precision: 0.9967302436764605 recall: 0.7272727272727273 total: 0.9999999995454545
+cleaning-up precision: 0.9969116738707275 recall: 0.2 total: 0.9999999993333333
+NONE precision: 0.4350035832101954 recall: 0.10227272727272728 total: 0.9999999999621212
+finished training model models/A_B/CVLSTM0_5002560.1800 with accuracy of 51.16662383079529
+Accuracy: 51.167% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1612511730.6184585
+minutes elapsed: 17.586066699028017
+avg acc: 51.16662383079529
+class freqs: {0: 1051, 1: 1778, 2: 2596, 3: 438, 4: 1595, 5: 0, 6: 85, 7: 61, 8: 1096, 9: 59, 10: 37, 11: 1008, 12: 87, 13: 298, 14: 377, 15: 39, 16: 35, 17: 80, 18: 1043, 19: 0, 20: 73, 21: 3, 22: 6, 23: 284, 24: 0}training for 0'th fold of data
+start_time: 1612512667.1456554fiting model....models/B_A/CVLSTM0_5002560.1800away-from-table precision: 0.47000745299359126 recall: 0.8716730038022814 total: 0.9999999999904944
+idle precision: 0.1550970757440207 recall: 0.38556933483652767 total: 0.999999999994363
+eating precision: 0.10474001948155114 recall: 0.745952197378566 total: 0.9999999999961449
+drinking precision: 0.21039708565368773 recall: 0.07466063348416291 total: 0.9999999999773755
+talking precision: 0.11357254165416224 recall: 0.37602008788449465 total: 0.9999999999937227
+ordering precision: 0.0 recall: 0.0 total: 0.9999999900000002
+standing precision: 0.574942106871214 recall: 0.46511627906976744 total: 0.999999999883721
+talking:waiter precision: 0.8007655269705849 recall: 0.59375 total: 0.9999999998437501
+looking:window precision: 0.24974085289855874 recall: 0.5805860805860805 total: 0.9999999999908425
+looking:waiter precision: 0.9096014454016784 recall: 0.25806451612903225 total: 0.9999999998387097
+reading:bill precision: 0.6470511796846147 recall: 0.13157894736842107 total: 0.9999999997368421
+reading:menu precision: 0.4326691809763168 recall: 0.47576656775469833 total: 0.9999999999901088
+paying:check precision: 0.9471611010359225 recall: 0.05747126436781609 total: 0.9999999998850575
+using:phone precision: 0.7591833656686187 recall: 0.23333333333333334 total: 0.9999999999666667
+using:napkin precision: 0.45452873573575275 recall: 0.07631578947368421 total: 0.9999999999736842
+using:purse precision: 0.9338837596686418 recall: 0.2 total: 0.99999999975
+using:glasses precision: 0.0 recall: 0.0 total: 0.9999999997368422
+using:wallet precision: 0.826820441807397 recall: 0.0617283950617284 total: 0.9999999998765433
+looking:PersonA precision: 0.1329427296744062 recall: 0.2469018112488084 total: 0.9999999999904672
+looking:PersonB precision: 0.0 recall: 0.0 total: 0.9999999900000002
+takeoutfood precision: 0.8572806937970829 recall: 0.5540540540540541 total: 0.999999999864865
+leaving-table precision: 0.0 recall: 0.0 total: 0.9999999975
+cleaning-up precision: 0.0 recall: 0.0 total: 0.9999999985714286
+NONE precision: 0.45916058255442105 recall: 0.028268551236749116 total: 0.9999999999646643
+finished training model models/B_A/CVLSTM0_5002560.1800 with accuracy of 47.87698984146118
+Accuracy: 47.877% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1612513719.6781483
+minutes elapsed: 17.54220821460088
+avg acc: 47.87698984146118
+class freqs: {0: 33615, 1: 56713, 2: 82969, 3: 14271, 4: 50959, 5: 0, 6: 2766, 7: 1985, 8: 35150, 9: 1914, 10: 1216, 11: 32250, 12: 2754, 13: 9510, 14: 12256, 15: 1253, 16: 1160, 17: 2598, 18: 33264, 19: 0, 20: 2335, 21: 68, 22: 181, 23: 8930, 24: 0}training for 0'th fold of data
+start_time: 1612861840.384863fiting model....models/A_A/CVLSTM0_5002560.1800away-from-table precision: 0.6971085091825883 recall: 0.9222122302158273 total: 0.9999999999985012
+idle precision: 0.26771486343225914 recall: 0.6868846694796061 total: 0.9999999999991209
+eating precision: 0.27683572600287487 recall: 0.8297463027533966 total: 0.9999999999993989
+drinking precision: 0.7427123482314814 recall: 0.26372480889506605 total: 0.9999999999965253
+talking precision: 0.1833349351315257 recall: 0.544505710909807 total: 0.9999999999990152
+ordering precision: 0.0 recall: 0.0 total: 0.9999999900000002
+standing precision: 0.9835588264603589 recall: 0.7200704225352113 total: 0.9999999999823943
+talking:waiter precision: 0.8847187744758966 recall: 0.8386243386243386 total: 0.9999999999735449
+looking:window precision: 0.46767101314603154 recall: 0.641395739910314 total: 0.9999999999985987
+looking:waiter precision: 0.9392089400327785 recall: 0.6053921568627451 total: 0.9999999999754903
+reading:bill precision: 0.9647176925386154 recall: 0.42241379310344834 total: 0.9999999999568965
+reading:menu precision: 0.6535199659865188 recall: 0.7931357254290171 total: 0.99999999999844
+paying:check precision: 0.9581550740339456 recall: 0.588126159554731 total: 0.9999999999814471
+using:phone precision: 0.7712889595082006 recall: 0.6069182389937107 total: 0.999999999994759
+using:napkin precision: 0.7476501722298777 recall: 0.3015548281505729 total: 0.9999999999959083
+using:purse precision: 0.9855113806482059 recall: 0.5330578512396695 total: 0.9999999999586776
+using:glasses precision: 0.8874534451576463 recall: 0.4260869565217391 total: 0.9999999999565218
+using:wallet precision: 0.8461939989451512 recall: 0.36895161290322576 total: 0.9999999999798388
+looking:PersonA precision: 0.2155687642017356 recall: 0.5308734939759036 total: 0.999999999998494
+looking:PersonB precision: 0.0 recall: 0.0 total: 0.9999999900000002
+takeoutfood precision: 0.9331086494290994 recall: 0.8786610878661089 total: 0.9999999999790795
+leaving-table precision: 0.9999348765910901 recall: 0.9230769230769231 total: 0.9999999992307692
+cleaning-up precision: 0.998990459268261 recall: 0.7428571428571429 total: 0.9999999997142858
+NONE precision: 0.5431640052173664 recall: 0.059255079006772016 total: 0.9999999999943566
+finished training model models/A_A/CVLSTM0_5002560.1800 with accuracy of 66.34631752967834
+Accuracy: 66.346% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1612882364.718686
+minutes elapsed: 342.072230386734
+avg acc: 66.34631752967834
+class freqs: {0: 33615, 1: 56713, 2: 82969, 3: 14271, 4: 50959, 5: 0, 6: 2766, 7: 1985, 8: 35150, 9: 1914, 10: 1216, 11: 32250, 12: 2754, 13: 9510, 14: 12256, 15: 1253, 16: 1160, 17: 2598, 18: 33264, 19: 0, 20: 2335, 21: 68, 22: 181, 23: 8930, 24: 0}training for 0'th fold of data
+start_time: 1612949289.8638704fiting model....models/B_B/CVLSTM0_5002560.1800away-from-table precision: 0.7429163059755661 recall: 0.8700437207899895 total: 0.9999999999984923
+idle precision: 0.2618201915602677 recall: 0.6394306800210858 total: 0.9999999999991214
+eating precision: 0.20288234424938117 recall: 0.8053622840690978 total: 0.9999999999994001
+drinking precision: 0.6967851407494562 recall: 0.20814320814320816 total: 0.9999999999964899
+talking precision: 0.18169270539789062 recall: 0.4946709690036179 total: 0.999999999999022
+ordering precision: 0.0 recall: 0.0 total: 0.9999999900000002
+standing precision: 0.9566608627654674 recall: 0.7120689655172413 total: 0.9999999999827587
+talking:waiter precision: 0.861869599888585 recall: 0.6782178217821783 total: 0.9999999999752474
+looking:window precision: 0.3792415027285768 recall: 0.6500850340136054 total: 0.9999999999985829
+looking:waiter precision: 0.9491377456265191 recall: 0.4090909090909091 total: 0.9999999999747474
+reading:bill precision: 0.8370850988814993 recall: 0.5530973451327433 total: 0.9999999999557523
+reading:menu precision: 0.45155424008995243 recall: 0.7576696622249767 total: 0.9999999999984507
+paying:check precision: 0.9490949333824604 recall: 0.5062611806797853 total: 0.999999999982111
+using:phone precision: 0.8573922243377488 recall: 0.540053050397878 total: 0.9999999999946951
+using:napkin precision: 0.7623735205904126 recall: 0.2877049180327869 total: 0.9999999999959017
+using:purse precision: 0.9615382309399118 recall: 0.564748201438849 total: 0.9999999999640287
+using:glasses precision: 0.9328798920423853 recall: 0.3187772925764192 total: 0.9999999999563319
+using:wallet precision: 0.8219143358734334 recall: 0.25100401606425704 total: 0.9999999999799196
+looking:PersonA precision: 0.19053905008131514 recall: 0.4676159853008727 total: 0.999999999998469
+looking:PersonB precision: 0.0 recall: 0.0 total: 0.9999999900000002
+takeoutfood precision: 0.9610010317370223 recall: 0.7944915254237288 total: 0.9999999999788136
+leaving-table precision: 0.9999250296132278 recall: 0.8 total: 0.9999999989999999
+cleaning-up precision: 0.999473147247721 recall: 0.45714285714285713 total: 0.9999999997142858
+NONE precision: 0.7759647660865415 recall: 0.0519409513395298 total: 0.9999999999945326
+finished training model models/B_B/CVLSTM0_5002560.1800 with accuracy of 62.462157011032104
+Accuracy: 62.462% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1612969825.596122
+minutes elapsed: 342.2622041940689
+avg acc: 62.462157011032104
+class freqs: {0: 23142, 1: 51561, 2: 57658, 3: 16036, 4: 71314, 5: 1419, 6: 2466, 7: 6130, 8: 29046, 9: 2999, 10: 1293, 11: 25921, 12: 2900, 13: 34822, 14: 10138, 15: 0, 16: 75, 17: 3523, 18: 0, 19: 35847, 20: 2721, 21: 690, 22: 422, 23: 7994, 24: 0}training for 0'th fold of data
+start_time: 1612978559.781027fiting model....models/A_A/CVLSTM0_5002560.1800away-from-table precision: 0.8589782944292663 recall: 0.9518494200043774 total: 0.9999999999978113
+idle precision: 0.31478238489469523 recall: 0.604804568278035 total: 0.9999999999990152
+eating precision: 0.2944195290620101 recall: 0.7924479835602363 total: 0.9999999999991437
+drinking precision: 0.656011001884968 recall: 0.312280701754386 total: 0.9999999999968101
+talking precision: 0.2574072771931488 recall: 0.6972603685045891 total: 0.9999999999993099
+ordering precision: 0.4917510221027845 recall: 0.9693877551020407 total: 0.9999999999659864
+standing precision: 0.9574720473471905 recall: 0.7048832271762208 total: 0.9999999999787685
+talking:waiter precision: 0.8395754178847299 recall: 0.7305825242718447 total: 0.9999999999919095
+looking:window precision: 0.3001557201639123 recall: 0.6456128371457835 total: 0.9999999999982929
+looking:waiter precision: 0.9853910016133142 recall: 0.5539452495974235 total: 0.9999999999838969
+reading:bill precision: 0.9735506252280041 recall: 0.4872881355932203 total: 0.9999999999576271
+reading:menu precision: 0.7798327936991815 recall: 0.7679055361982191 total: 0.9999999999980642
+paying:check precision: 0.9835572140255884 recall: 0.5418118466898955 total: 0.9999999999825784
+using:phone precision: 0.6711943516839481 recall: 0.7559781042927112 total: 0.9999999999985594
+using:napkin precision: 0.8200456413535403 recall: 0.21223895094706166 total: 0.9999999999951434
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.9989493251426587 recall: 0.7692307692307693 total: 0.9999999992307691
+using:wallet precision: 0.9252039947359104 recall: 0.5501474926253688 total: 0.9999999999852508
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.3588445493616874 recall: 0.4518089315997739 total: 0.9999999999985867
+takeoutfood precision: 0.981149909146547 recall: 0.9441233140655106 total: 0.9999999999807322
+leaving-table precision: 0.9994557310471452 recall: 0.9207317073170732 total: 0.9999999999390242
+cleaning-up precision: 0.9990760464223728 recall: 0.6619718309859155 total: 0.999999999859155
+NONE precision: 0.7582066290172004 recall: 0.15831295843520782 total: 0.9999999999938877
+finished training model models/A_A/CVLSTM0_5002560.1800 with accuracy of 65.80652594566345
+Accuracy: 65.807% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1612999132.998036
+minutes elapsed: 342.88695014715194
+avg acc: 65.80652594566345
+class freqs: {0: 23142, 1: 51561, 2: 57658, 3: 16036, 4: 71314, 5: 1419, 6: 2466, 7: 6130, 8: 29046, 9: 2999, 10: 1293, 11: 25921, 12: 2900, 13: 34822, 14: 10138, 15: 0, 16: 75, 17: 3523, 18: 0, 19: 35847, 20: 2721, 21: 690, 22: 422, 23: 7994, 24: 0}training for 0'th fold of data
+start_time: 1613007141.1176682fiting model....models/AB_A/CVLSTM0_5002560.1800away-from-table precision: 0.6272292471537185 recall: 0.9050687285223368 total: 0.9999999999978522
+idle precision: 0.16931879700465838 recall: 0.47128655535180003 total: 0.9999999999990348
+eating precision: 0.21251081393622748 recall: 0.5701087895009498 total: 0.9999999999991365
+drinking precision: 0.28970570451045685 recall: 0.0887536046139058 total: 0.9999999999967959
+talking precision: 0.13598973624751576 recall: 0.6544076751946608 total: 0.9999999999993046
+ordering precision: 0.38558498646153255 recall: 0.6423357664233575 total: 0.9999999999635037
+standing precision: 0.8567593095720286 recall: 0.4265010351966874 total: 0.9999999999792959
+talking:waiter precision: 0.6406266782108576 recall: 0.724390243902439 total: 0.9999999999918701
+looking:window precision: 0.2425719379522589 recall: 0.5084216009723911 total: 0.9999999999982636
+looking:waiter precision: 0.6241996874751905 recall: 0.37323943661971826 total: 0.9999999999823944
+reading:bill precision: 0.9810033803078579 recall: 0.05223880597014925 total: 0.9999999999626865
+reading:menu precision: 0.5407277483580138 recall: 0.6274015136813507 total: 0.9999999999980593
+paying:check precision: 0.9095855257790855 recall: 0.21080139372822299 total: 0.9999999999825785
+using:phone precision: 0.4033039900631625 recall: 0.6599365445630228 total: 0.9999999999985579
+using:napkin precision: 0.688050191236957 recall: 0.04856726566294318 total: 0.9999999999951433
+using:purse precision: 0.0 recall: 0.0 total: 0.9999999900000002
+using:glasses precision: 0.9923356191973497 recall: 0.10526315789473684 total: 0.9999999994736842
+using:wallet precision: 0.7968535463168829 recall: 0.24633431085043986 total: 0.9999999999853373
+looking:PersonA precision: 0.0 recall: 0.0 total: 0.9999999900000002
+looking:PersonB precision: 0.361668821848432 recall: 0.18769956962376785 total: 0.9999999999986118
+takeoutfood precision: 0.8771757215446487 recall: 0.7040618955512572 total: 0.9999999999806576
+leaving-table precision: 0.9967386687551242 recall: 0.75177304964539 total: 0.999999999929078
+cleaning-up precision: 0.9996228533337577 recall: 0.25581395348837205 total: 0.999999999883721
+NONE precision: 0.4812129806204151 recall: 0.03896920175989943 total: 0.9999999999937148
+finished training model models/AB_A/CVLSTM0_5002560.1800 with accuracy of 51.431918144226074
+Accuracy: 51.432% (+/-0.000)
+best config: {'verbose': 0, 'epochs': 500, 'batch_size': 256, 'dropout': 0.1, 'hidden_dim': 800}
+end_time: 1613028805.914305
+minutes elapsed: 361.07994394699733
+avg acc: 51.431918144226074
