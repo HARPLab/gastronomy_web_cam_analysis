@@ -1,0 +1,10 @@
+output-vectors/*
+!output-vectors/readme.txt
+
+output-vectors/trimmed
+!output-vectors/trimmed/readme.txt
+
+output-vectors/for-svm
+!output-vectors/for-svm/readme.txt
+
+output-vectors_v1/*

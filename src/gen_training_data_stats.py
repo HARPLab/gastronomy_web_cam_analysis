@@ -33,6 +33,7 @@ def parseXML(elanfile):
     tree = ET.parse(elanfile)
     root = tree.getroot()
     return root
+
 class TrainingDataStats :
     def __init__(self, graph_dir, tier_list, distfilename, avgfilename, annotations_root, annotation_files, activitydict):
         self.timedict = {}
@@ -122,10 +123,11 @@ if __name__ == "__main__":
                     'leaving-table': 21, 'cleaning-up': 22, 'NONE': 23}
     groupactdict = {'NONE': 7, 'reading-menus': 0, 'ready-to-order': 1, 'eating':2, 'ready-for-cleanup':3, 'ready-for-bill':4, 'ready-for-final-check':5, 'ready-to-leave':6}
     inv_actdict = {v: k for k, v in activitydict.items()}
-    graph_dir = "/home/mghuang/spring2020_gastronomy_analysis/gastronomy_web_cam_analysis/src/graphs/"
+    graph_dir = "graphs/"
     distfilename = 'groupActDist.png'
     outfilename = 'groupAvgLength.png'
-    annotations_root = '/home/mghuang/spring2020_gastronomy_analysis/gastronomy_web_cam_analysis/Annotations/'
+    annotations_root = '../Annotations/'
+
     annotation_names = ['8-9-18-michael.eaf', '8-13-18-michael.eaf', '8-17-18-michael.eaf', '8-18-18-michael.eaf',
                         '8-21-18-michael.eaf']
     delta = 1e-8

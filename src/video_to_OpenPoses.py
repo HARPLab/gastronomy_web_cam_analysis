@@ -71,7 +71,7 @@ for filename_root in filenames_all:
         if not ret:
             break
 
-        pose_datum = openpose_wrapper.getOpenposeDataFrom(frame=currentframe)
+        pose_datum = openpose_wrapper.getOpenposeDataFrom(frame=frame)
         frames[frame_id] = pose_datum
         frame_id = frame_id + 1
         if frame_id % 1000 == 0:
@@ -86,7 +86,7 @@ for filename_root in filenames_all:
     write_file = "restaurant_features_full-" + filename_root + ".json"
     outfile = open(write_file, "w")
     
-    outfile.write(json.dumps(frames)
+    outfile.write(json.dumps(frames))
     logfile.write("finished dumping\n") 
     logfile.close()
   
