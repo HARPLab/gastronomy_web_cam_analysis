@@ -35,18 +35,15 @@ def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classif
 			Y_correct = Y_correct_a
 		elif '_b' in subexp_label:
 			Y_correct = Y_correct_b
+		elif '_la' in subexp_label:
+			Y_correct = Y_correct_a
+		elif '_lb' in subexp_label:
+			Y_correct = Y_correct_b
 		else:
 			print("Error, no correct set found for " + subexp_label)
 
 		Y_correct = Y_correct.astype(int).ravel()
-
-		# print(Y_test)
-		# print(Y_correct)
-
-		# print(Y_correct.shape)
-		# print(Y_test.shape)
-
-		print(subexp_label)
+		print("Analyzing: " + classifier_type + "\t on " + subexp_label)
 		# labels=activity_labels
 		report = classification_report(Y_correct, Y_test, output_dict=True)
 		df = pd.DataFrame(report).T
@@ -54,8 +51,6 @@ def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classif
 
 		save_location = "results-analysis/" + exp_batch_id + classifier_type[1:] + "_" + subexp_label
 		df.to_csv(save_location + ".csv")
-
-
 
 
 
@@ -124,7 +119,8 @@ def main():
 	LABEL_KNN3 = '_kNN3'
 	LABEL_DecisionTree = '_dectree'
 
-	experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3]
+	experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3, LABEL_KNN5, LABEL_SGDC, LABEL_SVM]
+	# experiment_titles = [LABEL_SVM]
 	
 	exp_batch_id = 1
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
@@ -138,6 +134,7 @@ def main():
 		print("Getting results for " + classifier_type)
 		results_dict = import_results(unique_title, prefix_import, fold_id, classifier_type)
 
+		# Note that basedon the label suffix, the correct train and test files will be pulled
 		analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classifier_type)
 
 
