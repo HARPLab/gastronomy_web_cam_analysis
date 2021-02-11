@@ -363,5 +363,4 @@ if FLAG_PER_ACTIVITY_ANALYSIS:
 print("Done with all analysis")
 print("Start with classification")
 
-#print(np.array(timeline[10000].get_poses_clean()[0][0])[:,0:2])
-   """                                                                                                                   
+#print(np.array(timeline[10000].get_poses_clean()[0][0])[:,0:2])                                                                                                                  
