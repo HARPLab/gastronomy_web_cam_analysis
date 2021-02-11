@@ -1,6 +1,7 @@
 import os
-import pickle
+import numpy as np
 import pandas as pd
+import pickle
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
 
@@ -109,10 +110,10 @@ class Hypothesis:
 		output_string = ""
 		for pair in self.comparison_groups:
 			first, second = pair
-			print('pair -- ' + first + '::' + second)
+			# print('pair -- ' + first + '::' + second)
 
 			if (first, 'test') not in all_results_dict.keys() or (second, 'test') not in all_results_dict:
-				print("Missing required label: {" + str(all_results_dict.keys()) + "} missing one of " + first + " or " + second + "\n")
+				# print("Missing required label: {" + str(all_results_dict.keys()) + "} missing one of " + first + " or " + second + "\n")
 				output_string += "Cannot complete " + self.hypothesis_label
 				
 				if (first, 'test') not in all_results_dict.keys():
@@ -181,6 +182,7 @@ def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classif
 		sub_experiments.remove('results')
 
 	results_lookup = {}
+	print("Loading and generating classification report for: {", end='')
 	for subexp_label in sub_experiments:
 
 		Y_test = results_dict[subexp_label]
@@ -197,15 +199,16 @@ def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classif
 			print("Error, no correct set found for " + subexp_label)
 
 		Y_correct = Y_correct.astype(int).ravel()
-		print("Loading and generating classification report for: " + classifier_type + "\t on " + subexp_label)
+		print(subexp_label + " ", end='')
 		
 		results_lookup[(subexp_label, 'truth')] = Y_correct
 		results_lookup[(subexp_label, 'test')] 	= Y_test
 
 		# labels=activity_labels
-		report = classification_report(Y_correct, Y_test, output_dict=True)
+		report = classification_report(Y_correct, Y_test, output_dict=True, labels=range(len(activity_labels)), target_names=activity_labels)
 		export_raw_classification_report(report, exp_batch_id, classifier_type, subexp_label)
 
+	print("}")
 	print("\n\nRunning analysis for this classifier's results: ")
 	return meta_analysis_from_classifier_data(results_lookup, hypothesis_list)
 
