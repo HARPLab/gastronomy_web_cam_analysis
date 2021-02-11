@@ -257,7 +257,7 @@ def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, classifier_typ
 
 
 
-def experiment_duo_vs_solo_svm(vector_dict, unique_title, classifier_type, exp_batch_id):
+def experiment_duo_vs_solo(vector_dict, unique_title, classifier_type, exp_batch_id):
 	prefix_export = 'results/' + exp_batch_id
 
 	label_a_a = "_a_a"
@@ -395,20 +395,19 @@ def run_experiments():
 	except OSError as error:  
 		print("This directory already exists; do you want a fresh experiment ID?")
 
-	exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SGDC]
-	# exp_types = [CLASSIFIER_SGDC]
+	# exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SGDC]
+	exp_types = [CLASSIFIER_SVM, CLASSIFIER_SGDC]
 
 	# for i in range(len(exp_types)):		
 	# 	classifier_type = exp_types[i]
 
 	for i in range(len(exp_types)):		
 		classifier_type = exp_types[i]
-		experiment_sanities(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
 
 		experiment_duo_vs_solo_swapped(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
-		experiment_duo_vs_solo_svm(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
 		experiment_duo_vs_solo_just_labels(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
 		experiment_label_to_label(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
+		experiment_duo_vs_solo(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
 
 
 
