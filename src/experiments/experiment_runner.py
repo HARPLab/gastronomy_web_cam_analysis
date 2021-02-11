@@ -69,7 +69,7 @@ def classifier_test(classifier, X, Y):
 	time_start = time.perf_counter()
 	result = classifier.predict(X)
 	time_end = time.perf_counter()
-	time_diff = time_start - time_end
+	time_diff = time_end - time_start
 	print("Time elapsed: " + str(time_diff))
 
 	print("Done with predictions")
@@ -174,17 +174,56 @@ def experiment_duo_vs_solo_swapped(vector_dict, unique_title, classifier_type, e
 		filehandler.close()
 
 
+def experiment_label_to_label(vector_dict, unique_title, classifier_type, exp_batch_id):
+	prefix_export = 'results/' + exp_batch_id
+	label_lb_la = "_lb_la"
+	label_la_lb = "_la_lb"
+	
+	experiment_blob_all = {}
+
+	for key_group in [5]:
+		experiment_blob = {}
+		input_set = vector_dict[key_group]
+		long_prefix = prefix_export + unique_title + '_f' + str(key_group) + classifier_type
+
+		X_train_AB, X_test_AB, Y_train_AB, Y_test_AB = unpack_dict(input_set)
+
+		X_train_A, 	Y_train_A 	= get_A(X_train_AB, Y_train_AB)
+		X_test_A, 	Y_test_A 	= get_A(X_test_AB, Y_test_AB)
+
+		X_train_B, 	Y_train_B 	= get_B(X_train_AB, Y_train_AB)
+		X_test_B, 	Y_test_B 	= get_B(X_test_AB, Y_test_AB)
+
+		svm_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type)
+		result_la_lb = classifier_test(svm_la_lb, Y_test_A, Y_test_B)
+		export_result(result_la_lb, long_prefix, label_la_lb)
+
+		svm_lb_la = classifier_train(Y_train_B, Y_train_A, classifier_type)
+		result_lb_la = classifier_test(svm_lb_la, Y_test_B, Y_test_A)
+		export_result(result_lb_la, long_prefix, label_lb_la)
+
+		# store for future examination
+		experiment_blob['la_lb_predict'] = result_la_lb
+		experiment_blob['la_lb_correct'] = Y_test_B
+		experiment_blob['lb_la_predict'] = result_lb_la
+		experiment_blob['lb_la_correct'] = Y_test_A
+
+		experiment_blob_all[key_group] = experiment_blob
+
+	filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + classifier_type + "_results.p", "wb")
+	pickle.dump(experiment_blob_all, filehandler)
+	filehandler.close()
 
 
 def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, classifier_type, exp_batch_id):
 	prefix_export = 'results/' + exp_batch_id
 	label_alb_a = "_alb_a"
 	label_bla_b = "_bla_b"
-	long_prefix = prefix_export + unique_title + '_f' + str(key_group) + classifier_type
 
 	experiment_blob_all = {}
 
 	for key_group in [5]:
+		long_prefix = prefix_export + unique_title + '_f' + str(key_group) + classifier_type
 		experiment_blob = {}
 		input_set = vector_dict[key_group]
 
@@ -212,9 +251,9 @@ def experiment_duo_vs_solo_just_labels(vector_dict, unique_title, classifier_typ
 
 		experiment_blob_all[key_group] = experiment_blob
 
-	filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + classifier_type + "_results.p", "wb")
-	pickle.dump(experiment_blob_all, filehandler)
-	filehandler.close()
+		filehandler = open(prefix_export + unique_title + '_f' + str(key_group) + classifier_type + "_results.p", "wb")
+		pickle.dump(experiment_blob_all, filehandler)
+		filehandler.close()
 
 
 
@@ -356,18 +395,21 @@ def run_experiments():
 	except OSError as error:  
 		print("This directory already exists; do you want a fresh experiment ID?")
 
+	exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SGDC]
+	# exp_types = [CLASSIFIER_SGDC]
 
-	exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SVM, CLASSIFIER_SGDC]
+	# for i in range(len(exp_types)):		
+	# 	classifier_type = exp_types[i]
 
 	for i in range(len(exp_types)):		
 		classifier_type = exp_types[i]
+		experiment_sanities(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
+
 		experiment_duo_vs_solo_swapped(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
-
-	for i in range(len(exp_types)):		
-		classifier_type = exp_types[i]
-
 		experiment_duo_vs_solo_svm(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
 		experiment_duo_vs_solo_just_labels(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
+		experiment_label_to_label(all_svm_vectors, unique_title, classifier_type, exp_batch_id)
+
 
 
 def main():
