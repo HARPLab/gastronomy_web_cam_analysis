@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import pickle
+import random
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
 
@@ -35,7 +36,7 @@ LABEL_RANDOM_CHANCE_UNIFORM_B = 'random_chance_uniform_b'
 LABEL_RANDOM_CHANCE_CLASSCHANCE_A = 'random_chance_distributions_a'
 LABEL_RANDOM_CHANCE_CLASSCHANCE_B = 'random_chance_distributions_b'
 
-GENERATED_BENCHMARKS		= []
+GENERATED_BENCHMARKS		= [LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_RANDOM_CHANCE_UNIFORM_B]
 # [LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_RANDOM_CHANCE_CLASSCHANCE_B]
 
 HYPOTH_VANILLA_RATE 			= 'hypothesis_differences_between_people'
@@ -77,20 +78,20 @@ class Hypothesis:
 		elif hypothesis_label == HYPOTH_AUXPOSE_TO_TARGET:
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_B_A])
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_A_B])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_B_A])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_A_B])
+			# comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_B_A])
+			# comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_A_B])
 		
 		elif hypothesis_label == HYPOTH_AUX_LABEL_TO_TARGET:
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_B_A])
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_A_B])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_LB_LA])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_LA_LB])
+			# comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_LB_LA])
+			# comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_LA_LB])
 
 		elif hypothesis_label == HYPOTH_VANILLA_RATE:
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_A_A])
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_B_B])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_A_A])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_B_B])
+			# comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_A_A])
+			# comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_B_B])
 		
 		else:
 			print("Hypothesis not recognized!")
@@ -114,12 +115,61 @@ class Hypothesis:
 
 		return output_string
 
+	def get_generated_benchmark(self, label, all_results_dict):
+		# find the correct output dimensions
+		key_pool = list(all_results_dict.keys())
+		key_pool = [k[0] for k in key_pool]
+
+		if label == LABEL_RANDOM_CHANCE_CLASSCHANCE_A or label == LABEL_RANDOM_CHANCE_UNIFORM_A:
+			res = {item for item in key_pool if item.endswith('_a')}
+
+		elif label == LABEL_RANDOM_CHANCE_CLASSCHANCE_B or label == LABEL_RANDOM_CHANCE_UNIFORM_B:
+			res = {item for item in key_pool if item.endswith('_b')}
+
+		if len(res) < 1:
+			print("Unable to match array for assesment " + label)
+
+		template_key 	= (list(res)[0], 'test')
+		truth_key 	= (list(res)[0], 'truth')
+		truth_array = all_results_dict[truth_key]
+		template_vector = all_results_dict[template_key]
+		matching_shape 	= template_vector.shape
+
+		print(matching_shape)
+
+		output_array = None
+		random.seed(42)
+
+		if label == LABEL_RANDOM_CHANCE_CLASSCHANCE_A:
+			# look for suffix of "_a"
+			pass
+		elif label == LABEL_RANDOM_CHANCE_CLASSCHANCE_B:
+			pass
+
+		elif label == LABEL_RANDOM_CHANCE_UNIFORM_A:
+			output_array = np.random.randint(len(activity_labels), size=matching_shape, dtype=int)
+		elif label == LABEL_RANDOM_CHANCE_UNIFORM_B:
+			output_array = np.random.randint(len(activity_labels), size=matching_shape, dtype=int)
+
+
+		# todo adjust for fewer activity labels
+		return output_array, truth_array
+
+
 	def get_experimental_inputs_from_label(self, label, all_results_dict):
 		if label in GENERATED_BENCHMARKS:
-			test, truth = get_generated_benchmark(label, all_results_dict) 
+			test, truth = self.get_generated_benchmark(label, all_results_dict)
 		else:
 			test 	= all_results_dict[(label, 'truth')]
 			truth 	= all_results_dict[(label, 'test')]
+
+		print(test)
+		print(truth)
+	
+
+		print(test.shape)
+		print(truth.shape)
+
 		return test, truth
 
 	def verify_experimental_input_available(self, label, all_results_dict):
