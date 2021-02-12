@@ -28,10 +28,15 @@ LABEL_LB_LA = 'lb_la'
 LABEL_B_A = 'b_a'
 LABEL_A_B = 'a_b'
 
-LABEL_RANDOM_CHANCE = 'random_chance'
-LABEL_RANDOM_CHANCE_UNIFORM = 'random_chance_uniform'
-LABEL_RANDOM_CHANCE_CLASSCHANCE = 'random_chance_distributions'
 
+LABEL_RANDOM_CHANCE_UNIFORM_A = 'random_chance_uniform_a'
+LABEL_RANDOM_CHANCE_UNIFORM_B = 'random_chance_uniform_b'
+
+LABEL_RANDOM_CHANCE_CLASSCHANCE_A = 'random_chance_distributions_a'
+LABEL_RANDOM_CHANCE_CLASSCHANCE_B = 'random_chance_distributions_b'
+
+GENERATED_BENCHMARKS		= []
+# [LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_RANDOM_CHANCE_CLASSCHANCE_B]
 
 HYPOTH_VANILLA_RATE 			= 'hypothesis_differences_between_people'
 HYPOTH_SOLO_DUO_POSES 			= 'hypothesis_duopose_to_target'
@@ -45,6 +50,7 @@ HYPOTH_BODYPART_FALLOUT			= 'hypothesis_bodypart_fallout'
 ANALYSIS_OVERALL_ACCURACY		= 'analysis:overall-accuracy'
 ANALYSIS_BEST_CLASSES			= 'analysis:best_classes'
 ANALYSIS_WORST_CLASSES			= 'analysis:worst_classes'
+ANALYSIS_CLASS_PERFORMANCE 		= 'analysis:class_performance'
 
 
 activity_labels = ['away-from-table', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 
@@ -69,22 +75,22 @@ class Hypothesis:
 			comparison_groups.append([LABEL_B_B, LABEL_BLA_B])
 
 		elif hypothesis_label == HYPOTH_AUXPOSE_TO_TARGET:
-			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM, LABEL_B_A])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM, LABEL_A_B])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE, LABEL_B_A])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE, LABEL_A_B])
+			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_B_A])
+			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_A_B])
+			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_B_A])
+			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_A_B])
 		
 		elif hypothesis_label == HYPOTH_AUX_LABEL_TO_TARGET:
-			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM, LABEL_B_A])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM, LABEL_A_B])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE, LABEL_LB_LA])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE, LABEL_LA_LB])
+			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_B_A])
+			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_A_B])
+			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_LB_LA])
+			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_LA_LB])
 
 		elif hypothesis_label == HYPOTH_VANILLA_RATE:
-			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM, LABEL_A_A])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM, LABEL_B_B])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE, LABEL_A_A])
-			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE, LABEL_B_B])
+			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_A_A])
+			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_B_B])
+			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_A_A])
+			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_B_B])
 		
 		else:
 			print("Hypothesis not recognized!")
@@ -93,6 +99,9 @@ class Hypothesis:
 
 	def get_comparison_groups(self):
 		return self.comparison_groups
+
+	def get_hypothesis_label(self):
+		return self.hypothesis_label
 
 	def analysis_compare_overall_accuracy(self, first_test, first_truth, second_test, second_truth):
 		accuracy_first 	= accuracy_score(first_truth, first_test)
@@ -105,39 +114,59 @@ class Hypothesis:
 
 		return output_string
 
+	def get_experimental_inputs_from_label(self, label, all_results_dict):
+		if label in GENERATED_BENCHMARKS:
+			test, truth = get_generated_benchmark(label, all_results_dict) 
+		else:
+			test 	= all_results_dict[(label, 'truth')]
+			truth 	= all_results_dict[(label, 'test')]
+		return test, truth
+
+	def verify_experimental_input_available(self, label, all_results_dict):
+		key_pool = list(all_results_dict.keys())
+		key_pool = [k[0] for k in key_pool]
+		output_string = ""
+		is_found = True
+
+		if label not in key_pool and label not in GENERATED_BENCHMARKS:
+			status = False
+			if label not in key_pool:
+				output_string += "Missing required label: {" +  label + "}\n"
+				is_found = False
+			else :
+				output_string += "Missing required benchmark method: " + label + "\n"
+
+		return is_found, output_string
 
 	def run_analyses(self, all_results_dict):
 		output_string = ""
 		for pair in self.comparison_groups:
 			first, second = pair
-			# print('pair -- ' + first + '::' + second)
 
-			if (first, 'test') not in all_results_dict.keys() or (second, 'test') not in all_results_dict:
-				# print("Missing required label: {" + str(all_results_dict.keys()) + "} missing one of " + first + " or " + second + "\n")
-				output_string += "Cannot complete " + self.hypothesis_label
-				
-				if (first, 'test') not in all_results_dict.keys():
-					output_string += " missing " + first
+			is_first, outstr_first = self.verify_experimental_input_available(first, all_results_dict)
+			is_second, outstr_second = self.verify_experimental_input_available(second, all_results_dict)
 
-				if (second, 'test') not in all_results_dict.keys():
-					output_string += " missing " + second
-
-				output_string += '\n'
-
+			if not is_first or not is_second:
+				output_string += "FAIL on TESTING " + self.get_hypothesis_label() + "\n"
+				print("MISSING DATA for TEST -> " + self.get_hypothesis_label())
+				output_string += outstr_first
+				output_string += outstr_second
+				print(outstr_first + outstr_second)
 				continue
 
-			first_test 	= all_results_dict[(first, 'truth')]
-			first_truth = all_results_dict[(first, 'test')]
-
-			second_test 	= all_results_dict[(second, 'truth')]
-			second_truth 	= all_results_dict[(second, 'test')]
-			
+			first_test, first_truth 	= self.get_experimental_inputs_from_label(first, all_results_dict)
+			second_test, second_truth 	= self.get_experimental_inputs_from_label(second, all_results_dict)			
 
 			if ANALYSIS_OVERALL_ACCURACY in self.analysis_types:
 				print("Comparing overall accuracy")
 				output_string += "Comparing {" + first + "} VS {" + second + "} \n"
 				output_string += self.analysis_compare_overall_accuracy(first_test, first_truth, second_test, second_truth)
 				output_string += "\n"
+
+			if ANALYSIS_CLASS_PERFORMANCE in self.analysis_types:
+				print("Comparing class performance")
+
+
 
 		print("Analysis is: ")
 		print(output_string)
