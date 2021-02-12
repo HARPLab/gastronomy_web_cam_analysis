@@ -6,6 +6,7 @@ import random
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
+from dictdiffer import diff
 
 LABEL_ADABOOST = '_adaboost'
 LABEL_SGDC = '_sgdc'
@@ -65,7 +66,7 @@ class Hypothesis:
 
 	def __init__(self, hypothesis_label):
 		self.hypothesis_label = hypothesis_label
-		self.analysis_types = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_BEST_CLASSES, ANALYSIS_WORST_CLASSES]
+		self.analysis_types = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_CLASS_PERFORMANCE]
 		comparison_groups 	= []
 
 		if hypothesis_label == HYPOTH_SOLO_DUO_POSES:
@@ -115,6 +116,62 @@ class Hypothesis:
 		output_string += "Accuracy \u0394: " + str(delta) + "\n"
 
 		return output_string
+
+	def get_per_class_accuracies(self, cm):
+		per_class_accuracies = {}
+		print(cm.shape[0])
+
+		if cm.shape[0] < len(activity_labels):
+			print("Limited predictions to subset of length: " + str(cm.shape[0]))
+			return per_class_accuracies
+
+		# https://stackoverflow.com/questions/39770376/scikit-learn-get-accuracy-scores-for-each-class
+		# Calculate the accuracy for each one of our classes
+		for idx, cls in enumerate(activity_labels):
+		    # True negatives are all the samples that are not our current GT class (not the current row) 
+		    # and were not predicted as the current class (not the current column)
+		    true_negatives = np.sum(np.delete(np.delete(cm, idx, axis=0), idx, axis=1))
+		    
+		    # True positives are all the samples of our current GT class that were predicted as such
+		    true_positives = cm[idx, idx]
+		    
+		    # The accuracy for the current class is ratio between correct predictions to all predictions
+		    per_class_accuracies[cls] = (true_positives + true_negatives) / np.sum(cm)
+
+		return per_class_accuracies
+
+	def analysis_class_performance(self, first_test, first_truth, second_test, second_truth):
+
+		output_string = ""
+		cm1 = confusion_matrix(first_truth, first_test)
+		cm2 = confusion_matrix(second_truth, second_test)
+
+		per_class1 = self.get_per_class_accuracies(cm1)
+		per_class2 = self.get_per_class_accuracies(cm2)
+
+
+		# #Now the normalize the diagonal entries
+		# cm1 = cm1.astype('float') / cm1.sum(axis=1)[:, np.newaxis]
+		# #The diagonal entries are the accuracies of each class
+		# perf1 = cm1.diagonal()
+
+		# cm2 = cm2.astype('float') / cm2.sum(axis=1)[:, np.newaxis]
+		# perf2 = cm2.diagonal()
+
+		# delta_performance = {x: per_class2[x] - per_class1[x] for x in per_class2 if x in per_class1}
+		
+		output_string += str(per_class1) + "\n"
+		output_string += str(per_class2) + "\n"
+		output_string += "\u0394:" + str(delta_performance) + "\n"
+
+		# top 5
+		# missing classes
+		# most improved
+
+
+		return output_string
+
+
 
 	def get_generated_benchmark(self, label, all_results_dict):
 		# find the correct output dimensions
@@ -215,6 +272,7 @@ class Hypothesis:
 
 			if ANALYSIS_CLASS_PERFORMANCE in self.analysis_types:
 				print("Comparing class performance")
+				output_string += self.analysis_class_performance(first_test, first_truth, second_test, second_truth) + "\n"
 
 
 
