@@ -5,6 +5,7 @@ import pickle
 import random
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
 
 LABEL_ADABOOST = '_adaboost'
 LABEL_SGDC = '_sgdc'
@@ -192,6 +193,7 @@ class Hypothesis:
 		output_string = ""
 		for pair in self.comparison_groups:
 			first, second = pair
+			output_string += "Comparing {" + first + "} VS {" + second + "} \n"
 
 			is_first, outstr_first = self.verify_experimental_input_available(first, all_results_dict)
 			is_second, outstr_second = self.verify_experimental_input_available(second, all_results_dict)
@@ -209,12 +211,11 @@ class Hypothesis:
 
 			if ANALYSIS_OVERALL_ACCURACY in self.analysis_types:
 				print("Comparing overall accuracy")
-				output_string += "Comparing {" + first + "} VS {" + second + "} \n"
-				output_string += self.analysis_compare_overall_accuracy(first_test, first_truth, second_test, second_truth)
-				output_string += "\n"
+				output_string += self.analysis_compare_overall_accuracy(first_test, first_truth, second_test, second_truth) + "\n"
 
 			if ANALYSIS_CLASS_PERFORMANCE in self.analysis_types:
 				print("Comparing class performance")
+
 
 
 
