@@ -158,7 +158,7 @@ class Hypothesis:
 		# cm2 = cm2.astype('float') / cm2.sum(axis=1)[:, np.newaxis]
 		# perf2 = cm2.diagonal()
 
-		# delta_performance = {x: per_class2[x] - per_class1[x] for x in per_class2 if x in per_class1}
+		delta_performance = {x: per_class2[x] - per_class1[x] for x in per_class2 if x in per_class1}
 		
 		output_string += str(per_class1) + "\n"
 		output_string += str(per_class2) + "\n"
@@ -192,9 +192,6 @@ class Hypothesis:
 		truth_array = all_results_dict[truth_key]
 		template_vector = all_results_dict[template_key]
 		matching_shape 	= template_vector.shape
-
-		print(matching_shape)
-
 		output_array = None
 		random.seed(42)
 
@@ -220,13 +217,6 @@ class Hypothesis:
 		else:
 			test 	= all_results_dict[(label, 'truth')]
 			truth 	= all_results_dict[(label, 'test')]
-
-		print(test)
-		print(truth)
-	
-
-		print(test.shape)
-		print(truth.shape)
 
 		return test, truth
 
