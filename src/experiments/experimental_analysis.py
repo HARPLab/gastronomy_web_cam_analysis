@@ -40,6 +40,9 @@ LABEL_RANDOM_CHANCE_UNIFORM_B = 'random_chance_uniform_b'
 LABEL_RANDOM_CHANCE_CLASSCHANCE_A = 'random_chance_distributions_a'
 LABEL_RANDOM_CHANCE_CLASSCHANCE_B = 'random_chance_distributions_b'
 
+LABEL_RANDOM_CHANCE_MOST_COMMON_A = 'random_chance_most_common_a'
+LABEL_RANDOM_CHANCE_MOST_COMMON_B = 'random_chance_most_common_b'
+
 GENERATED_BENCHMARKS		= [LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_RANDOM_CHANCE_UNIFORM_B]
 # [LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_RANDOM_CHANCE_CLASSCHANCE_B]
 
@@ -71,30 +74,39 @@ class Hypothesis:
 
 	def __init__(self, hypothesis_label):
 		self.hypothesis_label = hypothesis_label
-		self.analysis_types = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_CLASS_PERFORMANCE]
 		comparison_groups 	= []
 
 		if hypothesis_label == HYPOTH_SOLO_DUO_POSES:
 			comparison_groups.append([LABEL_A_A, LABEL_AB_A])
 			comparison_groups.append([LABEL_B_B, LABEL_AB_B])
+			self.analysis_types = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_CLASS_PERFORMANCE]
 
 		elif hypothesis_label == HYPOTH_SOLO_DUO_POSELABEL:
+			self.analysis_types = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_CLASS_PERFORMANCE]
+
 			comparison_groups.append([LABEL_A_A, LABEL_ALB_A])
 			comparison_groups.append([LABEL_B_B, LABEL_BLA_B])
-
+			
 		elif hypothesis_label == HYPOTH_AUXPOSE_TO_TARGET:
+			self.analysis_types = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_CLASS_PERFORMANCE]
+
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_B_A])
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_A_B])
+			
 			# comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_B_A])
 			# comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_A_B])
 		
 		elif hypothesis_label == HYPOTH_AUX_LABEL_TO_TARGET:
+			self.analysis_types = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_CLASS_PERFORMANCE]
+
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_B_A])
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_A_B])
 			# comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_LB_LA])
 			# comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_LA_LB])
 
 		elif hypothesis_label == HYPOTH_VANILLA_RATE:
+			self.analysis_types = [ANALYSIS_OVERALL_ACCURACY]
+
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_A_A])
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_B_B])
 			# comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_A, LABEL_A_A])
@@ -124,11 +136,11 @@ class Hypothesis:
 
 	def get_per_class_accuracies(self, cm):
 		per_class_accuracies = {}
-		print(cm.shape[0])
+		# print(cm.shape[0])
 
 		if cm.shape[0] < len(activity_labels):
 			print("Limited predictions to subset of length: " + str(cm.shape[0]))
-			return per_class_accuracies
+			# return per_class_accuracies
 
 		# https://stackoverflow.com/questions/39770376/scikit-learn-get-accuracy-scores-for-each-class
 		# Calculate the accuracy for each one of our classes
@@ -148,8 +160,9 @@ class Hypothesis:
 	def analysis_class_performance(self, first_test, first_truth, second_test, second_truth):
 
 		output_string = ""
-		cm1 = confusion_matrix(first_truth, first_test)
-		cm2 = confusion_matrix(second_truth, second_test)
+		labels_range = range(len(activity_labels))
+		cm1 = confusion_matrix(first_truth, first_test, labels_range)
+		cm2 = confusion_matrix(second_truth, second_test, labels_range)
 
 		per_class1 = self.get_per_class_accuracies(cm1)
 		per_class2 = self.get_per_class_accuracies(cm2)
@@ -163,11 +176,15 @@ class Hypothesis:
 		# cm2 = cm2.astype('float') / cm2.sum(axis=1)[:, np.newaxis]
 		# perf2 = cm2.diagonal()
 
-		delta_performance = {x: per_class2[x] - per_class1[x] for x in per_class2 if x in per_class1}
+		delta_performance = {x: per_class2[x] - per_class1[x] for x in per_class2.keys() if x in per_class1.keys()}
 		
-		output_string += str(per_class1) + "\n"
-		output_string += str(per_class2) + "\n"
-		output_string += "\u0394:" + str(delta_performance) + "\n"
+		per_class1_by_best = sorted( ((v,k) for k,v in per_class1.items()), reverse=True)
+		per_class2_by_best = sorted( ((v,k) for k,v in per_class2.items()), reverse=True)
+		delta_perf_by_best = sorted( ((v,k) for k,v in delta_performance.items()), reverse=True)
+
+		output_string += "first: \t" + str(per_class1) + "\n\n"
+		output_string += "second: \t" + str(per_class2) + "\n\n"
+		output_string += "\u0394:\t" + str(delta_performance) + "\n"
 
 		# top 5
 		# missing classes
