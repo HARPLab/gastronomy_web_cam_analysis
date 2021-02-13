@@ -31,6 +31,8 @@ LABEL_LB_LA = 'lb_la'
 LABEL_B_A = 'b_a'
 LABEL_A_B = 'a_b'
 
+CSV_ORDER = ['a_a', 'b_b', 'ab_b', 'ab_a', 'bla_b', 'alb_a', 'la_lb', 'lb_la', 'b_a', 'a_b']
+
 
 LABEL_RANDOM_CHANCE_UNIFORM_A = 'random_chance_uniform_a'
 LABEL_RANDOM_CHANCE_UNIFORM_B = 'random_chance_uniform_b'
@@ -55,6 +57,9 @@ ANALYSIS_BEST_CLASSES			= 'analysis:best_classes'
 ANALYSIS_WORST_CLASSES			= 'analysis:worst_classes'
 ANALYSIS_CLASS_PERFORMANCE 		= 'analysis:class_performance'
 
+COMPARISON_TABLE_ACCURACY		= 'comparisons_accuracy'
+COMPARISONS 					= [COMPARISON_TABLE_ACCURACY]
+
 
 activity_labels = ['away-from-table', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 
 					'talking:waiter', 'looking:window', 'looking:waiter', 'reading:bill', 'reading:menu',
@@ -62,7 +67,7 @@ activity_labels = ['away-from-table', 'idle', 'eating', 'drinking', 'talking', '
 					'using:wallet', 'looking:PersonA', 'looking:PersonB', 'takeoutfood', 'leaving-table', 'cleaning-up', 'NONE']
 
 class Hypothesis:
-	comparison_groups = []
+	comparison_groups = COMPARISONS
 
 	def __init__(self, hypothesis_label):
 		self.hypothesis_label = hypothesis_label
@@ -172,11 +177,9 @@ class Hypothesis:
 		return output_string
 
 
-
 	def get_generated_benchmark(self, label, all_results_dict):
 		# find the correct output dimensions
-		key_pool = list(all_results_dict.keys())
-		key_pool = [k[0] for k in key_pool]
+		key_pool = get_key_pool(all_results_dict)
 
 		if label == LABEL_RANDOM_CHANCE_CLASSCHANCE_A or label == LABEL_RANDOM_CHANCE_UNIFORM_A:
 			res = {item for item in key_pool if item.endswith('_a')}
@@ -221,8 +224,7 @@ class Hypothesis:
 		return test, truth
 
 	def verify_experimental_input_available(self, label, all_results_dict):
-		key_pool = list(all_results_dict.keys())
-		key_pool = [k[0] for k in key_pool]
+		key_pool = get_key_pool(all_results_dict)
 		output_string = ""
 		is_found = True
 
@@ -271,6 +273,11 @@ class Hypothesis:
 		print(output_string)
 		return output_string
 
+def get_key_pool(all_results_dict):
+	key_pool = list(all_results_dict.keys())
+	key_pool = [k[0] for k in key_pool]
+	return key_pool
+
 def get_random_chance_benchmark_uniform():
 	pass
 
@@ -290,12 +297,40 @@ def export_raw_classification_report(report, exp_batch_id, classifier_type, sube
 	save_location = "results-analysis/" + exp_batch_id + classifier_type[1:] + "_" + subexp_label
 	df.to_csv(save_location + ".csv")
 
+
+def get_comparison(cg, key, all_results_dict):
+	value = float('NaN')
+	if cg == COMPARISON_TABLE_ACCURACY:
+		test = all_results_dict[(key, 'test')]
+		true = all_results_dict[(key, 'truth')]
+		value = accuracy_score(true, test)
+	else:
+		print("COMPARISON TYPE NOT YET SUPPORTED " + cg)
+		exit()
+
+	return value
+
+
 def meta_analysis_from_classifier_data(all_results_dict, hypothesis_list):
 	output_string = ""
+	
+	# Run pairwise hypotheses
 	for hypothesis in hypothesis_list:
 		output_string += hypothesis.run_analyses(all_results_dict)
 
-	return output_string
+	comparison_row_dict = {}
+	# TODO make this less sloppily passed in
+	for cg in COMPARISONS:
+		this_cg = {}
+
+		# get this stat for this pair, and add row to comparison row dict
+		for key in get_key_pool(all_results_dict):
+			value = get_comparison(cg, key, all_results_dict)
+			this_cg[key] = value
+
+		comparison_row_dict[cg] = this_cg
+	
+	return comparison_row_dict, output_string
 
 	
 
@@ -394,6 +429,28 @@ def import_original_vectors(unique_title, prefix, fold_id):
 	
 	return Y_train, Y_test
 
+def export_comparisons(all_comparisons, exp_batch_id):
+	# dictionary for each classifier, which contains comparisons per label
+	# returns: rows of labels, columns of classifier types
+
+	all_stat_types = COMPARISONS
+	df_stacks = {}
+	for comparison_type in COMPARISONS:
+		df_stacks[comparison_type] = {}
+
+	for classifier_type in all_comparisons.keys():
+		for comparison_type in all_comparisons[classifier_type]:
+			comparison_row = all_comparisons[classifier_type][comparison_type]
+			df_stacks[comparison_type][classifier_type] = comparison_row
+
+	for comparison_type in COMPARISONS:
+		df = pd.DataFrame.from_dict(df_stacks[comparison_type])
+
+		save_location = "results-analysis/" + exp_batch_id + '_overview_comparisons_' + comparison_type + ".csv"
+		df.to_csv(save_location)
+
+	
+
 def main():
 	folds = 5
 	unique_title = 'total_forsvm_s42_'
@@ -422,20 +479,20 @@ def main():
 	hypothesis_list.append(Hypothesis(HYPOTH_SOLO_DUO_POSES))
 	hypothesis_list.append(Hypothesis(HYPOTH_AUXPOSE_TO_TARGET))
 
+	all_comparisons = {}
 	for classifier_type in experiment_titles:
 		print("Getting results for " + classifier_type)
 		results_dict = import_results(unique_title, prefix_import, fold_id, classifier_type)
 
 		# Note that basedon the label suffix, the correct train and test files will be pulled
-		results = analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classifier_type, hypothesis_list)
+		comparisons_to_log, results = analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classifier_type, hypothesis_list)
 		export_hypothesis_analysis_report(results, exp_batch_id, classifier_type)
-
-
+		all_comparisons[classifier_type] = comparisons_to_log
 
 	# Compare with appropriate Y values
 	# Accuracy and stats overall
 	# accuracy and stats per category
 
-
+	export_comparisons(all_comparisons, exp_batch_id)
 
 main()
