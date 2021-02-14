@@ -491,6 +491,12 @@ def main():
 	prefix_import = 'results/' + exp_batch_id
 	fold_id = 5
 
+	try:
+		os.mkdir(prefix_export)
+		print("Please add a readme with experimental notes!")
+	except OSError as error:  
+		print("This directory already exists; do you want a fresh experiment ID?")
+
 	# Import set of results
 	Ytrue_train, Ytrue_test = import_original_vectors(unique_title, prefix_import, fold_id)
 	hypothesis_list = []
