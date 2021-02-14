@@ -15,6 +15,7 @@ LABEL_KNN9 = '_kNN9'
 LABEL_KNN5 = '_kNN5'
 LABEL_KNN3 = '_kNN3'
 LABEL_DecisionTree = '_dectree'
+LABEL_LSTM = '_lstm'
 
 
 LABEL_A_A = 'a_a'
@@ -423,13 +424,15 @@ def import_original_vectors(unique_title, prefix, fold_id):
 	# Given a file location, return the four test/train vectors
 	entries = os.listdir(prefix)
 
+	print(prefix)
+
 	# get all the input files from this video
 	# true is the keyword for the correct vectors
 	entries = list(filter(lambda k: 'true' in k, entries))
 	
 	fold_group = "f" + str(fold_id) + "_"
 	fold_entries = list(filter(lambda k: fold_group in k, entries))
-	
+
 	test 	= list(filter(lambda k: 'test' 	in k, fold_entries))
 	train 	= list(filter(lambda k: 'train' in k, fold_entries))
 	
@@ -480,10 +483,10 @@ def main():
 	LABEL_KNN3 = '_kNN3'
 	LABEL_DecisionTree = '_dectree'
 
-	experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3, LABEL_KNN5, LABEL_SGDC, LABEL_SVM]
-	# experiment_titles = [LABEL_SVM]
+	# experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3, LABEL_KNN5, LABEL_SGDC, LABEL_SVM]
+	experiment_titles = [LABEL_LSTM]
 	
-	exp_batch_id = 1
+	exp_batch_id = 4
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_import = 'results/' + exp_batch_id
 	fold_id = 5
