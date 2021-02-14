@@ -31,6 +31,9 @@ prefix_vectors_out = './output-vectors/'
 INDEX_PA = 0
 INDEX_PB = 1
 
+BATCH_ID_STATELESS 	= 'stateless'
+BATCH_ID_TEMPORAL 	= 'temporal'
+BATCH_ID_TEMPORAL_SPARE = 'temporal_sparse'
 
 
 def unison_shuffled_copies(a, b, seed_val):
@@ -38,93 +41,171 @@ def unison_shuffled_copies(a, b, seed_val):
 	p = np.random.RandomState(seed=seed_val).permutation(len(a))
 	return a[p], b[p]
 
-def export_folds_svm(filenames_all, prefix_vectors_out, seed, test_size=.2):
+# def slice_vectors(X_train, Y_train, training_suff, logfile, window_size=128, X_test=None, Y_test=None, overlap_percent=.5, percent_test=.2):
+#     test_exclusive = False
+#     test_set_provided = X_test is not None and Y_test is not None
+    
+#     x_sliced_list = []
+#     y_sliced_list = []
+    
+#     # prepare test set for queries outside of its range
+#     if test_set_provided:
+#         X_test_sliced = np.zeros((X_test.shape[0]-window_size, window_size, X_test.shape[1]))
+#         Y_test_sliced = np.zeros((Y_test.shape[0]-window_size, 1))
+    
+#     # counter for frequency of each label
+#     label_freqs = {}
+#     for i in range(0, 25):
+#         label_freqs[i] = 0
+
+#     # offset by one frame
+#     for idx in range(window_size, X_train.shape[0]):
+#         x_sliced_list.append(X_train[idx - window_size:idx].tolist())
+    
+#     # slice Y in the same way
+#     X_train_sliced = np.array(x_sliced_list)
+#     for idx in range(window_size, Y_train.shape[0]):
+#         label_freqs[Y_train[idx]] += 1
+#         y_sliced_list.append(Y_train[idx].tolist())
+    
+#     # turn back into array
+#     Y_train_sliced = np.array(y_sliced_list)
+    
+#     # verify dimensions
+#     print(X_train_sliced.shape)
+#     print(Y_train_sliced.shape)
+#     print(label_freqs)
+
+#     # export class frequencies for this label of output vectors
+#     logfile.write("class freqs: " + str(label_freqs))
+    
+#     # split the test set in the same way as the train set
+#     if test_set_provided:
+#         for idx in range(window_size, X_test.shape[0]):
+#             X_test_sliced[idx-window_size,:] = X_test[idx-window_size:idx]
+#         for idx in range(window_size, Y_test.shape[0]):
+#             Y_test_sliced[idx-window_size,0] = Y_test[idx]
+    
+#     if test_exclusive:
+#         test_set_provided = True
+#         x_sliced_test_list = []
+#         y_sliced_test_list = []
+#         for idx in range(window_size+2, X_train.shape[0]):
+#             x_sliced_test_list.append(X_train[idx-window_size:idx].tolist())
+#         for idx in range(window_size+2, Y_train.shape[0]):
+#             y_sliced_test_list.append(Y_train[idx].tolist())
+#         Y_test_sliced = np.array(y_sliced_test_list)
+#         X_test_sliced = np.array(x_sliced_test_list)
+#     Y_train_sliced = to_categorical(Y_train_sliced)
+
+#     if test_set_provided:
+#         Y_test_sliced = to_categorical(Y_test_sliced)
+#         X_test_sliced, Y_test_sliced = shuffle_in_unison(X_test_sliced, Y_test_sliced)
+
+#     X_sliced, Y_sliced = shuffle_in_unison(X_train_sliced, Y_train_sliced)
+    
+#     if test_set_provided:
+#         # export the pool of all vectors, not yet split into test train
+#         print("test_set_provided")
+#         train_list = [(X_sliced,Y_sliced)]
+#         test_list = [(X_test_sliced, Y_test_sliced)]
+        
+#         pickle.dump(train_list, open("training_sets/train_list_" + training_suff +".p", "wb"),protocol=4)
+#         pickle.dump(test_list, open("training_sets/test_list_" + training_suff +".p", "wb"),protocol=4)
+#         return train_list, test_list
+    
+#     train_list = []
+#     test_list = []
+
+#     num_folds = int(1.0/percent_test)
+#     for fold in range(num_folds):    
+#         index_split = int(len(X_sliced) * (1.0 - percent_test))
+#         lower = int(fold*percent_test*len(X_sliced))
+#         upper = lower + int(percent_test*len(X_sliced))
+#         X_train_sliced = np.concatenate((X_sliced[0:lower], X_sliced[upper:]), axis=0)
+#         Y_train_sliced = np.concatenate((Y_sliced[0:lower], Y_sliced[upper:]), axis=0)
+#         X_test_sliced = X_sliced[lower:upper]
+#         Y_test_sliced = Y_sliced[lower:upper]
+#         train_list.append((X_train_sliced,Y_train_sliced))
+#         test_list.append((X_test_sliced,Y_test_sliced))
+
+#         print(X_train_sliced.shape, Y_train_sliced.shape, X_test_sliced.shape, Y_test_sliced.shape)
+
+# 	    pickle.dump(train_list, open("training_sets/train_list_" + training_suff +".p", "wb"),protocol=4)
+# 	    pickle.dump(test_list, open("training_sets/test_list_" + training_suff +".p", "wb"),protocol=4)
+
+#     return train_list, test_list
+
+
+def export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shuffled, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed=42):
+	chunk_size = int(len(X_shuffled) * (test_size))
 	num_folds = int(1.0 / test_size)
 
-	total_test_X = []
-	total_test_Y = []
-	total_train_X = []
-	total_train_Y = []
+	label_testsize	  = str(int(test_size * 100)) + "_test"
+	label_trainsize	 = str(int((1.0 - test_size) * 100)) + "_train"
+	label_random_seed   = str(seed)
 
-	for f in range(num_folds):
-		input_row = np.zeros((0,50,3))
-		output_row = np.zeros((0,2))
+	for f in range(num_folds):		
+		test_start, test_end = f*chunk_size, f*chunk_size + chunk_size
+		print("Exporting " + batch_id + " fold " + str(f) + " from " + str(test_start) + " to " + str(test_end))
 
-		total_test_X.append(input_row)
-		total_test_Y.append(output_row)
-		total_train_X.append(input_row)
-		total_train_Y.append(output_row)
+		test_X	  = X_shuffled[test_start : test_end]
+		test_Y	  = Y_shuffled[test_start : test_end]
+		
+		train_chunk_x1 = X_shuffled[0 : test_start]
+		train_chunk_x2 = X_shuffled[test_end : ]
 
-	for filename in filenames_all:
-		print("Adding vectors from meal " + filename)
-		core_name = prefix_vectors_out + "/trimmed/trimmed_" + filename
+		train_chunk_y1 = Y_shuffled[0 : test_start]
+		train_chunk_y2 = Y_shuffled[test_end : ]
 
-		filehandler = open(core_name + "_X.p", "rb")
-		X_all = pickle.load(filehandler)
+		train_X	 = np.concatenate((train_chunk_x1, train_chunk_x2), axis=0)
+		train_Y	 = np.concatenate((train_chunk_y1, train_chunk_y2), axis=0)
+
+		total_test_X[f] = np.concatenate((total_test_X[f], test_X))
+		total_test_Y[f] = np.concatenate((total_test_Y[f], test_Y))
+
+		total_train_X[f] = np.concatenate((total_train_X[f], train_X))
+		total_train_Y[f] = np.concatenate((total_train_Y[f], train_Y))
+
+		# print(test_size)
+		# print(chunk_size)
+		# print(len(X_shuffled))
+		# print(train_X.shape)
+		# print(test_X.shape)
+
+		core_name   = "/for_svm/" + filename + "_forsvm" + "_id=" + str(batch_id) + "_s" + label_random_seed + "_f" + str(f) 
+		test_name   = core_name + label_testsize
+		train_name  = core_name + label_trainsize
+
+		filehandler = open(prefix_vectors_out + train_name + "_X.p", "wb")
+		pickle.dump(train_X, filehandler)
 		filehandler.close()
 
-		filehandler = open(core_name + "_Y.p", "rb")
-		Y_all = pickle.load(filehandler)
+		filehandler = open(prefix_vectors_out + train_name + "_Y.p", "wb")
+		pickle.dump(train_Y, filehandler)
 		filehandler.close()
 
-		X_shuffled, Y_shuffled = unison_shuffled_copies(X_all, Y_all, seed)
+		filehandler = open(prefix_vectors_out + test_name + "_X.p", "wb")
+		pickle.dump(test_X, filehandler)
+		filehandler.close()
 
-		for f in range(num_folds):
-			chunk_size = int(len(X_shuffled) * (test_size))
-			print("Exporting fold " + str(f) + " from " + str(f*chunk_size) + " to " + str(f*chunk_size + chunk_size))
-			
-			test_start, test_end = f*chunk_size, f*chunk_size + chunk_size
-
-			test_X	  = X_shuffled[test_start : test_end]
-			test_Y	  = Y_shuffled[test_start : test_end]
-			
-			train_chunk_x1 = X_shuffled[0 : test_start]
-			train_chunk_x2 = X_shuffled[test_end : ]
-
-			train_chunk_y1 = Y_shuffled[0 : test_start]
-			train_chunk_y2 = Y_shuffled[test_end : ]
-
-			train_X	 = np.concatenate((train_chunk_x1, train_chunk_x2), axis=0)
-			train_Y	 = np.concatenate((train_chunk_y1, train_chunk_y2), axis=0)
-
-			# print("Fold " + str(f))
-			# print(train_X.shape)
-			# print(test_X.shape)
-			
-
-			label_testsize	  = str(int(test_size * 100)) + "_test"
-			label_trainsize	 = str(int((1.0 - test_size) * 100)) + "_train"
-			label_random_seed   = str(seed)
-
-			total_test_X[f] = np.concatenate((total_test_X[f], test_X))
-			total_test_Y[f] = np.concatenate((total_test_Y[f], test_Y))
-
-			total_train_X[f] = np.concatenate((total_train_X[f], train_X))
-			total_train_Y[f] = np.concatenate((total_train_Y[f], train_Y))
-
-
-
-			core_name   = "/for_svm/" + filename + "_forsvm" + "_s" + label_random_seed + "_f" + str(f) + "_"
-			test_name   = core_name + label_testsize
-			train_name  = core_name + label_trainsize
-
-			filehandler = open(prefix_vectors_out + train_name + "_X.p", "wb")
-			pickle.dump(train_X, filehandler)
-			filehandler.close()
-
-			filehandler = open(prefix_vectors_out + train_name + "_Y.p", "wb")
-			pickle.dump(train_Y, filehandler)
-			filehandler.close()
-
-			filehandler = open(prefix_vectors_out + test_name + "_X.p", "wb")
-			pickle.dump(test_X, filehandler)
-			filehandler.close()
-
-			filehandler = open(prefix_vectors_out + test_name + "_X.p", "wb")
-			pickle.dump(test_Y, filehandler)
-			filehandler.close()
+		filehandler = open(prefix_vectors_out + test_name + "_X.p", "wb")
+		pickle.dump(test_Y, filehandler)
+		filehandler.close()
 
 		print()
+
+	return total_train_X, total_train_Y, total_test_X, total_test_Y
+
+
+		
+def export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, batch_id, seed=42):
+
+	num_folds = int(1.0 / test_size)
+	print("num_folds=" + str(num_folds))
+	label_testsize	  = str(int(test_size * 100)) + "_test"
+	label_trainsize	 = str(int((1.0 - test_size) * 100)) + "_train"
+	label_random_seed   = str(seed)
 
 	for f in range(num_folds):
 		fold_train_X = total_train_X[f]
@@ -132,7 +213,11 @@ def export_folds_svm(filenames_all, prefix_vectors_out, seed, test_size=.2):
 		fold_test_X = total_test_X[f]
 		fold_test_Y = total_test_Y[f]
 
-		core_name   = "/for_svm/" + "total_forsvm" + "_s" + label_random_seed + "_f" + str(f) + "_"
+		print("These dimensions should be consistent across folds:")
+		print("trainshape=" + str(fold_train_X.shape))
+		print("testshape=" + str(fold_test_X.shape))
+
+		core_name   = "/for_svm/" + "total_forsvm" + "_id=" + str(batch_id) + "_s" + label_random_seed + "_f" + str(f)
 		test_name   = core_name + label_testsize
 		train_name  = core_name + label_trainsize
 
@@ -152,17 +237,52 @@ def export_folds_svm(filenames_all, prefix_vectors_out, seed, test_size=.2):
 		pickle.dump(fold_test_Y, filehandler)
 		filehandler.close()
 
-		print("These dimensions should be consistent across folds for an SVM:")
-		print(fold_train_X.shape)
-		print(fold_train_Y.shape)
-		print(fold_test_X.shape)
-		print(fold_test_Y.shape)
+
+
+def export_folds_svm(filenames_all, prefix_vectors_out, seed, test_size=.2):
+	batch_id = BATCH_ID_STATELESS
+	num_folds = int(1.0 / test_size)
+
+	total_test_X = {}
+	total_test_Y = {}
+	total_train_X = {}
+	total_train_Y = {}
+
+	for f in range(num_folds):
+		input_row = np.zeros((0,50,3))
+		output_row = np.zeros((0,2))
+
+		total_test_X[f] 	= input_row
+		total_test_Y[f] 	= output_row
+		total_train_X[f]	= input_row
+		total_train_Y[f]	= output_row
+
+	for filename in filenames_all:
+		print("Adding vectors from meal " + filename)
+		core_name = prefix_vectors_out + "/trimmed/trimmed_" + filename
+
+		filehandler = open(core_name + "_X.p", "rb")
+		X_all = pickle.load(filehandler)
+		filehandler.close()
+
+		filehandler = open(core_name + "_Y.p", "rb")
+		Y_all = pickle.load(filehandler)
+		filehandler.close()
+
+		X_shuffled, Y_shuffled = unison_shuffled_copies(X_all, Y_all, seed)
+
+		total_train_X, total_train_Y, total_test_X, total_test_Y = \
+			export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shuffled, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed)
+
+
+	export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed)
 
 	print("\n")
 
 def export_folds(filenames_all, prefix_vectors_out, seed):
 	print("Creating fold sets for all files")
 	export_folds_svm(filenames_all, prefix_vectors_out, seed)
+	# export_folds_temporal(filenames_all, prefix_vectors_out, seed)
 
 
 def export_all_folds():
