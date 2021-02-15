@@ -7,6 +7,8 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from dictdiffer import diff
+import seaborn as sn
+import matplotlib.pyplot as plt
 
 LABEL_ADABOOST = '_adaboost'
 LABEL_SGDC = '_sgdc'
@@ -16,6 +18,14 @@ LABEL_KNN5 = '_kNN5'
 LABEL_KNN3 = '_kNN3'
 LABEL_DecisionTree = '_dectree'
 LABEL_LSTM = '_lstm'
+
+LABEL_LSTM = '_lstm_og'
+LABEL_LSTM_BIGGER = '_lstm_big'
+LABEL_LSTM_BIGGEST = '_lstm_biggest'
+
+LABELS_TEMPORAL = [LABEL_LSTM, LABEL_LSTM_BIGGER, LABEL_LSTM_BIGGEST]
+LABELS_STATELESS = [LABEL_KNN3, LABEL_KNN5, LABEL_KNN9, LABEL_SVM, LABEL_SGDC, LABEL_ADABOOST, LABEL_DecisionTree]
+
 
 
 LABEL_A_A = 'a_a'
@@ -146,15 +156,15 @@ class Hypothesis:
 		# https://stackoverflow.com/questions/39770376/scikit-learn-get-accuracy-scores-for-each-class
 		# Calculate the accuracy for each one of our classes
 		for idx, cls in enumerate(activity_labels):
-		    # True negatives are all the samples that are not our current GT class (not the current row) 
-		    # and were not predicted as the current class (not the current column)
-		    true_negatives = np.sum(np.delete(np.delete(cm, idx, axis=0), idx, axis=1))
-		    
-		    # True positives are all the samples of our current GT class that were predicted as such
-		    true_positives = cm[idx, idx]
-		    
-		    # The accuracy for the current class is ratio between correct predictions to all predictions
-		    per_class_accuracies[cls] = (true_positives + true_negatives) / np.sum(cm)
+			# True negatives are all the samples that are not our current GT class (not the current row) 
+			# and were not predicted as the current class (not the current column)
+			true_negatives = np.sum(np.delete(np.delete(cm, idx, axis=0), idx, axis=1))
+			
+			# True positives are all the samples of our current GT class that were predicted as such
+			true_positives = cm[idx, idx]
+			
+			# The accuracy for the current class is ratio between correct predictions to all predictions
+			per_class_accuracies[cls] = (true_positives + true_negatives) / np.sum(cm)
 
 		return per_class_accuracies
 
@@ -209,8 +219,8 @@ class Hypothesis:
 			print("Unable to match array for assesment " + label)
 
 		template_key 	= (list(res)[0], 'test')
-		truth_key 	= (list(res)[0], 'truth')
-		truth_array = all_results_dict[truth_key]
+		truth_key 		= (list(res)[0], 'truth')
+		truth_array 	= all_results_dict[truth_key]
 		template_vector = all_results_dict[template_key]
 		matching_shape 	= template_vector.shape
 		output_array = None
@@ -227,8 +237,6 @@ class Hypothesis:
 		elif label == LABEL_RANDOM_CHANCE_UNIFORM_B:
 			output_array = np.random.randint(len(activity_labels), size=matching_shape, dtype=int)
 
-
-		# todo adjust for fewer activity labels
 		return output_array, truth_array
 
 
@@ -307,13 +315,37 @@ def export_hypothesis_analysis_report(report, exp_batch_id, classifier_type):
 
 	save_location = "results-analysis/" + exp_batch_id + classifier_type[1:] + "_hypotheses.txt"
 	with open(save_location, "w") as text_file:
-	    text_file.write(report)
+		text_file.write(report)
 
 	
-def export_raw_classification_report(report, exp_batch_id, classifier_type, subexp_label):
+def export_raw_classification_report(report, exp_batch_id, classifier_type, subexp_label, fold_id):
 	df = pd.DataFrame(report).T
-	save_location = "results-analysis/" + exp_batch_id + classifier_type[1:] + "_" + subexp_label
+	save_location = "results-analysis/" + exp_batch_id + classifier_type[1:] + "_" + subexp_label + "_f" + str(fold_id)
 	df.to_csv(save_location + ".csv")
+
+def export_confusion_matrix(cm, exp_batch_id, classifier_type, subexp_label, fold_id):
+	save_location = "results-analysis/" + exp_batch_id + classifier_type[1:] + "_" + subexp_label + "_f" + str(fold_id)
+
+	sn.set(font_scale=2)
+	plt.subplots(figsize=(22,22))
+	sn.set_style("white",  {'figure.facecolor': 'black'})
+	corr = cm
+	mask = np.zeros_like(corr)
+	mask[corr == 0] = True
+	ax = plt.axes()
+	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, fmt='g', annot_kws={"size": 15}, ax=ax)
+	# fig.yaxis.set_ticklabels(activity_labels, rotation=0, fontsize=1.4)
+	# fig.xaxis.set_ticklabels(activity_labels, rotation=45, fontsize=1.4)
+
+	ax.set_xticklabels(activity_labels, rotation=45)
+	ax.set_yticklabels(activity_labels, rotation=0)
+	ax.set(ylabel="True Label", xlabel="Predicted Label")
+	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label)
+	# plt.axis("off")
+	fig.get_figure().savefig(save_location + '.png')
+
+	# plt.savefig(save_location, bbox_inches='tight', dpi=300)
+	plt.close()
 
 
 def get_comparison(cg, key, all_results_dict):
@@ -350,9 +382,13 @@ def meta_analysis_from_classifier_data(all_results_dict, hypothesis_list):
 	
 	return comparison_row_dict, output_string
 
+# align with experimental runner
+def get_single_vector_of_multiclass_result(result):
+	decoded_result = result.argmax(axis=1)
+	return decoded_result
 	
 
-def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classifier_type, hypothesis_list):
+def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classifier_type, hypothesis_list, fold_id):
 	Y_correct_a = Ytrue_test[:,:1]
 	Y_correct_b = Ytrue_test[:,1:]
 
@@ -363,6 +399,7 @@ def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classif
 		sub_experiments.remove('results')
 
 	results_lookup = {}
+	# print(results_dict.keys())
 	print("Loading and generating classification report for: {", end='')
 	for subexp_label in sub_experiments:
 
@@ -378,8 +415,18 @@ def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classif
 			Y_correct = Y_correct_b
 		else:
 			print("Error, no correct set found for " + subexp_label)
+			continue
 
 		Y_correct = Y_correct.astype(int).ravel()
+		Y_test = Y_test.astype(int).ravel()
+		# if classifier_type in LABELS_TEMPORAL:
+		# 	print(Y_test.shape)
+		# 	Y_test = get_single_vector_of_multiclass_result(Y_test)
+		# 	print(Y_test.shape)
+
+		# print(Y_correct.shape)
+		# print(Y_test.shape)
+
 		print(subexp_label + " ", end='')
 		
 		results_lookup[(subexp_label, 'truth')] = Y_correct
@@ -387,7 +434,10 @@ def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classif
 
 		# labels=activity_labels
 		report = classification_report(Y_correct, Y_test, output_dict=True, labels=range(len(activity_labels)), target_names=activity_labels)
-		export_raw_classification_report(report, exp_batch_id, classifier_type, subexp_label)
+		export_raw_classification_report(report, exp_batch_id, classifier_type, subexp_label, fold_id)
+
+		cm = confusion_matrix(Y_correct, Y_test)
+		export_confusion_matrix(cm, exp_batch_id, classifier_type, subexp_label, fold_id)
 
 	print("}")
 	print("\n\nRunning analysis for this classifier's results: ")
@@ -420,22 +470,26 @@ def import_results(unique_title, prefix, fold_id, classifier_type):
 	
 	return result_dict
 
-def import_original_vectors(unique_title, prefix, fold_id):
+def import_original_vectors(unique_title, prefix, fold_id, classifier_type):
 	# Given a file location, return the four test/train vectors
 	entries = os.listdir(prefix)
-
-	print(prefix)
 
 	# get all the input files from this video
 	# true is the keyword for the correct vectors
 	entries = list(filter(lambda k: 'true' in k, entries))
-	
+
+	if classifier_type in LABELS_TEMPORAL:
+		entries = list(filter(lambda k: 'temporal' in k, entries))
+
+	elif classifier_type in LABELS_STATELESS:
+		entries = list(filter(lambda k: 'stateless' in k, entries))
+
 	fold_group = "f" + str(fold_id) + "_"
 	fold_entries = list(filter(lambda k: fold_group in k, entries))
 
 	test 	= list(filter(lambda k: 'test' 	in k, fold_entries))
 	train 	= list(filter(lambda k: 'train' in k, fold_entries))
-	
+
 	if len(test) > 1  or len(train) > 1:
 		print("Error in import: multiple matching batches for this unique key")
 		print("Please provide a key that aligns with only one of the following")
@@ -472,25 +526,19 @@ def export_comparisons(all_comparisons, exp_batch_id):
 	
 
 def main():
-	folds = 5
-	unique_title = 'total_forsvm_s42_'
+	num_folds = 5
+	seed = 56
+	unique_title = '_s56_'
 
-	LABEL_ADABOOST = '_adaboost'
-	LABEL_SGDC = '_sgdc'
-	LABEL_SVM = '_svm'
-	LABEL_KNN9 = '_kNN9'
-	LABEL_KNN5 = '_kNN5'
-	LABEL_KNN3 = '_kNN3'
-	LABEL_DecisionTree = '_dectree'
-
-	# experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3, LABEL_KNN5, LABEL_SGDC, LABEL_SVM]
-	experiment_titles = [LABEL_LSTM]
+	experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3, LABEL_KNN5, LABEL_SGDC, LABEL_SVM]
+	# experiment_titles = [LABEL_LSTM, LABEL_LSTM_BIGGER, LABEL_LSTM_BIGGEST]
+	# experiment_titles = [LABEL_LSTM]
 	
-	exp_batch_id = 4
+	exp_batch_id = 6
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_import = 'results/' + exp_batch_id
-	fold_id = 5
-
+	prefix_export = 'results-analysis/' + exp_batch_id
+	
 	try:
 		os.mkdir(prefix_export)
 		print("Please add a readme with experimental notes!")
@@ -498,7 +546,6 @@ def main():
 		print("This directory already exists; do you want a fresh experiment ID?")
 
 	# Import set of results
-	Ytrue_train, Ytrue_test = import_original_vectors(unique_title, prefix_import, fold_id)
 	hypothesis_list = []
 	hypothesis_list.append(Hypothesis(HYPOTH_AUX_LABEL_TO_TARGET))
 	hypothesis_list.append(Hypothesis(HYPOTH_SOLO_DUO_POSELABEL))
@@ -507,13 +554,21 @@ def main():
 
 	all_comparisons = {}
 	for classifier_type in experiment_titles:
-		print("Getting results for " + classifier_type)
-		results_dict = import_results(unique_title, prefix_import, fold_id, classifier_type)
 
-		# Note that basedon the label suffix, the correct train and test files will be pulled
-		comparisons_to_log, results = analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classifier_type, hypothesis_list)
-		export_hypothesis_analysis_report(results, exp_batch_id, classifier_type)
-		all_comparisons[classifier_type] = comparisons_to_log
+		for fold_id in range(num_folds):
+			Ytrue_train, Ytrue_test = import_original_vectors(unique_title, prefix_import, fold_id, classifier_type)
+	
+			print("Getting results for " + classifier_type + " fold=" + str(fold_id))
+			results_dict = import_results(unique_title, prefix_import, fold_id, classifier_type)
+
+			print("Imported result dimensions")
+			print(Ytrue_train.shape)
+			print(Ytrue_test.shape)
+
+			# Note that basedon the label suffix, the correct train and test files will be pulled
+			comparisons_to_log, results = analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classifier_type, hypothesis_list, fold_id)
+			export_hypothesis_analysis_report(results, exp_batch_id, classifier_type)
+			all_comparisons[classifier_type] = comparisons_to_log
 
 	# Compare with appropriate Y values
 	# Accuracy and stats overall
