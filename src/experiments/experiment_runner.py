@@ -4,6 +4,11 @@ from sklearn import svm
 import time
 import numpy as np
 
+from sklearn.metrics import confusion_matrix
+from dictdiffer import diff
+import seaborn as sn
+import matplotlib.pyplot as plt
+
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import SGDClassifier
@@ -35,14 +40,16 @@ CLASSIFIER_KNN5 = '_kNN5'
 CLASSIFIER_KNN3 = '_kNN3'
 CLASSIFIER_DecisionTree = '_dectree'
 
-CLASSIFIER_LSTM = '_lstm'
+CLASSIFIER_LSTM = '_lstm-og'
+CLASSIFIER_LSTM_BIGGER = '_lstm-big'
+CLASSIFIER_LSTM_BIGGEST = '_lstm-biggest'
 
-CLASSIFIERS_TEMPORAL = [CLASSIFIER_LSTM]
+CLASSIFIERS_TEMPORAL = [CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]
 CLASSIFIERS_STATELESS = [CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_SVM, CLASSIFIER_SGDC, CLASSIFIER_ADABOOST, CLASSIFIER_DecisionTree]
 
 LSTM_NUM_LABELS = len(activity_labels)
 
-def get_LSTM(trainX, trainY):
+def get_LSTM(trainX, trainY, scale=1):
 	print(trainX.shape)
 	print(trainY.shape)
 	# an input layer that expects 1 or more samples, 50 time steps, and 2 features
@@ -54,7 +61,7 @@ def get_LSTM(trainX, trainY):
 
 	dropout = 0.1
 	batch_size = 256
-	hidden_dim = 80*2
+	hidden_dim = 80*scale
 	model = Sequential()
 	model.add(LSTM(hidden_dim, input_shape=input_shape))
 	model.add(Dropout(dropout))
@@ -64,6 +71,102 @@ def get_LSTM(trainX, trainY):
 	#plot_losses = TrainingPlot()
 	return model
 
+def export_confusion_matrix(y1, y2, exp_batch_id, classifier_type, subexp_label, fold_id):
+	save_location = "results/" + exp_batch_id + "f" + str(fold_id) + "_" + classifier_type[1:] + "_" + subexp_label + "_f" + str(fold_id)
+
+	print(y1)
+	print(y2)
+
+	cm = confusion_matrix(y1.astype(int), y2.astype(int), labels=range(len(activity_labels)))
+
+	sn.set(font_scale=2)
+	plt.subplots(figsize=(22,22))
+	sn.set_style("white",  {'figure.facecolor': 'black'})
+	corr = cm
+	mask = np.zeros_like(corr)
+	mask[corr == 0] = True
+	ax = plt.axes()
+	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, fmt='g', annot_kws={"size": 15}, ax=ax)
+	ax.set_xticklabels(activity_labels, rotation=45)
+	ax.set_yticklabels(activity_labels, rotation=0)
+	ax.set(ylabel="True Label", xlabel="Predicted Label")
+	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label)
+	plt.tight_layout()
+	fig.get_figure().savefig(save_location + '_cm.png')
+	plt.close()
+
+	# Export stacked bar chart
+	labels = activity_labels
+	correct_labels = []
+	incorrect_labels = []
+	percent_labels = []
+	width = 0.8	   # the width of the bars: can also be len(x) sequence
+
+	for idx, cls in enumerate(activity_labels):
+		# True negatives are all the samples that are not our current GT class (not the current row) 
+		# and were not predicted as the current class (not the current column)
+		true_negatives = np.sum(np.delete(np.delete(cm, idx, axis=0), idx, axis=1))
+		
+		# True positives are all the samples of our current GT class that were predicted as such
+		true_positives = cm[idx, idx]
+
+		correct 	= true_positives
+		incorrect 	= np.sum(cm[:,idx]) - correct
+		percent = (correct / (correct + incorrect))*100.0
+		percent = "{:.4}".format(percent) + "%"
+		
+		# The accuracy for the current class is ratio between correct predictions to all predictions
+		# per_class_accuracies[cls] = (true_positives + true_negatives) / np.sum(cm)
+
+		correct_labels.append(correct)
+		incorrect_labels.append(incorrect)
+		percent_labels.append(percent)
+
+
+	fig, ax = plt.subplots()
+	le_font_size = 10.0
+
+	ax.bar(labels, correct_labels, width, align="center", label='Correct Labels')
+	ax.bar(labels, incorrect_labels, width, align="center", bottom=correct_labels,
+		   label='Incorrect Labels')
+
+	ax.set_ylabel('Number of Samples', fontsize=le_font_size)
+	ax.set_ylabel('Predicted Label', fontsize=le_font_size)
+	ax.set_xticklabels(activity_labels, rotation=90, fontsize=le_font_size)
+	ax.yaxis.set_tick_params(labelsize=le_font_size)
+
+	ax.set_title('Per-Class Classification Accuracy for ' + subexp_label, fontsize=le_font_size)
+	ax.legend(fontsize=le_font_size)
+
+	# for p in ax.patches:
+	# 	width, height = p.get_width(), p.get_height()
+	# 	x, y = p.get_xy() 
+	# 	ax.text(x+width/2, 
+	# 			y+height/2, 
+	# 			'{:.0f} %'.format(height), 
+	# 			horizontalalignment='center', 
+	# 			verticalalignment='center')
+
+	# set individual bar lables using above list
+	counter = 0
+	for i in ax.patches:
+		if counter % 2 == 0 and int(counter / 2) < len(percent_labels):
+			lookup_index = int(counter / 2)
+			label = percent_labels[lookup_index]
+			counter += 1
+			# get_x pulls left or right; get_height pushes up or down
+			ax.text(i.get_x()+.12, i.get_height()+(60*le_font_size), label, fontsize=(le_font_size),
+					color='black', rotation=90)
+		counter += 1
+
+
+	# for i in range(len(correct_labels)): 
+	#	 label = percent_labels[i]
+	#	 plt.annotate(label, xy=(i, 0), color='white')
+
+	plt.tight_layout()
+	plt.savefig(save_location + '_graphs.png')
+	plt.close()
 
 def get_classifier(key, X, Y):
 	if key == CLASSIFIER_ADABOOST:
@@ -82,11 +185,18 @@ def get_classifier(key, X, Y):
 		return DecisionTreeClassifier()
 	if key == CLASSIFIER_LSTM:
 		return get_LSTM(X, Y)
+	if key == CLASSIFIER_LSTM_BIGGER:
+		return get_LSTM(X, Y, scale=2)
+	if key == CLASSIFIER_LSTM_BIGGEST:
+		return get_LSTM(X, Y, scale=4)
+	
 
 	return None
 
 def export_result(obj, long_prefix, label):
 	filehandler = open(long_prefix  + label  + "_resultY.p", "wb")
+
+	print(long_prefix + label)
 	pickle.dump(obj, filehandler)
 	filehandler.close()
 	print("Exported to " + long_prefix + label)
@@ -103,7 +213,7 @@ def classifier_train(X, Y, classifier_key):
 
 	time_start = time.perf_counter()
 	
-	if classifier_key == CLASSIFIER_LSTM:
+	if classifier_key in CLASSIFIERS_TEMPORAL:
 		# Y.shape[]
 		dropout = 0.1
 		batch_size = 256
@@ -124,6 +234,7 @@ def classifier_train(X, Y, classifier_key):
 
 	return classifier
 
+# align with experimental analysis
 def get_single_vector_of_multiclass_result(result):
 	decoded_result = result.argmax(axis=1)
 	return decoded_result
@@ -240,8 +351,40 @@ def get_BlA(X_array, Y_array, c_type):
 		print("IMPLEMENT")
 
 	X_bla = np.hstack((Xb, la))
-	Y_out = Y_array[:, :half_dim_Y]
+	Y_out = Y_array[:, half_dim_Y:]
 	return X_bla, Y_out
+
+def get_lA(X_array, Y_array, c_type):
+	og_dim_X = X_array.shape
+	og_dim_Y = Y_array.shape
+
+	if c_type in CLASSIFIERS_STATELESS:
+		half_dim_X = int(og_dim_X[1] / 2)
+		half_dim_Y = int(og_dim_Y[1] / 2)
+		X_out = X_array[:, :half_dim_X]
+
+	else:
+		half_dim_X = int(og_dim_X[2] / 2)
+		half_dim_Y = int(og_dim_Y[1] / 2)
+		X_out = X_array[:, :, :half_dim_X]
+
+	return Y_array[:, 	:half_dim_Y]
+
+def get_lB(X_array, Y_array, c_type):
+	og_dim_X = X_array.shape
+	og_dim_Y = Y_array.shape
+
+	if c_type in CLASSIFIERS_STATELESS:
+		half_dim_X = int(og_dim_X[1] / 2)
+		half_dim_Y = int(og_dim_Y[1] / 2)
+		X_out = X_array[:, half_dim_X:]
+
+	else:
+		half_dim_X = int(og_dim_X[2] / 2)
+		half_dim_Y = int(og_dim_Y[1] / 2)
+		X_out = X_array[:, :, half_dim_X:]
+
+	return Y_array[:, half_dim_Y:]
 
 
 def get_A(X_array, Y_array, c_type):
@@ -278,7 +421,8 @@ def get_B(X_array, Y_array, c_type):
 
 
 
-def experiment_duo_vs_solo_swapped(fold_id, input_set, unique_title, classifier_type, exp_batch_id):
+def experiment_swapped_poses(fold_id, input_set, unique_title, classifier_type, exp_batch_id):
+	print("Experiment: Poses Swapped")
 	prefix_export = 'results/' + exp_batch_id
 	label_b_a = "_b_a"
 	label_a_b = "_a_b"
@@ -314,6 +458,7 @@ def experiment_duo_vs_solo_swapped(fold_id, input_set, unique_title, classifier_
 
 
 def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type, exp_batch_id):
+	print("Experiment: Label to Label")
 	prefix_export = 'results/' + exp_batch_id
 	label_lb_la = "_lb_la"
 	label_la_lb = "_la_lb"
@@ -325,11 +470,13 @@ def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type,
 
 	X_train_AB, X_test_AB, Y_train_AB, Y_test_AB = unpack_dict(input_set)
 
-	X_train_A, 	Y_train_A 	= get_A(X_train_AB, Y_train_AB, classifier_type)
-	X_test_A, 	Y_test_A 	= get_A(X_test_AB, Y_test_AB, classifier_type)
+	Y_train_A 	= get_lA(X_train_AB, Y_train_AB, classifier_type)
+	Y_test_A 	= get_lA(X_test_AB, Y_test_AB, classifier_type)
 
-	X_train_B, 	Y_train_B 	= get_B(X_train_AB, Y_train_AB, classifier_type)
-	X_test_B, 	Y_test_B 	= get_B(X_test_AB, Y_test_AB, classifier_type)
+	Y_train_B 	= get_lB(X_train_AB, Y_train_AB, classifier_type)
+	Y_test_B 	= get_lB(X_test_AB, Y_test_AB, classifier_type)
+
+	export_confusion_matrix(Y_train_A, Y_train_B, exp_batch_id, classifier_type, "label_to_label", fold_id)
 
 	svm_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type)
 	result_la_lb = classifier_test(svm_la_lb, Y_test_A, Y_test_B, classifier_type)
@@ -345,7 +492,7 @@ def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type,
 	experiment_blob['lb_la_predict'] = result_lb_la
 	experiment_blob['lb_la_correct'] = Y_test_A
 
-	experiment_blob_all[key_group] = experiment_blob
+	experiment_blob_all[fold_id] = experiment_blob
 
 	filehandler = open(prefix_export + unique_title + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
 	pickle.dump(experiment_blob_all, filehandler)
@@ -353,6 +500,7 @@ def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type,
 
 
 def experiment_duo_vs_solo_just_labels(fold_id, input_set, unique_title, classifier_type, exp_batch_id):
+	print("Experiment: Duo vs Solo Just Labels")
 	prefix_export = 'results/' + exp_batch_id
 	label_alb_a = "_alb_a"
 	label_bla_b = "_bla_b"
@@ -393,6 +541,8 @@ def experiment_duo_vs_solo_just_labels(fold_id, input_set, unique_title, classif
 
 
 def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, exp_batch_id):
+	print("Experiment: Duo vs Solo")
+
 	prefix_export = 'results/' + exp_batch_id
 
 	label_a_a = "_a_a"
@@ -409,8 +559,8 @@ def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, ex
 
 	X_train_AB, X_test_AB, Y_train_AB, Y_test_AB = unpack_dict(input_set)
 
-	export_result(Y_train_AB, 	prefix_export, 'Ytruetrain_f' + str(fold_id))
-	export_result(Y_test_AB, 	prefix_export, 'Ytruetest_f' + str(fold_id))
+	# export_result(Y_train_AB, 	prefix_export, 'Ytruetrain_f' + str(fold_id))
+	# export_result(Y_test_AB, 	prefix_export, 'Ytruetest_f' + str(fold_id))
 
 	X_train_A, Y_train_A 	= get_A(X_train_AB, Y_train_AB, classifier_type)
 	X_test_A, Y_test_A 		= get_A(X_test_AB, Y_test_AB, classifier_type)
@@ -457,11 +607,13 @@ def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, ex
 # Given a file location, return the four test/train vectors
 def import_vectors(unique_title, prefix, fold_id):
 	entries = os.listdir(prefix)
-
+	# print(entries)
+	# print(prefix)
 	# get all the input files from this video
 	entries = list(filter(lambda k: unique_title in k, entries))
-
+	# print(entries)
 	entries = list(filter(lambda k: 'total' in k, entries))
+	# print(entries)
 
 	fold_group = "f" + str(fold_id) + "_"
 	fold_entries = list(filter(lambda k: fold_group in k, entries))
@@ -506,14 +658,20 @@ def get_stateless_vectors(folds, unique_title, exp_batch_id, seed=42):
 	exp_sets = {}
 	# exp_sets['all'] = import_vectors(unique_title, prefix, -1)
 	for fold_id in range(folds):
-		print("Geting svm data for fold " + str(fold_id))
+		print("Geting stateless data for fold " + str(fold_id))
 		X_train, X_test, Y_train, Y_test = import_vectors(unique_title, prefix, fold_id)
+
+		print(X_test.shape)
+		print(X_train.shape)
 
 		X_test 		= X_test.reshape(X_test.shape[0], n_features)
 		X_train 	= X_train.reshape(X_train.shape[0], n_features)
 
-		export_result(Y_train, 	prefix_export, 'Ytruetrain_f' + str(fold_id))
-		export_result(Y_test, 	prefix_export, 'Ytruetest_f' + str(fold_id))
+		print(X_test.shape)
+		print(X_train.shape)
+
+		export_result(Y_train, 	prefix_export, 'Ytruetrain_stateless_f' + str(fold_id))
+		export_result(Y_test, 	prefix_export, 'Ytruetest_stateless_f' + str(fold_id))
 
 		exp_sets[fold_id] = {'xtest': X_test, 'xtrain': X_train, 'ytest': Y_test, 'ytrain': Y_train}
 
@@ -533,15 +691,15 @@ def get_temporal_vectors(folds, unique_title, exp_batch_id, seed=42):
 	exp_sets = {}
 	# exp_sets['all'] = import_vectors(unique_title, prefix, -1)
 	for fold_id in range(folds):
-		print("Geting temporal data for fold " + str(fold_id))
+		print("Getting temporal data for fold " + str(fold_id))
 
 		X_train, X_test, Y_train, Y_test = import_vectors(unique_title, prefix, fold_id)
 
 		X_test 		= X_test.reshape(X_test.shape[0], window_size, n_features)
 		X_train 	= X_train.reshape(X_train.shape[0], window_size, n_features) # dimension_X_row)
 
-		export_result(Y_train, 	'results/' + exp_batch_id, 'Ytruetrain_f' + str(fold_id))
-		export_result(Y_test, 	'results/' + exp_batch_id, 'Ytruetest_f' + str(fold_id))	
+		export_result(Y_train, 	'results/' + exp_batch_id, 'Ytruetrain_temporal_f' + str(fold_id))
+		export_result(Y_test, 	'results/' + exp_batch_id, 'Ytruetest_temporal_f' + str(fold_id))	
 
 		exp_sets[fold_id] = {'xtest': X_test, 'xtrain': X_train, 'ytest': Y_test, 'ytrain': Y_train}
 
@@ -550,9 +708,9 @@ def get_temporal_vectors(folds, unique_title, exp_batch_id, seed=42):
 
 
 def run_experiments():
-	num_folds = 5
-	unique_title = 's42_'
-	exp_batch_id = 5
+	num_folds = 1
+	unique_title = 's56_'
+	exp_batch_id = 8
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_export = 'results/' + exp_batch_id
 
@@ -561,13 +719,15 @@ def run_experiments():
 	except OSError as error:  
 		print("This directory already exists; do you want a fresh experiment ID?")
 
-	all_temporal_vectors 	= get_temporal_vectors(num_folds, unique_title, exp_batch_id)
 	all_svm_vectors 		= get_stateless_vectors(num_folds, unique_title, exp_batch_id)
+	all_temporal_vectors 	= get_temporal_vectors(num_folds, unique_title, exp_batch_id)
+	
 
 
-	# exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SGDC]
-	# exp_types = [CLASSIFIER_LSTM]
-	exp_types = [CLASSIFIER_LSTM, CLASSIFIER_DecisionTree]
+	# exp_types = [CLASSIFIER_ADABOOST, CLASSIFIER_SGDC, CLASSIFIER_SVM, CLASSIFIER_KNN5, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]
+	# exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SVM]
+	exp_types = [CLASSIFIER_LSTM]
+	# exp_types = [CLASSIFIER_LSTM]#, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_DecisionTree]
 
 	for i in range(len(exp_types)):		
 		classifier_type = exp_types[i]
@@ -585,10 +745,12 @@ def run_experiments():
 
 			fold_data = train_test_vectors[fold_id]
 
-			experiment_duo_vs_solo_swapped(fold_id, fold_data, unique_title, classifier_type, exp_batch_id)
-			# experiment_duo_vs_solo_just_labels(fold_id, fold_data, unique_title, classifier_type, exp_batch_id)
-			# experiment_label_to_label(fold_id, fold_data, unique_title, classifier_type, exp_batch_id)
+			experiment_swapped_poses(fold_id, fold_data, unique_title, classifier_type, exp_batch_id)
 			experiment_duo_vs_solo(fold_id, fold_data, unique_title, classifier_type, exp_batch_id)
+
+			if classifier_type in CLASSIFIERS_STATELESS:
+				experiment_duo_vs_solo_just_labels(fold_id, fold_data, unique_title, classifier_type, exp_batch_id)
+				experiment_label_to_label(fold_id, fold_data, unique_title, classifier_type, exp_batch_id)
 
 
 
