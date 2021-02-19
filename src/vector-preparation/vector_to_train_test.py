@@ -34,13 +34,25 @@ INDEX_PB = 1
 
 BATCH_ID_STATELESS 	= 'stateless'
 BATCH_ID_TEMPORAL 	= 'temporal'
+
+BATCH_ID_MEALWISE_STATELESS 	= 'mwstateless'
+BATCH_ID_MEALWISE_TEMPORAL 	= 'mwtemporal'
+
 BATCH_ID_TEMPORAL_SPARE = 'temporal_sparse'
+
+GROUPING_MEALWISE = '_g-mw'
+GROUPING_RANDOM = "_g-rand"
 
 
 def unison_shuffled_copies(a, b, seed_val):
 	assert len(a) == len(b)
 	p = np.random.RandomState(seed=seed_val).permutation(len(a))
 	return a[p], b[p]
+
+def unison_shuffled_copies_three(a, b, c, seed_val):
+	assert len(a) == len(b)
+	p = np.random.RandomState(seed=seed_val).permutation(len(a))
+	return a[p], b[p], c[p]
 
 # def slice_vectors(X_train, Y_train, training_suff, logfile, window_size=128, X_test=None, Y_test=None, overlap_percent=.5, percent_test=.2):
 #     test_exclusive = False
@@ -138,7 +150,7 @@ def unison_shuffled_copies(a, b, seed_val):
 #     return train_list, test_list
 
 
-def export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shuffled, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed=42):
+def export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shuffled, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed):
 	chunk_size = int(len(X_shuffled) * (test_size))
 	num_folds = int(1.0 / test_size)
 
@@ -180,7 +192,7 @@ def export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shu
 		# print(train_X.shape)
 		# print(test_X.shape)
 
-		core_name   = "/" + batch_id + "/" + filename + "_forsvm" + "_id=" + str(batch_id) + "_s" + label_random_seed + "_f" + str(f) + "_"
+		core_name   = "/" + batch_id + "/" + filename + "_id=" + str(batch_id) + "_s" + label_random_seed + "_f" + str(f) + "_"
 		test_name   = core_name + label_testsize
 		train_name  = core_name + label_trainsize
 
@@ -207,8 +219,9 @@ def export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shu
 def make_slices(X, Y, window_size, overlap_percent):
 	shift_stepsize = int(window_size * overlap_percent)
 
-	X_slices_list = []
-	Y_slices_list = []
+	X_slices_list 	= []
+	Y_slices_list 	= []
+	Y_solo_list		= []
 
 	num_steps = int(X.shape[0] / shift_stepsize)
 
@@ -216,41 +229,25 @@ def make_slices(X, Y, window_size, overlap_percent):
 		slice_start, slice_end = int(i*shift_stepsize), int(i*shift_stepsize + window_size)
 		if slice_end < Y.shape[0]:
 			X_slice = copy.copy(X[slice_start:slice_end])
-			Y_slice = copy.copy(Y[slice_end])
+			Y_slice = copy.copy(Y[slice_start:slice_end])
+			Y_solo 	= copy.copy(Y[slice_end])
 
 			X_slices_list.append(X_slice)
 			Y_slices_list.append(Y_slice)
-
-
-	# print(X_slices_list[-1])
-	# print(Y_slices_list[-1])
+			Y_solo_list.append(Y_solo)
 
 	X_slices_list = np.array(X_slices_list)
 	Y_slices_list = np.array(Y_slices_list)
+	Y_solo_list = np.array(Y_solo_list)
 
-	return X_slices_list, Y_slices_list
+	return X_slices_list, Y_slices_list, Y_solo_list
 
 
 def make_slices_sparse(X, Y, window_size, overlap_percent):
-	# sparsity = 
-	shift_stepsize = int(window_size * overlap_percent)
-
-	X_slices_list = []
-	Y_slices_list = []
-
-	num_steps = int(X.shape[0] / shift_stepsize)
-
-	for i in range(num_steps):
-		# TODO brainstorm how to avoid the same overlap problem
-		pass
-
-	X_slices_list = np.array(X_slices_list)
-	Y_slices_list = np.array(Y_slices_list)
-
-	return X_slices_list, Y_slices_list
+	pass
 
 		
-def export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed=42):
+def export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed, groupings_type):
 	num_folds = int(1.0 / test_size)
 	print(test_size)
 	print("num_folds=" + str(num_folds))
@@ -271,7 +268,7 @@ def export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, to
 		print("trainshape=" + str(fold_train_X.shape))
 		print("testshape=" + str(fold_test_X.shape))
 
-		core_name   = "/" + batch_id + "/" + "total" + "_id=" + str(batch_id) + "_s" + label_random_seed + "_f" + str(f) + "_"
+		core_name   = "/" + batch_id + "/" + "total" + "_id=" + str(batch_id) + groupings_type + "_s" + label_random_seed + "_f" + str(f) + "_"
 		test_name   = core_name + label_testsize
 		train_name  = core_name + label_trainsize
 
@@ -292,14 +289,14 @@ def export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, to
 		filehandler.close()
 
 
-def export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overlap_percent, test_size=.2, seed=42):
+def export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overlap_percent, test_size, seed):
 	print("Creating temporal folds")
 	batch_id = BATCH_ID_TEMPORAL
 	num_folds = int(1.0 / test_size)
 
 	total_test_X = {}
 	total_test_Y = {}
-	
+
 	total_train_X = {}
 	total_train_Y = {}
 
@@ -316,7 +313,7 @@ def export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overla
 	# for each of the importable meals
 	for filename in filenames_all:
 		print("Adding vectors from meal " + filename)
-		core_name = prefix_vectors_out + "/trimmed/trimmed_" + filename
+		core_name = prefix_vectors_out + "trimmed/trimmed_" + filename
 
 		filehandler = open(core_name + "_X.p", "rb")
 		X_all = pickle.load(filehandler)
@@ -329,17 +326,126 @@ def export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overla
 		# print(X_all.shape)
 		# print(X_all.shape)
 
-		X_all_slices, Y_all_slices = make_slices(X_all, Y_all, window_size, overlap_percent)
+		X_all_slices, Y_all_slices, Y_solo_labels = make_slices(X_all, Y_all, window_size, overlap_percent)
 		# print(X_all_slices.shape)
 		# print(Y_all_slices.shape)
 
-		X_shuffled, Y_shuffled = unison_shuffled_copies(X_all_slices, Y_all_slices, seed)
+		X_shuffled, Y_shuffled, Y_solo = unison_shuffled_copies_three(X_all_slices, Y_all_slices, Y_solo_labels, seed)
+
+		# Note that we're passing just the labels in Y
 		total_train_X, total_train_Y, total_test_X, total_test_Y = \
-			export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shuffled, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed)
+			export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_solo, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed)
 
-	export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed)
+	export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed, GROUPING_RANDOM)
 
-def export_folds_stateless(filenames_all, prefix_vectors_out, test_size=.2, seed=42):
+def export_folds_mealwise_stateless(filenames_all, prefix_vectors_out, test_size, seed):
+	batch_id = BATCH_ID_MEALWISE_STATELESS
+	num_folds = int(1.0 / test_size)
+
+	total_test_X = {}
+	total_test_Y = {}
+	total_train_X = {}
+	total_train_Y = {}
+
+	for f in range(num_folds):
+		input_row = np.zeros((0,50,3))
+		output_row = np.zeros((0,2))
+
+		total_test_X[f] 	= input_row
+		total_test_Y[f] 	= output_row
+		total_train_X[f]	= input_row
+		total_train_Y[f]	= output_row
+
+		for filename in filenames_all:
+			# print("Adding vectors from meal " + filename)
+			core_name = prefix_vectors_out + "/trimmed/trimmed_" + filename
+
+			index = filenames_all.index(filename)
+
+			filehandler = open(core_name + "_X.p", "rb")
+			X_all = pickle.load(filehandler)
+			filehandler.close()
+
+			filehandler = open(core_name + "_Y.p", "rb")
+			Y_all = pickle.load(filehandler)
+			filehandler.close()
+
+			# if this is the fold, that meal is the test
+			if index == f:
+				# print("this is our test set")
+				total_test_X[f] 	= np.concatenate((total_test_X[f], X_all), axis=0)
+				total_test_Y[f] 	= np.concatenate((total_test_Y[f], Y_all), axis=0)
+			else:
+				# print("this is our train set")
+				total_train_X[f]	= np.concatenate((total_train_X[f], X_all), axis=0)
+				total_train_Y[f]	= np.concatenate((total_train_Y[f], Y_all), axis=0)
+
+
+
+	# for f in range(num_folds):
+	# 	print()
+
+	export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed, GROUPING_MEALWISE)
+
+	print("\n")
+
+
+def export_folds_mealwise_temporal(filenames_all, prefix_vectors_out, test_size, seed, window_size, overlap_percent):
+	batch_id = BATCH_ID_MEALWISE_TEMPORAL
+	num_folds = int(1.0 / test_size)
+
+	total_test_X = {}
+	total_test_Y = {}
+	total_train_X = {}
+	total_train_Y = {}
+
+	for f in range(num_folds):
+		input_row = np.zeros((0,128,50,3))
+		output_row = np.zeros((0,2))
+
+		total_test_X[f] 	= input_row
+		total_test_Y[f] 	= output_row
+		total_train_X[f]	= input_row
+		total_train_Y[f]	= output_row
+
+		for filename in filenames_all:
+			# print("Adding vectors from meal " + filename)
+			core_name = prefix_vectors_out + "/trimmed/trimmed_" + filename
+
+			index = filenames_all.index(filename)
+
+			filehandler = open(core_name + "_X.p", "rb")
+			X_all = pickle.load(filehandler)
+			filehandler.close()
+
+			filehandler = open(core_name + "_Y.p", "rb")
+			Y_all = pickle.load(filehandler)
+			filehandler.close()
+
+			X_all, Y_all_verbose, Y_all = make_slices(X_all, Y_all, window_size, overlap_percent)
+
+			# if this is the fold, that meal is the test
+			if index == f:
+				# print("this is our test set")
+				total_test_X[f] 	= np.concatenate((total_test_X[f], X_all), axis=0)
+				total_test_Y[f] 	= np.concatenate((total_test_Y[f], Y_all), axis=0)
+			else:
+				# print("this is our train set")
+				total_train_X[f]	= np.concatenate((total_train_X[f], X_all), axis=0)
+				total_train_Y[f]	= np.concatenate((total_train_Y[f], Y_all), axis=0)
+
+
+
+	# for f in range(num_folds):
+	# 	print()
+
+	export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed, GROUPING_MEALWISE)
+
+	print("\n")
+
+
+
+def export_folds_stateless(filenames_all, prefix_vectors_out, test_size, seed):
 	batch_id = BATCH_ID_STATELESS
 	num_folds = int(1.0 / test_size)
 
@@ -375,22 +481,24 @@ def export_folds_stateless(filenames_all, prefix_vectors_out, test_size=.2, seed
 			export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shuffled, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed)
 
 
-	export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed)
+	export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed, GROUPING_RANDOM)
 
 	print("\n")
 
 def export_folds(filenames_all, prefix_vectors_out, seed):
 	print("Creating fold sets for all files")
 	window_size = 128
-	overlap_percent = .5
+	overlap_percent = .2
 	test_percent = .2
 
+	export_folds_mealwise_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
+	export_folds_mealwise_temporal(filenames_all, prefix_vectors_out, test_percent, seed, window_size, overlap_percent)
 	export_folds_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
 	export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overlap_percent, test_percent, seed)
 
 
 def export_all_folds():
-	seed = 42
+	seed = 111
 	export_folds(filenames_all, prefix_vectors_out, seed)
 
 
