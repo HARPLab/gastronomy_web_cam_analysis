@@ -27,10 +27,16 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Dropout
 from tensorflow.keras.utils import to_categorical
 
-activity_labels = ['away-from-table', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 
-					'talking:waiter', 'looking:window', 'looking:waiter', 'reading:bill', 'reading:menu',
-					'paying:check', 'using:phone', 'using:napkin', 'using:purse', 'using:glasses',
-					'using:wallet', 'looking:PersonA', 'looking:PersonB', 'takeoutfood', 'leaving-table', 'cleaning-up', 'NONE']
+# activity_labels = ['away-from-table', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 
+# 					'talking:waiter', 'looking:window', 'looking:waiter', 'reading:bill', 'reading:menu',
+# 					'paying:check', 'using:phone', 'using:napkin', 'using:purse', 'using:glasses',
+# 					'using:wallet', 'looking:PersonA', 'looking:PersonB', 'takeoutfood', 'leaving-table', 'cleaning-up', 'NONE']
+
+activity_labels = ['NONE', 'away-from-table', 'idle', 'eating', 'talking', 'talk:waiter', 'looking:window', 
+					'reading:bill', 'reading:menu', 'paying:check', 'using:phone', 'obj:wildcard', 'standing']
+
+# activitydict = {0: 'NONE', 1: 'away-from-table', 2: 'idle', 3: 'eating', 4: 'talking', 5:'talking:waiter', 6: 'looking:window', 
+# 	7: 'reading:bill', 8: 'reading:menu', 9: 'paying:check', 10: 'using:phone', 11: 'using:objs', 12: 'standing'}
 
 CLASSIFIER_ADABOOST = '_adaboost'
 CLASSIFIER_SGDC = '_sgdc'
@@ -73,6 +79,10 @@ def get_LSTM(trainX, trainY, scale=1):
 	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 	# print("fiting model...." + model_name)
 	#plot_losses = TrainingPlot()
+
+	# TODO Export model and notes
+	# Export loss over time graph
+
 	return model
 
 def get_CRF():
@@ -227,9 +237,12 @@ def classifier_train(X, Y, classifier_key):
 		# Y.shape[]
 		dropout = 0.1
 		batch_size = 256
-		epochs = 70
+		# epochs = 7
 		Y = to_categorical(Y, num_classes=len(activity_labels))
 		epochs = 500
+		print("Fitting to...")
+		print(X.shape)
+		print(Y.shape)
 		classifier.fit(X, Y, batch_size=batch_size, verbose=0, epochs=epochs)
 	else:
 		classifier.fit(X, Y)
@@ -240,7 +253,7 @@ def classifier_train(X, Y, classifier_key):
 	# clf.fit(X, Y)
 	time_end = time.perf_counter()
 	time_diff = time_end - time_start
-	print("Time elapsed: " + str(time_diff))
+	print("Time elapsed: " + str(time_diff) + " ending at " + ctime(t))
 
 	return classifier
 
@@ -248,49 +261,6 @@ def classifier_train(X, Y, classifier_key):
 def get_single_vector_of_multiclass_result(result):
 	decoded_result = result.argmax(axis=1)
 	return decoded_result
-
-#     frequencytest = {}
-#     frequencypred = {}
-#     for num in decodedtestY:
-#             if num not in frequencytest.keys():
-#                     frequencytest[num] = 1
-#             else:
-#                     frequencytest[num] = frequencytest[num] + 1
-#     for num in decodedpredY:
-#             if num not in frequencypred.keys():
-#                     frequencypred[num] = 1
-#             else:
-#                     frequencypred[num] = frequencypred[num] + 1
-#     print("stats:")
-#     print(frequencytest)
-#     print(frequencypred)
-#     self.logfile.write("cm stats:\n")
-#     self.logfile.write(str(frequencytest) + "\n")
-#     self.logfile.write(str(frequencypred) + "\n")
-#     #print(decodedpredY.shape)
-#     #print(decodedtestY.shape)
-#     predPadding = []
-#     testPadding = []
-#     i = 0
-#     for key in activitydict.keys():
-#             #print(key)
-#             predPadding.append(i)
-#             testPadding.append(23-i)
-#             i +=1
-#     decodedpredY = np.append(decodedpredY, predPadding)
-#     decodedtestY = np.append(decodedtestY, testPadding)
-#     cm = confusion_matrix(decodedtestY,decodedpredY)
-#     np.set_printoptions(precision=2)
-#     fig, ax = plt.subplots()
-#     sum_of_rows = cm.sum(axis=1)
-#     cm = cm / (sum_of_rows[:, np.newaxis]+1e-8)
-#     p, r = calc_precision_recall(cm,self.logfile)
-#     pickle.dump(cm, open(filename +"cm_mat.p", "wb"))
-#     plot_confusion_matrix(cm,cmap=plt.cm.Blues)
-#     plt.savefig(filename + "cm.png")
-#     plt.close()
-
-# 	return result
 
 def classifier_test(classifier, X, Y, classifier_type):
 	print(X.shape)
@@ -306,7 +276,7 @@ def classifier_test(classifier, X, Y, classifier_type):
 	# print(result.shape)
 	time_end = time.perf_counter()
 	time_diff = time_end - time_start
-	print("Time elapsed: " + str(time_diff))
+	print("Time elapsed: " + str(time_diff) + " ending at " + ctime(t))
 
 	print("Done with predictions")
 	return result
@@ -329,15 +299,18 @@ def get_AlB(X_array, Y_array, c_type):
 		half_dim_Y = int(og_dim_Y[1] / 2)
 		Xa = X_array[:, :half_dim_X]
 		lb = Y_array[:, 	half_dim_Y:]
+		Y_out = Y_array[:, :half_dim_Y]
 
 	else:
 		half_dim_X = int(og_dim_X[2] / 2)
-		half_dim_Y = int(og_dim_Y[1] / 2)
+		half_dim_Y = int(og_dim_Y[2] / 2)
 		Xa = X_array[:, :, :half_dim_X]
-		lb = Y_array[:, 	half_dim_Y:]
+		lb = Y_array[:, :, half_dim_Y:]
+		# Y_out.reshape((Y_out.shape[0], 1))
 
-	X_alb = np.hstack((Xa, lb))
-	Y_out = Y_array[:, :half_dim_Y]
+		Y_out = Y_array[:, -1, :half_dim_Y]
+
+	X_alb = np.concatenate((Xa, lb), axis=2)
 
 	return X_alb, Y_out
 
@@ -352,16 +325,19 @@ def get_BlA(X_array, Y_array, c_type):
 
 		Xb = X_array[:, half_dim_X:]
 		la = Y_array[:, :half_dim_Y]
+		Y_out = Y_array[:, half_dim_Y:]
+	
 	else:
 		half_dim_X = int(og_dim_X[2] / 2)
-		half_dim_Y = int(og_dim_Y[1] / 2)
+		half_dim_Y = int(og_dim_Y[2] / 2)
 
 		Xb = X_array[:, :, half_dim_X:]
-		la = Y_array[:, :half_dim_Y]
-		print("IMPLEMENT")
+		la = Y_array[:, :, :half_dim_Y]
 
-	X_bla = np.hstack((Xb, la))
-	Y_out = Y_array[:, half_dim_Y:]
+		Y_out = Y_array[:, -1, half_dim_Y:]
+	
+
+	X_bla = np.concatenate((Xb, la), axis=2)
 	return X_bla, Y_out
 
 def get_lA(X_array, Y_array, c_type):
@@ -371,14 +347,16 @@ def get_lA(X_array, Y_array, c_type):
 	if c_type in CLASSIFIERS_STATELESS:
 		half_dim_X = int(og_dim_X[1] / 2)
 		half_dim_Y = int(og_dim_Y[1] / 2)
-		X_out = X_array[:, :half_dim_X]
+
+		Y_out = Y_array[:, 	:half_dim_Y]
 
 	else:
 		half_dim_X = int(og_dim_X[2] / 2)
-		half_dim_Y = int(og_dim_Y[1] / 2)
-		X_out = X_array[:, :, :half_dim_X]
+		half_dim_Y = int(og_dim_Y[2] / 2)
 
-	return Y_array[:, 	:half_dim_Y]
+		Y_out = Y_array[:, :,	:half_dim_Y]
+
+	return Y_out
 
 def get_lB(X_array, Y_array, c_type):
 	og_dim_X = X_array.shape
@@ -387,14 +365,15 @@ def get_lB(X_array, Y_array, c_type):
 	if c_type in CLASSIFIERS_STATELESS:
 		half_dim_X = int(og_dim_X[1] / 2)
 		half_dim_Y = int(og_dim_Y[1] / 2)
-		X_out = X_array[:, half_dim_X:]
 
+		Y_out = Y_array[:, half_dim_Y:]
 	else:
 		half_dim_X = int(og_dim_X[2] / 2)
-		half_dim_Y = int(og_dim_Y[1] / 2)
-		X_out = X_array[:, :, half_dim_X:]
+		half_dim_Y = int(og_dim_Y[2] / 2)
 
-	return Y_array[:, half_dim_Y:]
+		Y_out = Y_array[:, :, half_dim_Y:]
+
+	return Y_out
 
 
 def get_A(X_array, Y_array, c_type):
@@ -405,13 +384,16 @@ def get_A(X_array, Y_array, c_type):
 		half_dim_X = int(og_dim_X[1] / 2)
 		half_dim_Y = int(og_dim_Y[1] / 2)
 		X_out = X_array[:, :half_dim_X]
+		Y_out = Y_array[:, 	:half_dim_Y]
 
 	else:
 		half_dim_X = int(og_dim_X[2] / 2)
-		half_dim_Y = int(og_dim_Y[1] / 2)
+		half_dim_Y = int(og_dim_Y[2] / 2)
 		X_out = X_array[:, :, :half_dim_X]
+		Y_out = Y_array[:, -1, :half_dim_Y]
 
-	return X_out, Y_array[:, 	:half_dim_Y]
+	print(Y_out.shape)		
+	return X_out, Y_out
 
 def get_B(X_array, Y_array, c_type):
 	og_dim_X = X_array.shape
@@ -421,13 +403,15 @@ def get_B(X_array, Y_array, c_type):
 		half_dim_X = int(og_dim_X[1] / 2)
 		half_dim_Y = int(og_dim_Y[1] / 2)
 		X_out = X_array[:, half_dim_X:]
-
+		Y_out = Y_array[:, 	half_dim_Y:]
 	else:
 		half_dim_X = int(og_dim_X[2] / 2)
-		half_dim_Y = int(og_dim_Y[1] / 2)
+		half_dim_Y = int(og_dim_Y[2] / 2)
 		X_out = X_array[:, :, half_dim_X:]
+		Y_out = Y_array[:, -1, half_dim_Y:]
 
-	return X_out, Y_array[:, half_dim_Y:]
+	print(Y_out.shape)
+	return X_out, Y_out
 
 
 
@@ -486,7 +470,7 @@ def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type,
 	Y_train_B 	= get_lB(X_train_AB, Y_train_AB, classifier_type)
 	Y_test_B 	= get_lB(X_test_AB, Y_test_AB, classifier_type)
 
-	export_confusion_matrix(Y_train_A, Y_train_B, exp_batch_id, classifier_type, "label_to_label", fold_id)
+	# export_confusion_matrix(Y_train_A, Y_train_B, exp_batch_id, classifier_type, "label_to_label", fold_id)
 
 	svm_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type)
 	result_la_lb = classifier_test(svm_la_lb, Y_test_A, Y_test_B, classifier_type)
@@ -509,8 +493,8 @@ def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type,
 	filehandler.close()
 
 
-def experiment_duo_vs_solo_just_labels(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
-	print("Experiment: Duo vs Solo Just Labels")
+def experiment_pose_vs_poseauxlabel(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
+	print("Experiment: pose_vs_poseauxlabel")
 	prefix_export = 'results/' + exp_batch_id
 	label_alb_a = "_alb_a"
 	label_bla_b = "_bla_b"
@@ -578,20 +562,22 @@ def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, ex
 	X_train_B, Y_train_B 	= get_B(X_train_AB, Y_train_AB, classifier_type)
 	X_test_B, Y_test_B 		= get_B(X_test_AB, Y_test_AB, classifier_type)
 
-
+	print("a_a")
 	svm_a_a = classifier_train(X_train_A, Y_train_A, classifier_type)
 	result_a_a = classifier_test(svm_a_a, X_test_A, Y_test_A, classifier_type)
 	export_result(result_a_a, long_prefix, label_a_a)
 
+	print("b_b")
 	svm_b_b = classifier_train(X_train_B, Y_train_B, classifier_type)
 	result_b_b = classifier_test(svm_b_b, X_test_B, Y_test_B, classifier_type)
 	export_result(result_b_b, long_prefix, label_b_b)
 
+	print("ab_a")
 	svm_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type)
 	result_ab_a = classifier_test(svm_ab_a, X_test_AB, Y_test_A, classifier_type)
 	export_result(result_ab_a, long_prefix, label_ab_a)
 
-
+	print("ab_b")
 	svm_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type)
 	result_ab_b = classifier_test(svm_ab_b, X_test_AB, Y_test_B, classifier_type)
 	export_result(result_ab_b, long_prefix, label_ab_b)
@@ -720,9 +706,9 @@ def get_temporal_vectors(folds, unique_title, exp_batch_id, grouping_type, seed=
 
 
 def run_experiments():
-	num_folds = 5
+	num_folds = 1
 	unique_title = 's111_'
-	exp_batch_id = 11
+	exp_batch_id = 12
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_export = 'results/' + exp_batch_id
 
@@ -758,12 +744,11 @@ def run_experiments():
 		for fold_id in range(num_folds):
 			fold_data = train_test_vectors[fold_id]
 
-			# experiment_swapped_poses(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
-			experiment_duo_vs_solo(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+			# experiment_duo_vs_solo(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+			experiment_pose_vs_poseauxlabel(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+			experiment_swapped_poses(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 
-			if classifier_type in CLASSIFIERS_STATELESS:
-				experiment_duo_vs_solo_just_labels(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
-				experiment_label_to_label(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+			# experiment_label_to_label(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 
 
 
