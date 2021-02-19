@@ -89,7 +89,7 @@ def export_confusion_matrix(y1, y2, exp_batch_id, classifier_type, subexp_label,
 	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, fmt='g', annot_kws={"size": 15}, ax=ax)
 	ax.set_xticklabels(activity_labels, rotation=45)
 	ax.set_yticklabels(activity_labels, rotation=0)
-	ax.set(ylabel="True Label", xlabel="Predicted Label")
+	ax.set(ylabel="Person 1", xlabel="Person 2")
 	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label)
 	plt.tight_layout()
 	fig.get_figure().savefig(save_location + '_cm.png')
@@ -708,9 +708,9 @@ def get_temporal_vectors(folds, unique_title, exp_batch_id, seed=42):
 
 
 def run_experiments():
-	num_folds = 1
-	unique_title = 's56_'
-	exp_batch_id = 8
+	num_folds = 5
+	unique_title = 's111_'
+	exp_batch_id = 10
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_export = 'results/' + exp_batch_id
 
@@ -720,13 +720,13 @@ def run_experiments():
 		print("This directory already exists; do you want a fresh experiment ID?")
 
 	all_svm_vectors 		= get_stateless_vectors(num_folds, unique_title, exp_batch_id)
-	all_temporal_vectors 	= get_temporal_vectors(num_folds, unique_title, exp_batch_id)
+	# all_temporal_vectors 	= get_temporal_vectors(num_folds, unique_title, exp_batch_id)
 	
 
 
-	# exp_types = [CLASSIFIER_ADABOOST, CLASSIFIER_SGDC, CLASSIFIER_SVM, CLASSIFIER_KNN5, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]
+	exp_types = [CLASSIFIER_KNN3, CLASSIFIER_DecisionTree, CLASSIFIER_ADABOOST, CLASSIFIER_KNN5, CLASSIFIER_KNN9]#, CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]#, CLASSIFIER_SGDC, CLASSIFIER_SVM]
 	# exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SVM]
-	exp_types = [CLASSIFIER_LSTM]
+	# exp_types = [CLASSIFIER_LSTM]
 	# exp_types = [CLASSIFIER_LSTM]#, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_DecisionTree]
 
 	for i in range(len(exp_types)):		
@@ -742,7 +742,6 @@ def run_experiments():
 			exit()
 
 		for fold_id in range(num_folds):
-
 			fold_data = train_test_vectors[fold_id]
 
 			experiment_swapped_poses(fold_id, fold_data, unique_title, classifier_type, exp_batch_id)
