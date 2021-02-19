@@ -78,10 +78,27 @@ COMPARISON_TABLE_MCC		= 'comparisons_mcc'
 COMPARISONS 					= [COMPARISON_TABLE_ACCURACY, COMPARISON_TABLE_MCC]
 
 
-activity_labels = ['away-from-table', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 
-					'talking:waiter', 'looking:window', 'looking:waiter', 'reading:bill', 'reading:menu',
-					'paying:check', 'using:phone', 'using:napkin', 'using:purse', 'using:glasses',
-					'using:wallet', 'looking:PersonA', 'looking:PersonB', 'takeoutfood', 'leaving-table', 'cleaning-up', 'NONE']
+# ACT_NONE 			= 0
+# ACT_AWAY_FROM_TABLE = 1
+# ACT_IDLE			= 2
+# ACT_EATING			= 3
+# ACT_TALKING			= 4
+# ACT_WAITER			= 5
+# ACT_LOOKING_WINDOW	= 6
+# ACT_READING_BILL	= 7
+# ACT_READING_MENU	= 8
+# ACT_PAYING_CHECK	= 9
+# ACT_USING_PHONE		= 10
+# ACT_OBJ_WILDCARD 	= 11
+# ACT_STANDING		= 12
+
+
+# activity_labels = ['away-from-table', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 
+# 					'talking:waiter', 'looking:window', 'looking:waiter', 'reading:bill', 'reading:menu',
+# 					'paying:check', 'using:phone', 'using:napkin', 'using:purse', 'using:glasses',
+# 					'using:wallet', 'looking:PersonA', 'looking:PersonB', 'takeoutfood', 'leaving-table', 'cleaning-up', 'NONE']
+activity_labels = ['NONE', 'away-from-table', 'idle', 'eating', 'talking', 'talk:waiter', 'looking:window', 
+					'reading:bill', 'reading:menu', 'paying:check', 'using:phone', 'obj:wildcard', 'standing']
 
 class Hypothesis:
 	comparison_groups = COMPARISONS
@@ -144,7 +161,7 @@ class Hypothesis:
 		output_string = ""
 
 		output_string += str(mcc_first) + " ::: " + str(mcc_second) + "\n"
-		output_string += "MCC \u0394: " + str(delta) + "\n"
+		output_string += "MCC del: " + str(delta) + "\n"
 
 		return output_string
 
@@ -156,8 +173,9 @@ class Hypothesis:
 		delta = accuracy_second - accuracy_first
 		output_string = ""
 
+		# del = \u0394
 		output_string += str(accuracy_first) + " ::: " + str(accuracy_second) + "\n"
-		output_string += "Accuracy \u0394: " + str(delta) + "\n"
+		output_string += "Accuracy del: " + str(delta) + "\n"
 
 		return output_string
 
@@ -219,7 +237,7 @@ class Hypothesis:
 		output_string += "---ACCURACY--- \n"
 		output_string += "first: \t" + str(per_class1) + "\n\n"
 		output_string += "second: \t" + str(per_class2) + "\n\n"
-		output_string += "\u0394:\t" + str(delta_performance) + "\n"
+		output_string += "del:\t" + str(delta_performance) + "\n"
 
 		per_class1 = self.get_per_class_mcc(first_truth, first_test)
 		per_class2 = self.get_per_class_mcc(second_truth, second_test)
@@ -228,7 +246,7 @@ class Hypothesis:
 		output_string += "---MCC--- \n"
 		output_string += "first: \t" + str(per_class1) + "\n\n"
 		output_string += "second: \t" + str(per_class2) + "\n\n"
-		output_string += "\u0394:\t" + str(delta_performance) + "\n"
+		output_string += "del:\t" + str(delta_performance) + "\n"
 
 		# top 5
 		# missing classes
@@ -365,23 +383,44 @@ def export_raw_classification_report(report, exp_batch_id, classifier_type, sube
 	save_location = "results-analysis/" + exp_batch_id + "f" + str(fold_id) + "_" + classifier_type[1:] + "_" + subexp_label 
 	df.to_csv(save_location + ".csv")
 
-def export_confusion_matrix(cm, exp_batch_id, classifier_type, subexp_label, fold_id):
+def export_confusion_matrix(Y_correct, Y_test, exp_batch_id, classifier_type, subexp_label, fold_id):
+	cm = confusion_matrix(Y_correct, Y_test, labels=range(len(activity_labels)))
+
 	save_location = "results-analysis/" + exp_batch_id + "f" + str(fold_id) + "_" + classifier_type[1:] + "_" + subexp_label + "_f" + str(fold_id)
 
-	plt.subplots(figsize=(22,22))
-	sn.set_style("white",  {'figure.facecolor': 'black'})
-	corr = cm
+	cm_recall = cm / cm.astype(np.float).sum(axis=1)
+	cm_precision = cm / cm.astype(np.float).sum(axis=0)
+
+	# plt.subplots(figsize=(22,22))
+	sn.set_style("white",  {'figure.facecolor': 'white'})
+	corr = cm_recall
 	mask = np.zeros_like(corr)
 	mask[corr == 0] = True
 	ax = plt.axes()
-	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, fmt='g', annot_kws={"size": 15}, ax=ax)
-	
+	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, annot_kws={"size": 6}, fmt='.2f',  ax=ax)
+	ax.set_xticklabels(activity_labels, rotation=90)
 	ax.set_yticklabels(activity_labels, rotation=0)
 	ax.set(ylabel="True Label", xlabel="Predicted Label")
-	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label)
+	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label + "\n Recall: Samples per class with Correct Label")
 	plt.tight_layout()
-	fig.get_figure().savefig(save_location + '_cm.png')
+	fig.get_figure().savefig(save_location + '_recall_cm.png')
 	plt.close()
+
+
+	sn.set_style("white",  {'figure.facecolor': 'white'})
+	corr = cm_precision
+	mask = np.zeros_like(corr)
+	# mask[corr == 0] = True
+	ax = plt.axes()
+	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, annot_kws={"size": 6}, fmt='.2f',  ax=ax)
+	ax.set_xticklabels(activity_labels, rotation=90)
+	ax.set_yticklabels(activity_labels, rotation=0)
+	ax.set(ylabel="True Label", xlabel="Predicted Label")
+	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label + "\n Precision: Fraction of predictions k with truth label k")
+	plt.tight_layout()
+	fig.get_figure().savefig(save_location + '_precision_cm.png')
+	plt.close()
+
 
 	# Export stacked bar chart
 	labels = activity_labels
@@ -418,7 +457,7 @@ def export_confusion_matrix(cm, exp_batch_id, classifier_type, subexp_label, fol
 	ax.bar(labels, incorrect_labels, width, align="center", bottom=correct_labels,
 		   label='Incorrect Labels')
 
-	ax.set_ylabel('Number of Samples', fontsize=le_font_size)
+	ax.set_xlabel('Number of Samples', fontsize=le_font_size)
 	ax.set_ylabel('Predicted Label', fontsize=le_font_size)
 	ax.set_xticklabels(activity_labels, rotation=90, fontsize=le_font_size)
 	ax.yaxis.set_tick_params(labelsize=le_font_size)
@@ -502,8 +541,14 @@ def get_single_vector_of_multiclass_result(result):
 	
 
 def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classifier_type, hypothesis_list, fold_id):
-	Y_correct_a = Ytrue_test[:,:1]
-	Y_correct_b = Ytrue_test[:,1:]
+	if classifier_type in LABELS_STATELESS:
+		Y_correct_a = Ytrue_test[:,:1]
+		Y_correct_b = Ytrue_test[:,1:]
+
+	elif classifier_type in LABELS_TEMPORAL:
+		Y_correct_a = Ytrue_test[:,-1,:1]
+		Y_correct_b = Ytrue_test[:,-1,1:]
+
 
 	sub_experiments = list(results_dict.keys())
 	if '' in sub_experiments:
@@ -549,8 +594,8 @@ def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classif
 		report = classification_report(Y_correct, Y_test, output_dict=True, labels=range(len(activity_labels)), target_names=activity_labels)
 		export_raw_classification_report(report, exp_batch_id, classifier_type, subexp_label, fold_id)
 
-		cm = confusion_matrix(Y_correct, Y_test, labels=range(len(activity_labels)))
-		export_confusion_matrix(cm, exp_batch_id, classifier_type, subexp_label, fold_id)
+		
+		export_confusion_matrix(Y_correct, Y_test, exp_batch_id, classifier_type, subexp_label, fold_id)
 
 	print("}")
 	print("\n\nRunning analysis for this classifier's results: ")
@@ -579,7 +624,7 @@ def import_results(unique_title, prefix, fold_id, classifier_type):
 		start = item.find(classifier_type) + len(classifier_type) + len("_")
 		label = item[start : item.rfind("_")]
 
-		print(item)
+		# print(item)
 		
 		Y_test 		= pickle.load(open(prefix + item, 'rb'))
 		result_dict[label] = Y_test
@@ -594,7 +639,7 @@ def import_original_vectors(unique_title, prefix, fold_id, classifier_type):
 	# true is the keyword for the correct vectors
 	entries = list(filter(lambda k: 'true' in k, entries))
 	entries = list(filter(lambda x: x.find('.png') == -1, entries))
-	print(entries)
+	# print(entries)
 
 	if classifier_type in LABELS_TEMPORAL:
 		entries = list(filter(lambda k: 'temporal' in k, entries))
@@ -658,11 +703,17 @@ def export_raw_vector_report(Y_true_train, Y_true_test, fold_id, exp_batch_id, c
 
 	save_location = "results-analysis/" + exp_batch_id + "/_f" + str(fold_id) + "_" + type
 
-	n, bins, patches = plt.hist(Y_true_train, bins=len(activity_labels), normed=0, facecolor='green', alpha=0.75)
+	Y_true_train 	= Y_true_train[:, -1, :]
+	Y_true_test 	= Y_true_test[:, -1, :]
+
+	print(Y_true_train.shape)
+	print(Y_true_test.shape)
+
+	n, bins, patches = plt.hist(Y_true_train, bins=len(activity_labels), facecolor='green', alpha=0.75)
 	plt.xlabel('Class')
 	plt.ylabel('Instances')
 	ax = plt.axes()
-	ax.set_xticks(bins)
+	# ax.set_xticks(bins)
 	ax.set_xticklabels(activity_labels, rotation=45)
 	plt.title('Histogram of Class Occurence in Train Labels:')
 	plt.grid(True)
@@ -680,11 +731,11 @@ def export_raw_vector_report(Y_true_train, Y_true_test, fold_id, exp_batch_id, c
 	plt.savefig(save_location + '_true_train' + ".png")
 	plt.close()
 
-	n, bins, patches = plt.hist(Y_true_test, len(activity_labels), normed=0, facecolor='green', alpha=0.75)
+	n, bins, patches = plt.hist(Y_true_test, len(activity_labels), facecolor='green', alpha=0.75)
 	plt.xlabel('Class')
 	plt.ylabel('Instances')
 	ax = plt.axes()
-	ax.set_xticks(bins)
+	# ax.set_xticks(bins)
 	ax.set_xticklabels(activity_labels, rotation=45)
 	plt.title('Histogram of Class Occurence in Test Labels:')
 	plt.grid(True)
@@ -704,15 +755,17 @@ def export_raw_vector_report(Y_true_train, Y_true_test, fold_id, exp_batch_id, c
 		text_file.write(data)
 
 def main():
-	num_folds = 5
+	num_folds = 1
 	seed = 56
-	unique_title = '_s56_'
+	unique_title = '_s111_'
 
-	experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3, LABEL_KNN5, LABEL_SGDC, LABEL_SVM, LABEL_LSTM]
+	print("Beginning analysis")
+
+	# experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3, LABEL_KNN5, LABEL_SGDC, LABEL_SVM, LABEL_LSTM]
 	# experiment_titles.extend([LABEL_LSTM])#, LABEL_LSTM_BIGGER, LABEL_LSTM_BIGGEST])
-	# experiment_titles = [LABEL_LSTM]
+	experiment_titles = [LABEL_LSTM]
 	
-	exp_batch_id = 10
+	exp_batch_id = 13
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_import = 'results/' + exp_batch_id
 	prefix_export = 'results-analysis/' + exp_batch_id
