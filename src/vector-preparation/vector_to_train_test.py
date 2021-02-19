@@ -1,6 +1,7 @@
 import time
 import cv2
 import random
+import ctime
 import pickle
 import pandas as pd
 import numpy as np
@@ -8,15 +9,18 @@ import json
 import copy
 
 
-activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
-						'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
-						'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
-						'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20, 'leaving-table':21, 'cleaning-up':22, 'NONE':23}
+# activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
+# 						'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
+# 						'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
+# 						'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20, 'leaving-table':21, 'cleaning-up':22, 'NONE':23}
 
-activity_from_key = {0:'away-from-table', 1:'idle', 2:'eating', 3: 'drinking', 4: 'talking', 5: 'ordering', 6: 'standing',
-						7: 'talking:waiter', 8: 'looking:window', 9: 'looking:waiter', 10: 'reading:bill', 11: 'reading:menu',
-						12: 'paying:check', 13: 'using:phone', 14: 'using:napkin', 15: 'using:purse', 16: 'using:glasses',
-						17: 'using:wallet', 18: 'looking:PersonA', 19: 'looking:PersonB', 20: 'takeoutfood', 21: 'leaving-table', 22: 'cleaning-up', 23: 'NONE'}
+activitydict = {0: 'NONE', 1: 'away-from-table', 2: 'idle', 3: 'eating', 4: 'talking', 5:'talking:waiter', 6: 'looking:window', 
+	7: 'reading:bill', 8: 'reading:menu', 9: 'paying:check', 10: 'using:phone', 11: 'using:objs', 12: 'standing'}
+
+# activity_from_key = {0:'away-from-table', 1:'idle', 2:'eating', 3: 'drinking', 4: 'talking', 5: 'ordering', 6: 'standing',
+# 						7: 'talking:waiter', 8: 'looking:window', 9: 'looking:waiter', 10: 'reading:bill', 11: 'reading:menu',
+# 						12: 'paying:check', 13: 'using:phone', 14: 'using:napkin', 15: 'using:purse', 16: 'using:glasses',
+# 						17: 'using:wallet', 18: 'looking:PersonA', 19: 'looking:PersonB', 20: 'takeoutfood', 21: 'leaving-table', 22: 'cleaning-up', 23: 'NONE'}
 
 
 # Lookup table for OpenPose keypoint indices
@@ -35,13 +39,71 @@ INDEX_PB = 1
 BATCH_ID_STATELESS 	= 'stateless'
 BATCH_ID_TEMPORAL 	= 'temporal'
 
-BATCH_ID_MEALWISE_STATELESS 	= 'mwstateless'
-BATCH_ID_MEALWISE_TEMPORAL 	= 'mwtemporal'
+BATCH_ID_MEALWISE_STATELESS 	= 'mwstatel'
+BATCH_ID_MEALWISE_TEMPORAL 	= 'mwtemp'
 
 BATCH_ID_TEMPORAL_SPARE = 'temporal_sparse'
 
 GROUPING_MEALWISE = '_g-mw'
 GROUPING_RANDOM = "_g-rand"
+
+# eating contains drinking
+# looking:PersonA, looking:PersonB -> idle
+# standing
+# leaving
+# drinking
+def reduce_labels(Y_array):
+	# activity_from_key = {0:'away-from-table', 1:'idle', 2:'eating', 3: 'drinking', 4: 'talking', 5: 'ordering', 6: 'standing',
+	# 					7: 'talking:waiter', 8: 'looking:window', 9: 'looking:waiter', 10: 'reading:bill', 11: 'reading:menu',
+	# 					12: 'paying:check', 13: 'using:phone', 14: 'using:napkin', 15: 'using:purse', 16: 'using:glasses',
+	# 					17: 'using:wallet', 18: 'looking:PersonA', 19: 'looking:PersonB', 20: 'takeoutfood', 21: 'leaving-table', 22: 'cleaning-up', 23: 'NONE'}
+
+	# activity_labels = [0: 'NONE', 1: 'away-from-table', 2: 'idle', 3: 'eating', 4: 'talking', 5:'talking:waiter', 6: 'looking:window', 
+	# 7: 'reading:bill', 8: 'reading:menu', 9: 'paying:check', 10: 'using:phone', 11: 'using:objs', 12: 'standing']
+	
+	ACT_NONE 			= 0
+	ACT_AWAY_FROM_TABLE = 1
+	ACT_IDLE			= 2
+	ACT_EATING			= 3
+	ACT_TALKING			= 4
+	ACT_WAITER			= 5
+	ACT_LOOKING_WINDOW	= 6
+	ACT_READING_BILL	= 7
+	ACT_READING_MENU	= 8
+	ACT_PAYING_CHECK	= 9
+	ACT_USING_PHONE		= 10
+	ACT_OBJ_WILDCARD 	= 11
+	ACT_STANDING		= 12
+
+
+	Y_new = np.empty_like(Y_array)
+	Y_new = np.where(Y_array==23, ACT_NONE, 		Y_new)
+	Y_new = np.where(Y_array==22, ACT_NONE, 		Y_new)
+	Y_new = np.where(Y_array==21, ACT_STANDING, 	Y_new) 
+	Y_new = np.where(Y_array==20, ACT_OBJ_WILDCARD, Y_new)
+	Y_new = np.where(Y_array==19, ACT_IDLE, 		Y_new)
+	Y_new = np.where(Y_array==18, ACT_IDLE, 		Y_new)
+	Y_new = np.where(Y_array==17, ACT_PAYING_CHECK, Y_new)
+	Y_new = np.where(Y_array==16, ACT_OBJ_WILDCARD, Y_new)
+	Y_new = np.where(Y_array==15, ACT_OBJ_WILDCARD, Y_new)
+	Y_new = np.where(Y_array==14, ACT_OBJ_WILDCARD, Y_new)
+	Y_new = np.where(Y_array==13, ACT_USING_PHONE, 	Y_new)
+	Y_new = np.where(Y_array==12, ACT_PAYING_CHECK, Y_new)
+	Y_new = np.where(Y_array==11, ACT_READING_MENU, Y_new)
+	Y_new = np.where(Y_array==10, ACT_READING_BILL, Y_new)
+	Y_new = np.where(Y_array==9, ACT_WAITER, 		Y_new) 
+	Y_new = np.where(Y_array==8, ACT_LOOKING_WINDOW,Y_new)
+	Y_new = np.where(Y_array==7, ACT_WAITER, 		Y_new)
+	Y_new = np.where(Y_array==6, ACT_STANDING, 		Y_new)
+	Y_new = np.where(Y_array==5, ACT_WAITER, 		Y_new)
+	Y_new = np.where(Y_array==4, ACT_TALKING, 		Y_new)
+	Y_new = np.where(Y_array==3, ACT_EATING, 		Y_new)
+	Y_new = np.where(Y_array==2, ACT_EATING, 		Y_new)
+	Y_new = np.where(Y_array==1, ACT_IDLE, 			Y_new)
+	Y_new = np.where(Y_array==0, ACT_AWAY_FROM_TABLE, Y_new)
+
+
+	return Y_new
 
 
 def unison_shuffled_copies(a, b, seed_val):
@@ -303,7 +365,7 @@ def export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overla
 	# Set up the input fold arrays
 	for f in range(num_folds):
 		input_row = np.zeros((0,128,50,3))
-		output_row = np.zeros((0,2))
+		output_row = np.zeros((0,128,2))
 
 		total_test_X[f] = input_row
 		total_test_Y[f] = output_row
@@ -323,6 +385,8 @@ def export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overla
 		Y_all = pickle.load(filehandler)
 		filehandler.close()
 
+		Y_all = reduce_labels(Y_all)
+
 		# print(X_all.shape)
 		# print(X_all.shape)
 
@@ -334,7 +398,7 @@ def export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overla
 
 		# Note that we're passing just the labels in Y
 		total_train_X, total_train_Y, total_test_X, total_test_Y = \
-			export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_solo, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed)
+			export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shuffled, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed)
 
 	export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed, GROUPING_RANDOM)
 
@@ -491,9 +555,9 @@ def export_folds(filenames_all, prefix_vectors_out, seed):
 	overlap_percent = .2
 	test_percent = .2
 
-	export_folds_mealwise_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
-	export_folds_mealwise_temporal(filenames_all, prefix_vectors_out, test_percent, seed, window_size, overlap_percent)
-	export_folds_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
+	# export_folds_mealwise_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
+	# export_folds_mealwise_temporal(filenames_all, prefix_vectors_out, test_percent, seed, window_size, overlap_percent)
+	# export_folds_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
 	export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overlap_percent, test_percent, seed)
 
 
