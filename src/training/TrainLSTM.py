@@ -2,7 +2,27 @@ from feature_utils import *
 import RestaurantFrame
 FLAG_SVM = False
 import time
+
+FEATURES_SET_PA = 0
+FEATURES_SET_PB = 1
+FEATURES_SET_BOTH = 2
+LABELS_SET_PA = 0
+LABELS_SET_PB = 1
 #fid evaluate a model
+def calc_precision_recall(cm,logfile):
+    #print(cm.shape)
+    p = []
+    r = []
+    p_denoms = cm.sum(axis=0)
+    r_denoms = cm.sum(axis=1)
+    for class_lbl in range(0, cm.shape[1]):
+        precision = cm[class_lbl][class_lbl]/p_denoms[class_lbl]
+        recall = cm[class_lbl][class_lbl]/r_denoms[class_lbl]
+        logfile.write(activitydict_rev[class_lbl] + " precision: " + str(precision) + " recall: " + str(recall) + " total: " + str(r_denoms[class_lbl]) + "\n")
+        print(activitydict_rev[class_lbl] + " precision: " + str(precision) + " recall: " + str(recall) + " total: " + str(r_denoms[class_lbl]))
+        p.append(precision)
+        r.append(recall)
+    return p, r
 class LSTMTrainer:
     def __init__(self, xtrain, ytrain, xtest, ytest, logfile):
         self.xtrain = xtrain
@@ -14,8 +34,6 @@ class LSTMTrainer:
         
     def generate_cm(self, model, filename):
         pred_Y = model.predict(self.xtest)
-        #pickle.dump(pred_Y, open("pred_Y_LSTM1epochs.p", "wb"))
-        #pred_Y = pickle.load(open("pred_Y_LSTM70epochs.p", "rb"))
         decodedpredY = pred_Y.argmax(axis=1)
         decodedtestY = self.ytest.argmax(axis=1)
         frequencytest = {}
@@ -30,9 +48,12 @@ class LSTMTrainer:
                         frequencypred[num] = 1
                 else:
                         frequencypred[num] = frequencypred[num] + 1
-        #print("stats:")
-        #print(frequencytest)
-        #print(frequencypred)
+        print("stats:")
+        print(frequencytest)
+        print(frequencypred)
+        self.logfile.write("cm stats:\n")
+        self.logfile.write(str(frequencytest) + "\n")
+        self.logfile.write(str(frequencypred) + "\n")
         #print(decodedpredY.shape)
         #print(decodedtestY.shape)
         predPadding = []
@@ -50,6 +71,8 @@ class LSTMTrainer:
         fig, ax = plt.subplots()
         sum_of_rows = cm.sum(axis=1)
         cm = cm / (sum_of_rows[:, np.newaxis]+1e-8)
+        p, r = calc_precision_recall(cm,self.logfile)
+        pickle.dump(cm, open(filename +"cm_mat.p", "wb"))
         plot_confusion_matrix(cm,cmap=plt.cm.Blues)
         plt.savefig(filename + "cm.png")
         plt.close()
@@ -95,9 +118,9 @@ class LSTMTrainer:
        #for dropout in list(np.linspace(0.1,0.8,8)):
        dropout=0.1
        if search_space:
-           for epochs in [120]:
-               for hidden_dim in [320]:
-                   params = {'verbose': 0, 'epochs': hidden_dim, 'batch_size':256,'dropout':dropout, 'hidden_dim': hidden_dim}
+           for epochs in [500]:
+               for hidden_dim in [800]: # 320, 350, 400
+                   params = {'verbose': 0, 'epochs': epochs, 'batch_size':256,'dropout':dropout, 'hidden_dim': hidden_dim}
                    model_name = savepath + "CVLSTM"+str(fold)+"_"+ str(params['epochs']) + str(params['batch_size']) + str(params['dropout'])+str(params['hidden_dim'])
                    score,model  = self.evaluate_model(self.xtrain, self.ytrain, self.xtest, self.ytest, params, model_name)
                    score = score * 100.0
@@ -127,76 +150,90 @@ class LSTMTrainer:
        print("best config: " + str(params))
        return max_score
 # run the experiment
-def RestarauntFrames2Vec(filename, training_suff):
+def RestarauntFrames2Vec(train_data, training_suff,f_flag, l_flag, test_data = None):
     X_train = []
     Y_train = []
 
     X_test = []
     Y_test = []
-    shuffled_list = pickle.load(open(filename,"rb"))#["timeline"] #copy.copy(timeline)
-    #pickle.dump(shuffled_list, open("8-21-18_data_list.p", "wb"))
-    #test_list = pickle.load(open("13-21_sift_data.pickle", "rb"))["timeline"]
+    shuffled_list = pickle.load(open(train_data,"rb"))#["timeline"] #copy.copy(timeline)
     print("loaded pickle datasets")
-    index_reduc = int(len(shuffled_list) * (0.4))
-    shuffled_list = shuffled_list[:index_reduc]
-    percent_test = .2
-    index_split = int(len(shuffled_list) * (1.0 - percent_test))
-    train = shuffled_list[0:index_split]
-    test = shuffled_list[index_split:-1]
-    #train = shuffled_list
-    #index_reduc = int(len(test_list) * (0.4))
-    #test = test_list[:index_reduc]
-    #X_train = np.zeros((1, 150))
-    #X_test = np.zeros((1,150))
-    for frame in train:
-        newX, newY, ret = frame_to_vectors(frame)
+    for frame in shuffled_list:
+        newX, newY, ret = frame_to_vectors(frame, f_flag, l_flag)
         if not ret:
             continue
         X_train.extend(newX)
         Y_train.extend(newY)
-    for frame in test:
-        newX, newY, ret = frame_to_vectors(frame)
-        if not ret:
-            continue
-        X_test.extend(newX)
-        Y_test.extend(newY)
-    #X_train = np.array([np.array(xi) for xi in X_train])#np.array(X_train)
+    if test_data is not None:
+        test_list = pickle.load(open(test_data,"rb"))
+        for frame in test_list:
+            newX, newY, ret = frame_to_vectors(frame, f_flag, l_flag)
+            if not ret:
+                continue
+            X_test.extend(newX)
+            Y_test.extend(newY)
     X_train = np.array(X_train) 
     Y_train = np.asarray(Y_train)
     X_test = np.array(X_test)
-    #X_test = np.array([np.array(xi) for xi in X_test])#np.array(X_test)
     Y_test = np.asarray(Y_test)
-    pickle.dump(X_train, open("training_sets/X_train_" + training_suff +".p", "wb"))
-    pickle.dump(Y_train, open("training_sets/Y_train_" + training_suff +".p", "wb"))
-    pickle.dump(X_test, open("training_sets/X_test_" + training_suff +".p", "wb"))
-    pickle.dump(Y_test, open("training_sets/Y_test_" + training_suff +".p", "wb"))
-    return X_train, Y_train, X_test, Y_test# X_test, Y_test
+    if test_data is None:
+        return X_train, Y_train, None, None
+    return X_train, Y_train, X_test, Y_test #X_train, Y_train, X_test, Y_test# X_test, Y_test
 
 def shuffle_in_unison(set_a, set_b):
     assert len(set_a) == len(set_b)
     p = np.random.permutation(len(set_a))
     return set_a[p], set_b[p]
 
-def slice_vectors(X_train, Y_train, X_test, Y_test, window_size=128):
-    X_train_sliced = np.zeros((X_train.shape[0]-window_size, window_size, X_train.shape[1]))
-    Y_train_sliced = np.zeros((Y_train.shape[0]-window_size, 1))
-    X_test_sliced = np.zeros((X_test.shape[0]-window_size, window_size, X_test.shape[1]))
-    Y_test_sliced = np.zeros((Y_test.shape[0]-window_size, 1))
-
+def slice_vectors(X_train, Y_train, training_suff, logfile, window_size=128,X_test=None, Y_test=None):#, X_test, Y_test, window_size=128):
+    test_exclusive = False
+    test_set_provided = X_test is not None and Y_test is not None
+    x_sliced_list = []
+    y_sliced_list = []
+    if test_set_provided:
+        X_test_sliced = np.zeros((X_test.shape[0]-window_size, window_size, X_test.shape[1]))
+        Y_test_sliced = np.zeros((Y_test.shape[0]-window_size, 1))
+    label_freqs = {}
+    for i in range(0,25):
+        label_freqs[i] = 0
     for idx in range(window_size, X_train.shape[0]):
-        X_train_sliced[idx-window_size,:,:] = X_train[idx-window_size:idx]
+        x_sliced_list.append(X_train[idx-window_size:idx].tolist())
+    X_train_sliced = np.array(x_sliced_list)
     for idx in range(window_size, Y_train.shape[0]):
-        Y_train_sliced[idx-window_size,0] = Y_train[idx]
-    for idx in range(window_size, X_test.shape[0]):
-        X_test_sliced[idx-window_size,:] = X_test[idx-window_size:idx]
-    for idx in range(window_size, Y_test.shape[0]):
-        Y_test_sliced[idx-window_size,0] = Y_test[idx]
+        label_freqs[Y_train[idx]] += 1
+        y_sliced_list.append(Y_train[idx].tolist())
+    Y_train_sliced = np.array(y_sliced_list)
+    print(X_train_sliced.shape)
+    print(Y_train_sliced.shape)
+    print(label_freqs)
+    logfile.write("class freqs: " + str(label_freqs))
+    if test_set_provided:
+        for idx in range(window_size, X_test.shape[0]):
+            X_test_sliced[idx-window_size,:] = X_test[idx-window_size:idx]
+        for idx in range(window_size, Y_test.shape[0]):
+            Y_test_sliced[idx-window_size,0] = Y_test[idx]
+    if test_exclusive:
+        test_set_provided = True
+        x_sliced_test_list = []
+        y_sliced_test_list = []
+        for idx in range(window_size+2, X_train.shape[0]):
+            x_sliced_test_list.append(X_train[idx-window_size:idx].tolist())
+        for idx in range(window_size+2, Y_train.shape[0]):
+            y_sliced_test_list.append(Y_train[idx].tolist())
+        Y_test_sliced = np.array(y_sliced_test_list)
+        X_test_sliced = np.array(x_sliced_test_list)
     Y_train_sliced = to_categorical(Y_train_sliced)
-    Y_test_sliced = to_categorical(Y_test_sliced)
-    combined_X_data = np.concatenate((X_train_sliced, X_test_sliced), axis=0)
-    combined_Y_data = np.concatenate((Y_train_sliced, Y_test_sliced), axis=0)
-    X_sliced, Y_sliced = shuffle_in_unison(combined_X_data, combined_Y_data)
-    
+    if test_set_provided:
+        Y_test_sliced = to_categorical(Y_test_sliced)
+        X_test_sliced, Y_test_sliced = shuffle_in_unison(X_test_sliced, Y_test_sliced)
+    X_sliced, Y_sliced = shuffle_in_unison(X_train_sliced, Y_train_sliced)
+    if test_set_provided:
+        print("test_set_provided")
+        train_list = [(X_sliced,Y_sliced)]
+        test_list = [(X_test_sliced, Y_test_sliced)]
+        pickle.dump(train_list, open("training_sets/train_list_" + training_suff +".p", "wb"),protocol=4)
+        pickle.dump(test_list, open("training_sets/test_list_" + training_suff +".p", "wb"),protocol=4)
+        return train_list, test_list
     train_list = []
     test_list = []
     percent_test = .2
@@ -212,26 +249,31 @@ def slice_vectors(X_train, Y_train, X_test, Y_test, window_size=128):
         train_list.append((X_train_sliced,Y_train_sliced))
         test_list.append((X_test_sliced,Y_test_sliced))
         print(X_train_sliced.shape, Y_train_sliced.shape, X_test_sliced.shape, Y_test_sliced.shape)
-    #return X_train_sliced, Y_train_sliced, X_test_sliced, Y_test_sliced
+    pickle.dump(train_list, open("training_sets/train_list_" + training_suff +".p", "wb"),protocol=4)
+    pickle.dump(test_list, open("training_sets/test_list_" + training_suff +".p", "wb"),protocol=4)
+
     return train_list, test_list
-
-
-training_suffix = "processed_ab_a"
-modelpath = "models/AB_A/"
+training_suffix = "processed_wn1_ab_b"
+modelpath = "models/AB_B/"
 X_train, Y_train, X_test, Y_test = None, None, None, None
 log = open("training_log", "a")
 try:
-    X_train = pickle.load(open("training_sets/X_train_" + training_suffix +".p", "rb"))
-    Y_train = pickle.load(open("training_sets/Y_train_" + training_suffix +".p", "rb"))
-    X_test = pickle.load(open("training_sets/X_test_" + training_suffix +".p", "rb"))
-    Y_test = pickle.load(open("training_sets/Y_test_" + training_suffix +".p", "rb"))
+    train_file = open("training_sets/train_list_" + training_suffix +".p", "rb")
+    test_file = open("training_sets/test_list_" + training_suffix +".p", "rb")
+    train_list = pickle.load(train_file)
+    test_list =  pickle.load(test_file)
+    train_file.close()
+    test_file.close()
+    """
+    Y_train = pickle.load(open("training_sets/Y_train_sliced_" + training_suffix +".p", "rb"))
+    X_test = pickle.load(open("training_sets/X_test_sliced_" + training_suffix +".p", "rb"))
+    Y_test = pickle.load(open("training_sets/Y_test_sliced_" + training_suffix +".p", "rb"))
+    """
 except:
     print("generating sliced dataset...")
-    X_train, Y_train, X_test, Y_test = RestarauntFrames2Vec("13-17-18-21_data_processed.pickle", training_suffix)
+    X_train, Y_train, X_test, Y_test = RestarauntFrames2Vec("training_sets/13-17-18-21_data_processed.pickle", training_suffix, FEATURES_SET_BOTH, LABELS_SET_PB, test_data=None)#"training_sets/8-9-18_data_processed.pickle")#, X_test, Y_test = RestarauntFrames2Vec("13-17-18-21_data_processed.pickle", training_suffix)
+    train_list, test_list = slice_vectors(X_train, Y_train, training_suffix, log, X_test=X_test, Y_test=Y_test, window_size=64)
 
-
-#xt, yt, xtest, ytest = slice_vectors(X_train, Y_train, X_test, Y_test[0:X_test.shape[0]], window_size=128)
-train_list, test_list = slice_vectors(X_train, Y_train, X_test, Y_test[0:X_test.shape[0]], window_size=128)
 acc_sum = 0.0
 for i in range(0, 1):# len(train_list)):
     log.write("training for " +str(i) + "'th fold of data\n")
