@@ -43,8 +43,12 @@ CLASSIFIER_DecisionTree = '_dectree'
 CLASSIFIER_LSTM = '_lstm-og'
 CLASSIFIER_LSTM_BIGGER = '_lstm-big'
 CLASSIFIER_LSTM_BIGGEST = '_lstm-biggest'
+CLASSIFIER_CRF = '_crf'
 
-CLASSIFIERS_TEMPORAL = [CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]
+GROUPING_MEALWISE = '_g-mw'
+GROUPING_RANDOM = "_g-rand"
+
+CLASSIFIERS_TEMPORAL = [CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_CRF]
 CLASSIFIERS_STATELESS = [CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_SVM, CLASSIFIER_SGDC, CLASSIFIER_ADABOOST, CLASSIFIER_DecisionTree]
 
 LSTM_NUM_LABELS = len(activity_labels)
@@ -69,6 +73,12 @@ def get_LSTM(trainX, trainY, scale=1):
 	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 	# print("fiting model...." + model_name)
 	#plot_losses = TrainingPlot()
+	return model
+
+def get_CRF():
+
+
+
 	return model
 
 def export_confusion_matrix(y1, y2, exp_batch_id, classifier_type, subexp_label, fold_id):
@@ -217,10 +227,10 @@ def classifier_train(X, Y, classifier_key):
 		# Y.shape[]
 		dropout = 0.1
 		batch_size = 256
-		hidden_dim = 80
 		epochs = 70
 		Y = to_categorical(Y, num_classes=len(activity_labels))
-		classifier.fit(X, Y, batch_size=batch_size, verbose=0)
+		epochs = 500
+		classifier.fit(X, Y, batch_size=batch_size, verbose=0, epochs=epochs)
 	else:
 		classifier.fit(X, Y)
 
@@ -421,7 +431,7 @@ def get_B(X_array, Y_array, c_type):
 
 
 
-def experiment_swapped_poses(fold_id, input_set, unique_title, classifier_type, exp_batch_id):
+def experiment_swapped_poses(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
 	print("Experiment: Poses Swapped")
 	prefix_export = 'results/' + exp_batch_id
 	label_b_a = "_b_a"
@@ -452,12 +462,12 @@ def experiment_swapped_poses(fold_id, input_set, unique_title, classifier_type, 
 	experiment_blob['b_a_predict'] = result_b_a
 	experiment_blob['b_a_correct'] = Y_test_A
 
-	filehandler = open(prefix_export + unique_title + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
+	filehandler = open(prefix_export + unique_title + grouping_type + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
 	pickle.dump(experiment_blob, filehandler)
 	filehandler.close()
 
 
-def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type, exp_batch_id):
+def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
 	print("Experiment: Label to Label")
 	prefix_export = 'results/' + exp_batch_id
 	label_lb_la = "_lb_la"
@@ -494,12 +504,12 @@ def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type,
 
 	experiment_blob_all[fold_id] = experiment_blob
 
-	filehandler = open(prefix_export + unique_title + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
+	filehandler = open(prefix_export + unique_title + grouping_type + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
 	pickle.dump(experiment_blob_all, filehandler)
 	filehandler.close()
 
 
-def experiment_duo_vs_solo_just_labels(fold_id, input_set, unique_title, classifier_type, exp_batch_id):
+def experiment_duo_vs_solo_just_labels(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
 	print("Experiment: Duo vs Solo Just Labels")
 	prefix_export = 'results/' + exp_batch_id
 	label_alb_a = "_alb_a"
@@ -534,13 +544,13 @@ def experiment_duo_vs_solo_just_labels(fold_id, input_set, unique_title, classif
 
 	experiment_blob_all[fold_id] = experiment_blob
 
-	filehandler = open(prefix_export + unique_title + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
+	filehandler = open(prefix_export + unique_title + grouping_type + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
 	pickle.dump(experiment_blob_all, filehandler)
 	filehandler.close()
 
 
 
-def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, exp_batch_id):
+def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
 	print("Experiment: Duo vs Solo")
 
 	prefix_export = 'results/' + exp_batch_id
@@ -599,21 +609,23 @@ def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, ex
 	experiment_blob['ab_b_correct'] = Y_test_B
 	experiment_blob_all[fold_id] = experiment_blob
 
-	filehandler = open(prefix_export + unique_title + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
+	filehandler = open(prefix_export + unique_title + grouping_type + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
 	pickle.dump(experiment_blob_all, filehandler)
 	filehandler.close()
 
 
 # Given a file location, return the four test/train vectors
-def import_vectors(unique_title, prefix, fold_id):
+def import_vectors(unique_title, prefix, fold_id, grouping_type):
 	entries = os.listdir(prefix)
 	# print(entries)
 	# print(prefix)
 	# get all the input files from this video
 	entries = list(filter(lambda k: unique_title in k, entries))
 	# print(entries)
+	entries = list(filter(lambda k: grouping_type in k, entries))
 	entries = list(filter(lambda k: 'total' in k, entries))
 	# print(entries)
+
 
 	fold_group = "f" + str(fold_id) + "_"
 	fold_entries = list(filter(lambda k: fold_group in k, entries))
@@ -629,7 +641,7 @@ def import_vectors(unique_title, prefix, fold_id):
 	if len(X_test_label) > 1 or len(Y_test_label) > 1  or len(X_train_label) > 1  or len(Y_train_label) > 1:
 		print("Error in import: multiple matching batches for this unique key")
 		print("Please provide a key that aligns with only one of the following")
-		print(X_test)
+		print(X_test_label)
 	if len(X_test_label) == 0 or len(Y_test_label) == 0  or len(X_train_label) == 0  or len(Y_train_label) == 0:
 		print("Sorry, no import matching found")
 		print(fold_group)
@@ -646,7 +658,7 @@ def import_vectors(unique_title, prefix, fold_id):
 	
 	return X_train, X_test, Y_train, Y_test
 
-def get_stateless_vectors(folds, unique_title, exp_batch_id, seed=42):
+def get_stateless_vectors(folds, unique_title, exp_batch_id, grouping_type, seed=42):
 	# These variables are set for a given import
 	# different seeds, different values
 	
@@ -659,7 +671,7 @@ def get_stateless_vectors(folds, unique_title, exp_batch_id, seed=42):
 	# exp_sets['all'] = import_vectors(unique_title, prefix, -1)
 	for fold_id in range(folds):
 		print("Geting stateless data for fold " + str(fold_id))
-		X_train, X_test, Y_train, Y_test = import_vectors(unique_title, prefix, fold_id)
+		X_train, X_test, Y_train, Y_test = import_vectors(unique_title, prefix, fold_id, grouping_type)
 
 		print(X_test.shape)
 		print(X_train.shape)
@@ -670,15 +682,15 @@ def get_stateless_vectors(folds, unique_title, exp_batch_id, seed=42):
 		print(X_test.shape)
 		print(X_train.shape)
 
-		export_result(Y_train, 	prefix_export, 'Ytruetrain_stateless_f' + str(fold_id))
-		export_result(Y_test, 	prefix_export, 'Ytruetest_stateless_f' + str(fold_id))
+		export_result(Y_train, 	prefix_export, 'Ytruetrain_stateless' + grouping_type + '_f' + str(fold_id))
+		export_result(Y_test, 	prefix_export, 'Ytruetest_stateless' + grouping_type + '_f' + str(fold_id))
 
 		exp_sets[fold_id] = {'xtest': X_test, 'xtrain': X_train, 'ytest': Y_test, 'ytrain': Y_train}
 
 	print()
 	return exp_sets
 
-def get_temporal_vectors(folds, unique_title, exp_batch_id, seed=42):
+def get_temporal_vectors(folds, unique_title, exp_batch_id, grouping_type, seed=42):
 	# These variables are set for a given import
 	# different seeds, different values
 	prefix = '../vector-preparation/output-vectors/temporal/'
@@ -693,13 +705,13 @@ def get_temporal_vectors(folds, unique_title, exp_batch_id, seed=42):
 	for fold_id in range(folds):
 		print("Getting temporal data for fold " + str(fold_id))
 
-		X_train, X_test, Y_train, Y_test = import_vectors(unique_title, prefix, fold_id)
+		X_train, X_test, Y_train, Y_test = import_vectors(unique_title, prefix, fold_id, grouping_type)
 
 		X_test 		= X_test.reshape(X_test.shape[0], window_size, n_features)
 		X_train 	= X_train.reshape(X_train.shape[0], window_size, n_features) # dimension_X_row)
 
-		export_result(Y_train, 	'results/' + exp_batch_id, 'Ytruetrain_temporal_f' + str(fold_id))
-		export_result(Y_test, 	'results/' + exp_batch_id, 'Ytruetest_temporal_f' + str(fold_id))	
+		export_result(Y_train, 	'results/' + exp_batch_id, 'Ytruetrain_temporal' + grouping_type + '_f' + str(fold_id))
+		export_result(Y_test, 	'results/' + exp_batch_id, 'Ytruetest_temporal' + grouping_type + '_f' + str(fold_id))	
 
 		exp_sets[fold_id] = {'xtest': X_test, 'xtrain': X_train, 'ytest': Y_test, 'ytrain': Y_train}
 
@@ -710,7 +722,7 @@ def get_temporal_vectors(folds, unique_title, exp_batch_id, seed=42):
 def run_experiments():
 	num_folds = 5
 	unique_title = 's111_'
-	exp_batch_id = 10
+	exp_batch_id = 11
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_export = 'results/' + exp_batch_id
 
@@ -719,15 +731,17 @@ def run_experiments():
 	except OSError as error:  
 		print("This directory already exists; do you want a fresh experiment ID?")
 
-	all_svm_vectors 		= get_stateless_vectors(num_folds, unique_title, exp_batch_id)
-	# all_temporal_vectors 	= get_temporal_vectors(num_folds, unique_title, exp_batch_id)
+	grouping_type = GROUPING_RANDOM
+
+	all_svm_vectors 		= get_stateless_vectors(num_folds, unique_title, exp_batch_id, grouping_type)
+	all_temporal_vectors 	= get_temporal_vectors(num_folds, unique_title, exp_batch_id, grouping_type)
 	
 
 
-	exp_types = [CLASSIFIER_KNN3, CLASSIFIER_DecisionTree, CLASSIFIER_ADABOOST, CLASSIFIER_KNN5, CLASSIFIER_KNN9]#, CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]#, CLASSIFIER_SGDC, CLASSIFIER_SVM]
+	# exp_types = [CLASSIFIER_KNN3, CLASSIFIER_DecisionTree, CLASSIFIER_ADABOOST, CLASSIFIER_KNN5, CLASSIFIER_KNN9]#, CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]#, CLASSIFIER_SGDC, CLASSIFIER_SVM]
 	# exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SVM]
 	# exp_types = [CLASSIFIER_LSTM]
-	# exp_types = [CLASSIFIER_LSTM]#, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_DecisionTree]
+	exp_types = [CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_DecisionTree]
 
 	for i in range(len(exp_types)):		
 		classifier_type = exp_types[i]
@@ -744,12 +758,12 @@ def run_experiments():
 		for fold_id in range(num_folds):
 			fold_data = train_test_vectors[fold_id]
 
-			experiment_swapped_poses(fold_id, fold_data, unique_title, classifier_type, exp_batch_id)
-			experiment_duo_vs_solo(fold_id, fold_data, unique_title, classifier_type, exp_batch_id)
+			# experiment_swapped_poses(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+			experiment_duo_vs_solo(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 
 			if classifier_type in CLASSIFIERS_STATELESS:
-				experiment_duo_vs_solo_just_labels(fold_id, fold_data, unique_title, classifier_type, exp_batch_id)
-				experiment_label_to_label(fold_id, fold_data, unique_title, classifier_type, exp_batch_id)
+				experiment_duo_vs_solo_just_labels(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+				experiment_label_to_label(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 
 
 
