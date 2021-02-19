@@ -6,6 +6,8 @@ import random
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import matthews_corrcoef
+import matplotlib.mlab as mlab
 from dictdiffer import diff
 import seaborn as sn
 import matplotlib.pyplot as plt
@@ -66,12 +68,14 @@ HYPOTH_FALLOUT					= 'hypothesis_missing_data'
 HYPOTH_BODYPART_FALLOUT			= 'hypothesis_bodypart_fallout'
 
 ANALYSIS_OVERALL_ACCURACY		= 'analysis:overall-accuracy'
-ANALYSIS_BEST_CLASSES			= 'analysis:best_classes'
-ANALYSIS_WORST_CLASSES			= 'analysis:worst_classes'
 ANALYSIS_CLASS_PERFORMANCE 		= 'analysis:class_performance'
+ANALYSIS_MCC 		= 'analysis:mcc'
+
+default_analysis = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_CLASS_PERFORMANCE, ANALYSIS_MCC]
 
 COMPARISON_TABLE_ACCURACY		= 'comparisons_accuracy'
-COMPARISONS 					= [COMPARISON_TABLE_ACCURACY]
+COMPARISON_TABLE_MCC		= 'comparisons_mcc'
+COMPARISONS 					= [COMPARISON_TABLE_ACCURACY, COMPARISON_TABLE_MCC]
 
 
 activity_labels = ['away-from-table', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 
@@ -89,16 +93,16 @@ class Hypothesis:
 		if hypothesis_label == HYPOTH_SOLO_DUO_POSES:
 			comparison_groups.append([LABEL_A_A, LABEL_AB_A])
 			comparison_groups.append([LABEL_B_B, LABEL_AB_B])
-			self.analysis_types = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_CLASS_PERFORMANCE]
+			self.analysis_types = default_analysis
 
 		elif hypothesis_label == HYPOTH_SOLO_DUO_POSELABEL:
-			self.analysis_types = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_CLASS_PERFORMANCE]
+			self.analysis_types = default_analysis
 
 			comparison_groups.append([LABEL_A_A, LABEL_ALB_A])
 			comparison_groups.append([LABEL_B_B, LABEL_BLA_B])
 			
 		elif hypothesis_label == HYPOTH_AUXPOSE_TO_TARGET:
-			self.analysis_types = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_CLASS_PERFORMANCE]
+			self.analysis_types = default_analysis
 
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_B_A])
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_A_B])
@@ -107,7 +111,7 @@ class Hypothesis:
 			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_A_B])
 		
 		elif hypothesis_label == HYPOTH_AUX_LABEL_TO_TARGET:
-			self.analysis_types = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_CLASS_PERFORMANCE]
+			self.analysis_types = default_analysis
 
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_B_A])
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_A_B])
@@ -115,7 +119,7 @@ class Hypothesis:
 			comparison_groups.append([LABEL_RANDOM_CHANCE_CLASSCHANCE_B, LABEL_LA_LB])
 
 		elif hypothesis_label == HYPOTH_VANILLA_RATE:
-			self.analysis_types = [ANALYSIS_OVERALL_ACCURACY]
+			self.analysis_types = default_analysis
 
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_A, LABEL_A_A])
 			comparison_groups.append([LABEL_RANDOM_CHANCE_UNIFORM_B, LABEL_B_B])
@@ -132,6 +136,19 @@ class Hypothesis:
 
 	def get_hypothesis_label(self):
 		return self.hypothesis_label
+
+	def analysis_mcc(self, first_test, first_truth, second_test, second_truth):
+		mcc_first 	= accuracy_score(first_truth, first_test)
+		mcc_second = accuracy_score(second_truth, second_test)
+		delta = mcc_second - mcc_first
+		output_string = ""
+
+		output_string += str(mcc_first) + " ::: " + str(mcc_second) + "\n"
+		output_string += "MCC \u0394: " + str(delta) + "\n"
+
+		return output_string
+
+
 
 	def analysis_compare_overall_accuracy(self, first_test, first_truth, second_test, second_truth):
 		accuracy_first 	= accuracy_score(first_truth, first_test)
@@ -167,6 +184,13 @@ class Hypothesis:
 
 		return per_class_accuracies
 
+	def get_per_class_mcc(self, true, predicted):
+		per_class_mcc = {}
+		for idx, cls in enumerate(activity_labels):
+			per_class_mcc[cls] = matthews_corrcoef(true, predicted)
+
+		return per_class_mcc
+
 	def analysis_class_performance(self, first_test, first_truth, second_test, second_truth):
 
 		output_string = ""
@@ -192,6 +216,16 @@ class Hypothesis:
 		per_class2_by_best = sorted( ((v,k) for k,v in per_class2.items()), reverse=True)
 		delta_perf_by_best = sorted( ((v,k) for k,v in delta_performance.items()), reverse=True)
 
+		output_string += "---ACCURACY--- \n"
+		output_string += "first: \t" + str(per_class1) + "\n\n"
+		output_string += "second: \t" + str(per_class2) + "\n\n"
+		output_string += "\u0394:\t" + str(delta_performance) + "\n"
+
+		per_class1 = self.get_per_class_mcc(first_truth, first_test)
+		per_class2 = self.get_per_class_mcc(second_truth, second_test)
+		delta_performance = {x: per_class2[x] - per_class1[x] for x in per_class2.keys() if x in per_class1.keys()}
+
+		output_string += "---MCC--- \n"
 		output_string += "first: \t" + str(per_class1) + "\n\n"
 		output_string += "second: \t" + str(per_class2) + "\n\n"
 		output_string += "\u0394:\t" + str(delta_performance) + "\n"
@@ -296,6 +330,10 @@ class Hypothesis:
 				print("Comparing class performance")
 				output_string += self.analysis_class_performance(first_test, first_truth, second_test, second_truth) + "\n"
 
+			if ANALYSIS_MCC in self.analysis_types:
+				print("Comparing mcc values")
+				output_string += self.analysis_mcc(first_test, first_truth, second_test, second_truth) + "\n"
+
 
 
 
@@ -330,7 +368,6 @@ def export_raw_classification_report(report, exp_batch_id, classifier_type, sube
 def export_confusion_matrix(cm, exp_batch_id, classifier_type, subexp_label, fold_id):
 	save_location = "results-analysis/" + exp_batch_id + "f" + str(fold_id) + "_" + classifier_type[1:] + "_" + subexp_label + "_f" + str(fold_id)
 
-	sn.set(font_scale=2)
 	plt.subplots(figsize=(22,22))
 	sn.set_style("white",  {'figure.facecolor': 'black'})
 	corr = cm
@@ -338,7 +375,7 @@ def export_confusion_matrix(cm, exp_batch_id, classifier_type, subexp_label, fol
 	mask[corr == 0] = True
 	ax = plt.axes()
 	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, fmt='g', annot_kws={"size": 15}, ax=ax)
-	ax.set_xticklabels(activity_labels, rotation=45)
+	
 	ax.set_yticklabels(activity_labels, rotation=0)
 	ax.set(ylabel="True Label", xlabel="Predicted Label")
 	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label)
@@ -426,6 +463,10 @@ def get_comparison(cg, key, all_results_dict):
 		test = all_results_dict[(key, 'test')]
 		true = all_results_dict[(key, 'truth')]
 		value = accuracy_score(true, test)
+	elif cg == COMPARISON_TABLE_MCC:
+		test = all_results_dict[(key, 'test')]
+		true = all_results_dict[(key, 'truth')]
+		value = matthews_corrcoef(true, test)
 	else:
 		print("COMPARISON TYPE NOT YET SUPPORTED " + cg)
 		exit()
@@ -524,7 +565,7 @@ def import_results(unique_title, prefix, fold_id, classifier_type):
 	entries = list(filter(lambda x: x.find('.png') == -1, entries))
 	
 	# get all the input files from this video
-	entries = list(filter(lambda k: classifier_type in k, entries))
+	entries = list(filter(lambda k: classifier_type + "_" in k, entries))
 	fold_group = "f" + str(fold_id) + "_"
 	fold_entries = list(filter(lambda k: fold_group in k, entries))
 	
@@ -553,6 +594,7 @@ def import_original_vectors(unique_title, prefix, fold_id, classifier_type):
 	# true is the keyword for the correct vectors
 	entries = list(filter(lambda k: 'true' in k, entries))
 	entries = list(filter(lambda x: x.find('.png') == -1, entries))
+	print(entries)
 
 	if classifier_type in LABELS_TEMPORAL:
 		entries = list(filter(lambda k: 'temporal' in k, entries))
@@ -571,6 +613,7 @@ def import_original_vectors(unique_title, prefix, fold_id, classifier_type):
 		print("Please provide a key that aligns with only one of the following")
 
 	if len(test) == 0 or len(train) == 0:
+		print("No matches found for comparison")
 		return None, None
 
 
@@ -603,17 +646,73 @@ def export_comparisons(all_comparisons, exp_batch_id, fold_id):
 		df.to_csv(save_location)
 
 	
+def export_raw_vector_report(Y_true_train, Y_true_test, fold_id, exp_batch_id, classifier_type):
+	if Y_true_test is None:
+		return
+
+	type = "unknown"
+	if classifier_type in LABELS_TEMPORAL:
+		type = "TEMPORAL"
+	elif classifier_type in LABELS_STATELESS:
+		type = "STATELESS"
+
+	save_location = "results-analysis/" + exp_batch_id + "/_f" + str(fold_id) + "_" + type
+
+	n, bins, patches = plt.hist(Y_true_train, bins=len(activity_labels), normed=0, facecolor='green', alpha=0.75)
+	plt.xlabel('Class')
+	plt.ylabel('Instances')
+	ax = plt.axes()
+	ax.set_xticks(bins)
+	ax.set_xticklabels(activity_labels, rotation=45)
+	plt.title('Histogram of Class Occurence in Train Labels:')
+	plt.grid(True)
+
+	data = ""
+	unique_elements, counts_elements = np.unique(Y_true_train.astype(int), return_counts=True)
+	for b, f in zip(unique_elements, counts_elements):
+		data += str(b) + ":" + activity_labels[int(b)] + " -> \t freq: " + str(f) + '\n'
+
+	print(data)
+	with open(save_location + "_train_hist.txt", "w") as text_file:
+		text_file.write(data)
+
+	plt.tight_layout()
+	plt.savefig(save_location + '_true_train' + ".png")
+	plt.close()
+
+	n, bins, patches = plt.hist(Y_true_test, len(activity_labels), normed=0, facecolor='green', alpha=0.75)
+	plt.xlabel('Class')
+	plt.ylabel('Instances')
+	ax = plt.axes()
+	ax.set_xticks(bins)
+	ax.set_xticklabels(activity_labels, rotation=45)
+	plt.title('Histogram of Class Occurence in Test Labels:')
+	plt.grid(True)
+
+	plt.tight_layout()
+	plt.savefig(save_location + '_true_test' + ".png")
+	plt.close()
+
+	data = ""
+	unique_elements, counts_elements = np.unique(Y_true_test.astype(int), return_counts=True)
+	for b, f in zip(unique_elements, counts_elements):
+		if int(b) < len(activity_labels):
+			data += str(b) + ":" + activity_labels[int(b)] + " -> \t freq: " + str(f) + '\n'
+
+	print(data)
+	with open(save_location + "_test_hist.txt", "w") as text_file:
+		text_file.write(data)
 
 def main():
-	num_folds = 1
+	num_folds = 5
 	seed = 56
 	unique_title = '_s56_'
 
-	experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3, LABEL_KNN5, LABEL_SGDC, LABEL_SVM]
-	# experiment_titles = [LABEL_LSTM, LABEL_LSTM_BIGGER, LABEL_LSTM_BIGGEST]
+	experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3, LABEL_KNN5, LABEL_SGDC, LABEL_SVM, LABEL_LSTM]
+	# experiment_titles.extend([LABEL_LSTM])#, LABEL_LSTM_BIGGER, LABEL_LSTM_BIGGEST])
 	# experiment_titles = [LABEL_LSTM]
 	
-	exp_batch_id = 8
+	exp_batch_id = 10
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_import = 'results/' + exp_batch_id
 	prefix_export = 'results-analysis/' + exp_batch_id
@@ -636,7 +735,9 @@ def main():
 		print("Analysis for " + classifier_type)
 		for fold_id in range(num_folds):
 			Ytrue_train, Ytrue_test = import_original_vectors(unique_title, prefix_import, fold_id, classifier_type)
-
+			
+			export_raw_vector_report(Ytrue_train, Ytrue_test, fold_id, exp_batch_id, classifier_type)
+			
 			if Ytrue_train is None:
 				print("Import truth for comparison not found")
 				continue
