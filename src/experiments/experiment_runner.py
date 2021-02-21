@@ -253,7 +253,7 @@ def classifier_train(X, Y, classifier_key):
 	# clf.fit(X, Y)
 	time_end = time.perf_counter()
 	time_diff = time_end - time_start
-	print("Time elapsed: " + str(time_diff) + " ending at " + ctime(t))
+	print("Time elapsed: " + str(time_diff) + " ending at " + str(time_end))
 
 	return classifier
 
@@ -276,7 +276,7 @@ def classifier_test(classifier, X, Y, classifier_type):
 	# print(result.shape)
 	time_end = time.perf_counter()
 	time_diff = time_end - time_start
-	print("Time elapsed: " + str(time_diff) + " ending at " + ctime(t))
+	print("Time elapsed: " + str(time_diff))
 
 	print("Done with predictions")
 	return result
@@ -440,16 +440,6 @@ def experiment_swapped_poses(fold_id, input_set, unique_title, classifier_type, 
 	result_b_a = classifier_test(svm_b_a, X_test_B, Y_test_A, classifier_type)
 	export_result(result_b_a, long_prefix, label_b_a)
 
-	# store for future examination
-	experiment_blob['a_b_predict'] = result_a_b
-	experiment_blob['a_b_correct'] = Y_test_B
-	experiment_blob['b_a_predict'] = result_b_a
-	experiment_blob['b_a_correct'] = Y_test_A
-
-	filehandler = open(prefix_export + unique_title + grouping_type + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
-	pickle.dump(experiment_blob, filehandler)
-	filehandler.close()
-
 
 def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
 	print("Experiment: Label to Label")
@@ -480,19 +470,6 @@ def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type,
 	result_lb_la = classifier_test(svm_lb_la, Y_test_B, Y_test_A, classifier_type)
 	export_result(result_lb_la, long_prefix, label_lb_la)
 
-	# store for future examination
-	experiment_blob['la_lb_predict'] = result_la_lb
-	experiment_blob['la_lb_correct'] = Y_test_B
-	experiment_blob['lb_la_predict'] = result_lb_la
-	experiment_blob['lb_la_correct'] = Y_test_A
-
-	experiment_blob_all[fold_id] = experiment_blob
-
-	filehandler = open(prefix_export + unique_title + grouping_type + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
-	pickle.dump(experiment_blob_all, filehandler)
-	filehandler.close()
-
-
 def experiment_pose_vs_poseauxlabel(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
 	print("Experiment: pose_vs_poseauxlabel")
 	prefix_export = 'results/' + exp_batch_id
@@ -512,26 +489,14 @@ def experiment_pose_vs_poseauxlabel(fold_id, input_set, unique_title, classifier
 	X_train_BlA, Y_train_B 	= get_BlA(X_train_AB, Y_train_AB, classifier_type)
 	X_test_BlA, Y_test_B 	= get_BlA(X_test_AB, Y_test_AB, classifier_type)
 
-	svm_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type)
-	result_alb_a = classifier_test(svm_alb_a, X_test_AlB, Y_test_A, classifier_type)
-	export_result(result_alb_a, long_prefix, label_alb_a)
+	if classifier_type != CLASSIFIER_LSTM:
+		svm_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type)
+		result_alb_a = classifier_test(svm_alb_a, X_test_AlB, Y_test_A, classifier_type)
+		export_result(result_alb_a, long_prefix, label_alb_a)
 
 	svm_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type)
 	result_bla_b = classifier_test(svm_bla_b, X_test_BlA, Y_test_B, classifier_type)
 	export_result(result_bla_b, long_prefix, label_bla_b)
-
-	# store for future examination
-	experiment_blob['alb_a_predict'] = result_alb_a
-	experiment_blob['alb_a_correct'] = Y_test_A
-	experiment_blob['bla_b_predict'] = result_bla_b
-	experiment_blob['bla_b_correct'] = Y_test_B
-
-	experiment_blob_all[fold_id] = experiment_blob
-
-	filehandler = open(prefix_export + unique_title + grouping_type + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
-	pickle.dump(experiment_blob_all, filehandler)
-	filehandler.close()
-
 
 
 def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
@@ -581,23 +546,6 @@ def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, ex
 	svm_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type)
 	result_ab_b = classifier_test(svm_ab_b, X_test_AB, Y_test_B, classifier_type)
 	export_result(result_ab_b, long_prefix, label_ab_b)
-
-	
-	# store for future examination
-	experiment_blob['a_a_predict'] = result_a_a
-	experiment_blob['a_a_correct'] = Y_test_A
-	experiment_blob['b_b_predict'] = result_b_b
-	experiment_blob['b_b_correct'] = Y_test_B
-
-	experiment_blob['ab_a_predict'] = result_ab_a
-	experiment_blob['ab_a_correct'] = Y_test_A
-	experiment_blob['ab_b_predict'] = result_ab_b
-	experiment_blob['ab_b_correct'] = Y_test_B
-	experiment_blob_all[fold_id] = experiment_blob
-
-	filehandler = open(prefix_export + unique_title + grouping_type + '_f' + str(fold_id) + classifier_type + "_results.p", "wb")
-	pickle.dump(experiment_blob_all, filehandler)
-	filehandler.close()
 
 
 # Given a file location, return the four test/train vectors
@@ -708,7 +656,7 @@ def get_temporal_vectors(folds, unique_title, exp_batch_id, grouping_type, seed=
 def run_experiments():
 	num_folds = 1
 	unique_title = 's111_'
-	exp_batch_id = 12
+	exp_batch_id = 14
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_export = 'results/' + exp_batch_id
 
@@ -722,7 +670,7 @@ def run_experiments():
 	all_svm_vectors 		= get_stateless_vectors(num_folds, unique_title, exp_batch_id, grouping_type)
 	all_temporal_vectors 	= get_temporal_vectors(num_folds, unique_title, exp_batch_id, grouping_type)
 	
-
+	print("Time elapsed: " + str("hi"))
 
 	# exp_types = [CLASSIFIER_KNN3, CLASSIFIER_DecisionTree, CLASSIFIER_ADABOOST, CLASSIFIER_KNN5, CLASSIFIER_KNN9]#, CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]#, CLASSIFIER_SGDC, CLASSIFIER_SVM]
 	# exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SVM]
@@ -744,8 +692,9 @@ def run_experiments():
 		for fold_id in range(num_folds):
 			fold_data = train_test_vectors[fold_id]
 
-			# experiment_duo_vs_solo(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
-			experiment_pose_vs_poseauxlabel(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+			if classifier_type != CLASSIFIER_LSTM:
+				experiment_duo_vs_solo(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+				experiment_pose_vs_poseauxlabel(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 			experiment_swapped_poses(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 
 			# experiment_label_to_label(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
