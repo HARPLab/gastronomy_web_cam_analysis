@@ -3,8 +3,11 @@ import cv2
 import random
 import numpy as np
 
-activity_labels = ['NONE', 'away-from-table', 'idle', 'eating', 'talking', 'talk:waiter', 'looking:window', 
-					'reading:bill', 'reading:menu', 'paying:check', 'using:phone', 'obj:wildcard', 'standing']
+# import sys
+# sys.path.append(".")
+import arconsts
+
+activity_labels = arconsts.activity_labels
 
 def add_pose_to_image(pose, img, color):
 	for p in pose:
@@ -106,20 +109,42 @@ def export_gif_of(poses, input_labels, output_label, predicted_label, assessment
 	print("Exported gif of results at timestep " + str(lookup_index))
 	return
 
+# def verify_input_output(X, Y):
+#     # print(X.shape)
+#     # print(Y.shape)
+#     # print("Unique values: ")
+#     unique_values = np.unique(Y)
+#     if(all(x in range(len(activitydict.keys())) for x in unique_values)): 
+#         # print("All good")
+#         pass
+#     else:
+#         print("Nope- Y contains more than the valid labels")
+#         np.set_printoptions(threshold=np.inf)
+#         np.set_printoptions(suppress=True)
+#         print(unique_values)
+#         np.set_printoptions(threshold=15)
+#         np.set_printoptions(suppress=False)
+#         exit()
 
-
-
-def verify_input_output(X, Y, classifier_type):
+def verify_io_expanded(X, Y):
 	unique_values = np.unique(Y)
-	if(all(x in range(len(activity_labels)) for x in unique_values)): 
+	if(all(x in range(len(arconsts.activity_labels_expanded)) for x in unique_values)): 
 		pass
+	# elif(all(x in range(len(arconsts.activity_labels_expanded)) for x in unique_values)): 
+	# 	pass
 	else:
 		print("Y contains labels outside the correct set")
 		print(unique_values)
 		exit()
 
-# def quality_check_input(X, Y, classifier_type, assessment_label, where, num_inspections = 2):
-
+def verify_input_output(X, Y, classifier_type):
+	unique_values = np.unique(Y)
+	if(all(x in range(len(arconsts.activity_labels)) for x in unique_values)): 
+		pass
+	else:
+		print("Y contains labels outside the correct set")
+		print(unique_values)
+		exit()
 
 def quality_check_output(X, Y, Y_pred, classifier_type, assessment_label, where, num_inspections = 2):
 	verify_input_output(X, Y, classifier_type)
