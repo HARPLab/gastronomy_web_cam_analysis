@@ -21,7 +21,7 @@ filenames_all = ['8-13-18', '8-18-18', '8-17-18', '8-21-18', '8-9-18']
 # root = parseXML('../../Annotations/' + meal + '-michael.eaf')
 # filename format 8-13-18_cropped_000000000000_keypoints.json
 max_poses = 5
-prefix_output = "output-vectors/"
+prefix_output = "output-vectors/raws/"
 
 def get_file_frame_index(file_title):
 	index_length = len('000000000000')
