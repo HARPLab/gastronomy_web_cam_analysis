@@ -43,8 +43,8 @@ INDEX_PB = 1
 BATCH_ID_STATELESS 	= 'stateless'
 BATCH_ID_TEMPORAL 	= 'temporal'
 
-BATCH_ID_MEALWISE_STATELESS 	= 'mwstatel'
-BATCH_ID_MEALWISE_TEMPORAL 	= 'mwtemp'
+BATCH_ID_MEALWISE_STATELESS 	= 'mwstateless'
+BATCH_ID_MEALWISE_TEMPORAL 	= 'mwtemporal'
 
 BATCH_ID_TEMPORAL_SPARE = 'temporal_sparse'
 
@@ -348,7 +348,7 @@ def export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, to
 		print("trainshape=" + str(fold_train_X.shape))
 		print("testshape=" + str(fold_test_X.shape))
 
-		core_name   = "/" + batch_id + "/" + "total" + "_id=" + str(batch_id) + groupings_type + "_s" + label_random_seed + "_f" + str(f) + "_"
+		core_name   = "/" + batch_id + "/" + "total" + "_" + str(batch_id) + groupings_type + "_s" + label_random_seed + "_f" + str(f) + "_"
 		test_name   = core_name + label_testsize
 		train_name  = core_name + label_trainsize
 
