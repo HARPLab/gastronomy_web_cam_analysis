@@ -35,7 +35,7 @@ import matplotlib
 import numpy as np
 import pickle
 
-prefix_output = "output-vectors/"
+prefix_output = "output-vectors/raws/"
 
 def parseXML(elanfile):
     tree = ET.parse(elanfile)
@@ -61,6 +61,22 @@ def addActivityToFeatureObj(feature_obj, personLabel, activity):
     feature_obj[personLabel] = activity
     return feature_obj
 
+def verify_input_output(X, Y):
+    # print(X.shape)
+    # print(Y.shape)
+    # print("Unique values: ")
+    
+    unique_values = np.unique(Y)
+    if(all(x in range(len(activitydict.keys())) for x in unique_values)): 
+        print("OK! Values in reasonable range")
+    else:
+        print("Nope- Y contains more than the valid labels")
+        np.set_printoptions(threshold=np.inf)
+        # np.set_printoptions(suppress=True)
+        print(unique_values)
+        np.set_printoptions(threshold=15)
+        # np.set_printoptions(suppress=False)
+        # exit()
 
 
 ## database initialization
@@ -84,6 +100,8 @@ INDEX_B = 1
 overall_flow = []
 waiter_events = []
 customer_states = []
+
+warned_of = []
 
 def get_file_frame_index(file_title):
     start_index = file_title.index('_cropped_') + len('_cropped_')
@@ -109,7 +127,7 @@ for meal in filenames_all:
 
     print(max_frame)
 
-    timeline_Y = np.ndarray((max_frame, 2))
+    timeline_Y = np.full((max_frame, 2), activitydict[LABEL_NONE])
 
     ## start looping through annotation labels
     for child in root:
@@ -117,48 +135,48 @@ for meal in filenames_all:
             for times in child:
                 timedict[times.attrib['TIME_SLOT_ID']] = times.attrib['TIME_VALUE']
 
-        elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'Waiter':
-            for annotation in child:
-                # print(annotation)
-                label = ""
-                for temp in annotation:
-                    beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
-                    ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
-                    # print(beginning_frame, ending_frame)
+        # elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'Waiter':
+        #     for annotation in child:
+        #         # print(annotation)
+        #         label = ""
+        #         for temp in annotation:
+        #             beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
+        #             ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+        #             # print(beginning_frame, ending_frame)
                    
-                    label = LABEL_NONE
-                    # for each of the labeled activities in this block of time
-                    for anno in temp: ## another single iteration loop
-                        label = anno.text
+        #             label = LABEL_NONE
+        #             # for each of the labeled activities in this block of time
+        #             for anno in temp: ## another single iteration loop
+        #                 label = anno.text
 
-                    overall_flow.append((meal, beginning_frame, label, TYPE_WAITER))
-                    waiter_events.append(label)
+        #             overall_flow.append((meal, beginning_frame, label, TYPE_WAITER))
+        #             waiter_events.append(label)
 
 
-        # initial setup happens here
-        elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'CustomerTransitions':
-            # print("opening table state tier")
-            for annotation in child:
-                # print(annotation)
-                label = ""
-                for temp in annotation:
-                    beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
-                    ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
-                    # print(beginning_frame, ending_frame)
+        # # initial setup happens here
+        # elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'CustomerTransitions':
+        #     # print("opening table state tier")
+        #     for annotation in child:
+        #         # print(annotation)
+        #         label = ""
+        #         for temp in annotation:
+        #             beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
+        #             ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+        #             # print(beginning_frame, ending_frame)
                    
-                    label = LABEL_NONE
-                    # for each of the labeled activities in this block of time
-                    for anno in temp: ## another single iteration loop
-                        label = anno.text
+        #             label = LABEL_NONE
+        #             # for each of the labeled activities in this block of time
+        #             for anno in temp: ## another single iteration loop
+        #                 label = anno.text
 
-                    for f_id in range(beginning_frame, ending_frame):
-                        if (meal, f_id) not in log.keys():
-                            log[(meal, f_id)] = copy.copy(BLANK_LABELS)
+        #             for f_id in range(beginning_frame, ending_frame):
+        #                 if (meal, f_id) not in log.keys():
+        #                     log[(meal, f_id)] = copy.copy(BLANK_LABELS)
                         
-                        log[(meal, f_id)][0] = label
+        #                 log[(meal, f_id)][0] = label
 
-                    overall_flow.append((meal, beginning_frame, label, TYPE_CUSTOMER_STATE))
-                    customer_states.append(label)
+        #             overall_flow.append((meal, beginning_frame, label, TYPE_CUSTOMER_STATE))
+        #             customer_states.append(label)
 
 
 
@@ -177,11 +195,13 @@ for meal in filenames_all:
                         activity=anno.text
 
                     for f_id in range(beginning_frame, ending_frame):
-                        if activity in activitydict:
+                        if activity in activitydict.keys():
                             timeline_Y[f_id][INDEX_A] = activitydict[activity]
                             # timeline_Y[f_id][INDEX_FID] = f_id
                         else:
-                            print("Strange label: " + activity)
+                            if activity not in warned_of:
+                                print("Strange label: " + activity)
+                                warned_of.append(activity)
 
 
         elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonB':
@@ -191,17 +211,23 @@ for meal in filenames_all:
                     ## beginning frame
                     beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
                     ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+
                     activity = LABEL_NONE
                     for anno in temp: ## another single iteration loop
                         activity=anno.text
 
                     # for every ms, add to the listing
                     for f_id in range(beginning_frame, ending_frame):
-                        if activity in activitydict:
+                        if activity in activitydict.keys():
                             timeline_Y[f_id][INDEX_B] = activitydict[activity]
                             # timeline_Y[f_id][INDEX_FID] = f_id
                         else:
-                            print("Strange label: " + activity)
+                            if activity not in warned_of:
+                                print("Strange label: " + activity)
+                                warned_of.append(activity)
+
+    verify_input_output(None, timeline_Y)
+
 
 
     filehandler = open(prefix_output + meal + '_raw_Y.p', 'wb') 
