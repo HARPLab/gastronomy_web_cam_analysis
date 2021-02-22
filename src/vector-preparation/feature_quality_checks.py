@@ -95,7 +95,10 @@ def add_pose_to_image(pose, img, color):
 
 
 
-def export_annotated_frame(f_id, row_X, row_Y, raw_X, label, cap, export_all_poses=False, frame_group=0):
+def export_annotated_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, export_all_poses=False, frame_group=0):
+    if not can_annotate:
+        return
+
     COLOR_NEUTRAL = (255, 255, 255)
     COLOR_A = (255, 0, 0)
     COLOR_B = (0, 0, 255)
@@ -212,18 +215,21 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
 
     vector_length = X_all.shape[0]
     video_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    CAN_ANNOTATE = True
 
     if video_length == 0:
         print("Video file not found for " + filename)
         print("If you're confident in your vectors this is fine, otherwise, might want to look into that!")
         print("Exiting without analysis or trimming export, since slides can't be annotated")
         print("FAILURE ON " + filename)
+        CAN_ANNOTATE = False
         return
 
     elif vector_length != video_length:
         print("Warning: raw video is of length " + str(video_length) + " while vector is of length " + str(vector_length))
         print("This may lead to off-by-" + str(video_length - vector_length) + " errors.")
         print("Are you trying to re-trim a clip? Careful!")
+        CAN_ANNOTATE = False
         return
 
 
@@ -253,7 +259,7 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
         if label_pa == 'away-from-table' and label_pb == 'away-from-table':
             deletion_log.append(rid)
             if export_frames and chance < .001:
-                export_annotated_frame(frame_num, row_X, row_Y, raw_X, LABEL_TYPE_DELETED, cap, filename)
+                export_annotated_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_DELETED, cap, filename)
                 counter += 1
 
 
@@ -266,7 +272,7 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
         #     counter += 1
 
         if export_frames and chance < .00005:
-            export_annotated_frame(frame_num, row_X, row_Y, raw_X, LABEL_TYPE_RANDOM, cap, filename)
+            export_annotated_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_RANDOM, cap, filename)
             counter += 1
 
 
