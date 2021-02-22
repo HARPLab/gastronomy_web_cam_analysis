@@ -1,1 +1,0 @@
-Sliced vectors ready for use with SVM
