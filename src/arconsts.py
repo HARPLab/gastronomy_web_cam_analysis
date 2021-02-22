@@ -1,3 +1,10 @@
+# TO ADD THESE CONSTANTS FOR USE IN A FILE, ADD THE FOLLOWING
+# import sys
+# sys.path.append("..")
+# import qchecks
+# import arconsts
+
+
 CLASSIFIER_ADABOOST = '_adaboost'
 CLASSIFIER_SGDC = '_sgdc'
 CLASSIFIER_SVM = '_svm'
@@ -39,3 +46,30 @@ CONST_NUM_LABELS = len(activity_labels)
 CONST_NUM_POINTS = 25
 CONST_NUM_SUBPOINTS = 3
 CONST_NUM_LABEL = 1
+
+keypoint_labels = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder",
+                                                "LElbow","LWrist","MidHip","RHip","RKnee","RAnkle","LHip","LKnee","LAnkle","REye","LEye","REar",
+                                                "LEar","LBigToe", "LSmallToe", "LHeel", "RBigToe", "RSmallToe", "RHeel", "Background", '']
+
+filenames_all = ['8-13-18', '8-18-18', '8-17-18', '8-21-18', '8-9-18']
+
+
+bd_box_A = ((70, 80), (200, 340))
+bd_box_B = ((230, 130), (370, 370))
+
+
+LABEL_A_A = 'a_a'
+LABEL_B_B = 'b_b'
+LABEL_AB_B = 'ab_b'
+LABEL_AB_A = 'ab_a'
+
+LABEL_BLA_B = 'bla_b'
+LABEL_ALB_A = 'alb_a'
+
+LABEL_LA_LB = 'la_lb'
+LABEL_LB_LA = 'lb_la'
+
+LABEL_B_A = 'b_a'
+LABEL_A_B = 'a_b'
+
+CSV_ORDER = ['a_a', 'ab_a', 'alb_a', 'b_a', 'b_b', 'ab_b', 'bla_b', 'a_b', 'la_lb', 'lb_la']
