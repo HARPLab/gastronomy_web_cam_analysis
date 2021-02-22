@@ -3,11 +3,13 @@ import pickle
 from sklearn import svm
 import time
 import numpy as np
+np.set_printoptions(suppress=True)
 
 from sklearn.metrics import confusion_matrix
 from dictdiffer import diff
 import seaborn as sn
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import AdaBoostClassifier
@@ -27,17 +29,6 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Dropout
 from tensorflow.keras.utils import to_categorical
 
-# activity_labels = ['away-from-table', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 
-# 					'talking:waiter', 'looking:window', 'looking:waiter', 'reading:bill', 'reading:menu',
-# 					'paying:check', 'using:phone', 'using:napkin', 'using:purse', 'using:glasses',
-# 					'using:wallet', 'looking:PersonA', 'looking:PersonB', 'takeoutfood', 'leaving-table', 'cleaning-up', 'NONE']
-
-activity_labels = ['NONE', 'away-from-table', 'idle', 'eating', 'talking', 'talk:waiter', 'looking:window', 
-					'reading:bill', 'reading:menu', 'paying:check', 'using:phone', 'obj:wildcard', 'standing']
-
-# activitydict = {0: 'NONE', 1: 'away-from-table', 2: 'idle', 3: 'eating', 4: 'talking', 5:'talking:waiter', 6: 'looking:window', 
-# 	7: 'reading:bill', 8: 'reading:menu', 9: 'paying:check', 10: 'using:phone', 11: 'using:objs', 12: 'standing'}
-
 CLASSIFIER_ADABOOST = '_adaboost'
 CLASSIFIER_SGDC = '_sgdc'
 CLASSIFIER_SVM = '_svm'
@@ -49,13 +40,25 @@ CLASSIFIER_DecisionTree = '_dectree'
 CLASSIFIER_LSTM = '_lstm-og'
 CLASSIFIER_LSTM_BIGGER = '_lstm-big'
 CLASSIFIER_LSTM_BIGGEST = '_lstm-biggest'
+CLASSIFIER_LSTM_TINY	= '_lstm_tiny'
 CLASSIFIER_CRF = '_crf'
 
 GROUPING_MEALWISE = '_g-mw'
 GROUPING_RANDOM = "_g-rand"
 
-CLASSIFIERS_TEMPORAL = [CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_CRF]
+CLASSIFIERS_TEMPORAL = [CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_CRF, CLASSIFIER_LSTM_TINY]
 CLASSIFIERS_STATELESS = [CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_SVM, CLASSIFIER_SGDC, CLASSIFIER_ADABOOST, CLASSIFIER_DecisionTree]
+
+# activity_labels = ['away-from-table', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 
+# 					'talking:waiter', 'looking:window', 'looking:waiter', 'reading:bill', 'reading:menu',
+# 					'paying:check', 'using:phone', 'using:napkin', 'using:purse', 'using:glasses',
+# 					'using:wallet', 'looking:PersonA', 'looking:PersonB', 'takeoutfood', 'leaving-table', 'cleaning-up', 'NONE']
+
+activity_labels = ['NONE', 'away-from-table', 'idle', 'eating', 'talking', 'talk:waiter', 'looking:window', 
+					'reading:bill', 'reading:menu', 'paying:check', 'using:phone', 'obj:wildcard', 'standing']
+
+# activitydict = {0: 'NONE', 1: 'away-from-table', 2: 'idle', 3: 'eating', 4: 'talking', 5:'talking:waiter', 6: 'looking:window', 
+# 	7: 'reading:bill', 8: 'reading:menu', 9: 'paying:check', 10: 'using:phone', 11: 'using:objs', 12: 'standing'}
 
 LSTM_NUM_LABELS = len(activity_labels)
 
@@ -71,7 +74,8 @@ def get_LSTM(trainX, trainY, scale=1):
 
 	dropout = 0.1
 	batch_size = 256
-	hidden_dim = 80*scale
+	hidden_dim = int(80*scale)
+	print("Hidden dimension is: " + str(hidden_dim))
 	model = Sequential()
 	model.add(LSTM(hidden_dim, input_shape=input_shape))
 	model.add(Dropout(dropout))
@@ -209,24 +213,25 @@ def get_classifier(key, X, Y):
 		return get_LSTM(X, Y, scale=2)
 	if key == CLASSIFIER_LSTM_BIGGEST:
 		return get_LSTM(X, Y, scale=4)
+	if key == CLASSIFIER_LSTM_TINY:
+		return get_LSTM(X, Y, scale = .25)
 	
 
 	return None
 
 def export_result(obj, long_prefix, label):
 	filehandler = open(long_prefix  + label  + "_resultY.p", "wb")
-
-	print(long_prefix + label)
 	pickle.dump(obj, filehandler)
 	filehandler.close()
 	print("Exported to " + long_prefix + label)
 
+def export_classifier(clf, long_prefix, label):
+	filehandler = open(long_prefix  + label  + "_model.p", "wb")
+	pickle.dump(clf, filehandler)
+
+
 def classifier_train(X, Y, classifier_key):
 	Y = Y.astype(int).ravel()
-	print(X.shape)
-	print(Y.shape)
-
-	print(Y)
 	print("Building " + classifier_key)
 	# classifier = KNeighborsClassifier(n_neighbors=9)
 	classifier = get_classifier(classifier_key, X, Y)
@@ -247,13 +252,13 @@ def classifier_train(X, Y, classifier_key):
 	else:
 		classifier.fit(X, Y)
 
-
-
-
 	# clf.fit(X, Y)
 	time_end = time.perf_counter()
 	time_diff = time_end - time_start
-	print("Time elapsed: " + str(time_diff) + " ending at " + str(time_end))
+
+	now = datetime.now()
+	current_time = now.strftime("%H:%M:%S")
+	print("Time elapsed: " + str(time_diff) + " ending at " + str(current_time))
 
 	return classifier
 
@@ -276,7 +281,9 @@ def classifier_test(classifier, X, Y, classifier_type):
 	# print(result.shape)
 	time_end = time.perf_counter()
 	time_diff = time_end - time_start
-	print("Time elapsed: " + str(time_diff))
+	now = datetime.now()
+	current_time = now.strftime("%H:%M:%S")
+	print("Time elapsed: " + str(time_diff) + " at "  + str(current_time))
 
 	print("Done with predictions")
 	return result
@@ -289,6 +296,41 @@ def unpack_dict(input_set):
 	Y_train = input_set['ytrain']
 
 	return X_train, X_test, Y_train, Y_test
+
+def verify_input_output(X, Y):
+	# print(X.shape)
+	# print(Y.shape)
+	# print("Unique values: ")
+	unique_values = np.unique(Y)
+	# print(unique_values)
+
+	# print(unique_values)
+
+	if(all(x in range(len(activity_labels)) for x in unique_values)): 
+		pass
+	else:
+		print("Nope")
+		exit()
+
+	# result = np.where(Y == 374.416)
+	# print(result)
+	# result = np.where(Y == 321.935)
+	# print(result)
+	# result = np.where(Y == 154.342)
+	# print(result)
+	# result = np.where(Y == 163.06)
+	# print(result)
+
+	# print(Y[11839])
+	# print(Y[10534])
+	# print(Y[12098])
+	# print(Y[11584])
+	# print(Y.shape)
+	# print(Y[0])
+	# print(Y[3100])
+	# exit()
+
+
 
 def get_AlB(X_array, Y_array, c_type):
 	og_dim_X = X_array.shape
@@ -386,18 +428,28 @@ def get_A(X_array, Y_array, c_type):
 		X_out = X_array[:, :half_dim_X]
 		Y_out = Y_array[:, 	:half_dim_Y]
 
-	else:
+	elif c_type in CLASSIFIERS_TEMPORAL:
 		half_dim_X = int(og_dim_X[2] / 2)
 		half_dim_Y = int(og_dim_Y[2] / 2)
+
 		X_out = X_array[:, :, :half_dim_X]
 		Y_out = Y_array[:, -1, :half_dim_Y]
 
-	print(Y_out.shape)		
+	else:
+		print("What kind of classifier is this?")
+		exit()
+
+	print("Unique values: ")
+	print(np.unique(Y_out))
 	return X_out, Y_out
 
 def get_B(X_array, Y_array, c_type):
 	og_dim_X = X_array.shape
 	og_dim_Y = Y_array.shape
+
+	print(Y_array.shape)
+	print(Y_array[0])
+	print(Y_array[3100])
 
 	if c_type in CLASSIFIERS_STATELESS:
 		half_dim_X = int(og_dim_X[1] / 2)
@@ -410,7 +462,7 @@ def get_B(X_array, Y_array, c_type):
 		X_out = X_array[:, :, half_dim_X:]
 		Y_out = Y_array[:, -1, half_dim_Y:]
 
-	print(Y_out.shape)
+	verify_input_output(X_out, Y_out)
 	return X_out, Y_out
 
 
@@ -432,12 +484,16 @@ def experiment_swapped_poses(fold_id, input_set, unique_title, classifier_type, 
 	X_train_B, 	Y_train_B 	= get_B(X_train_AB, Y_train_AB, classifier_type)
 	X_test_B, 	Y_test_B 	= get_B(X_test_AB, Y_test_AB, classifier_type)
 
-	svm_a_b = classifier_train(X_train_A, Y_train_B, classifier_type)
-	result_a_b = classifier_test(svm_a_b, X_test_A, Y_test_B, classifier_type)
+	print("a_b")
+	clf_a_b = classifier_train(X_train_A, Y_train_B, classifier_type)
+	export_classifier(clf_a_b, long_prefix, label_a_b)
+	result_a_b = classifier_test(clf_a_b, X_test_A, Y_test_B, classifier_type)
 	export_result(result_a_b, long_prefix, label_a_b)
 
-	svm_b_a = classifier_train(X_train_B, Y_train_A, classifier_type)
-	result_b_a = classifier_test(svm_b_a, X_test_B, Y_test_A, classifier_type)
+	print("b_a")
+	clf_b_a = classifier_train(X_train_B, Y_train_A, classifier_type)
+	export_classifier(clf_b_a, long_prefix, label_b_a)
+	result_b_a = classifier_test(clf_b_a, X_test_B, Y_test_A, classifier_type)
 	export_result(result_b_a, long_prefix, label_b_a)
 
 
@@ -461,13 +517,16 @@ def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type,
 	Y_test_B 	= get_lB(X_test_AB, Y_test_AB, classifier_type)
 
 	# export_confusion_matrix(Y_train_A, Y_train_B, exp_batch_id, classifier_type, "label_to_label", fold_id)
-
-	svm_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type)
-	result_la_lb = classifier_test(svm_la_lb, Y_test_A, Y_test_B, classifier_type)
+	print("la_lb")
+	clf_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type)
+	export_classifier(clf_la_lb, long_prefix, label_la_lb)
+	result_la_lb = classifier_test(clf_la_lb, Y_test_A, Y_test_B, classifier_type)
 	export_result(result_la_lb, long_prefix, label_la_lb)
 
-	svm_lb_la = classifier_train(Y_train_B, Y_train_A, classifier_type)
-	result_lb_la = classifier_test(svm_lb_la, Y_test_B, Y_test_A, classifier_type)
+	print("lb_la")
+	clf_lb_la = classifier_train(Y_train_B, Y_train_A, classifier_type)
+	export_classifier(clf_lb_la, long_prefix, label_lb_la)
+	result_lb_la = classifier_test(clf_lb_la, Y_test_B, Y_test_A, classifier_type)
 	export_result(result_lb_la, long_prefix, label_lb_la)
 
 def experiment_pose_vs_poseauxlabel(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
@@ -490,12 +549,16 @@ def experiment_pose_vs_poseauxlabel(fold_id, input_set, unique_title, classifier
 	X_test_BlA, Y_test_B 	= get_BlA(X_test_AB, Y_test_AB, classifier_type)
 
 	if classifier_type != CLASSIFIER_LSTM:
-		svm_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type)
-		result_alb_a = classifier_test(svm_alb_a, X_test_AlB, Y_test_A, classifier_type)
+		print("alb_a")
+		clf_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type)
+		export_classifier(clf_alb_a, long_prefix, label_alb_a)
+		result_alb_a = classifier_test(clf_alb_a, X_test_AlB, Y_test_A, classifier_type)
 		export_result(result_alb_a, long_prefix, label_alb_a)
 
-	svm_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type)
-	result_bla_b = classifier_test(svm_bla_b, X_test_BlA, Y_test_B, classifier_type)
+	print("bla_b")
+	clf_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type)
+	export_classifier(clf_bla_b, long_prefix, label_bla_b)
+	result_bla_b = classifier_test(clf_bla_b, X_test_BlA, Y_test_B, classifier_type)
 	export_result(result_bla_b, long_prefix, label_bla_b)
 
 
@@ -518,33 +581,37 @@ def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, ex
 
 	X_train_AB, X_test_AB, Y_train_AB, Y_test_AB = unpack_dict(input_set)
 
-	# export_result(Y_train_AB, 	prefix_export, 'Ytruetrain_f' + str(fold_id))
-	# export_result(Y_test_AB, 	prefix_export, 'Ytruetest_f' + str(fold_id))
-
 	X_train_A, Y_train_A 	= get_A(X_train_AB, Y_train_AB, classifier_type)
 	X_test_A, Y_test_A 		= get_A(X_test_AB, Y_test_AB, classifier_type)
 
 	X_train_B, Y_train_B 	= get_B(X_train_AB, Y_train_AB, classifier_type)
 	X_test_B, Y_test_B 		= get_B(X_test_AB, Y_test_AB, classifier_type)
 
+	verify_input_output(X_train_AB, Y_train_AB)
+	verify_input_output(X_test_AB, Y_test_AB)
+
 	print("a_a")
-	svm_a_a = classifier_train(X_train_A, Y_train_A, classifier_type)
-	result_a_a = classifier_test(svm_a_a, X_test_A, Y_test_A, classifier_type)
+	clf_a_a = classifier_train(X_train_A, Y_train_A, classifier_type)
+	export_classifier(clf_a_a, long_prefix, label_a_a)
+	result_a_a = classifier_test(clf_a_a, X_test_A, Y_test_A, classifier_type)
 	export_result(result_a_a, long_prefix, label_a_a)
 
 	print("b_b")
-	svm_b_b = classifier_train(X_train_B, Y_train_B, classifier_type)
-	result_b_b = classifier_test(svm_b_b, X_test_B, Y_test_B, classifier_type)
+	clf_b_b = classifier_train(X_train_B, Y_train_B, classifier_type)
+	export_classifier(clf_b_b, long_prefix, label_b_b)
+	result_b_b = classifier_test(clf_b_b, X_test_B, Y_test_B, classifier_type)
 	export_result(result_b_b, long_prefix, label_b_b)
 
 	print("ab_a")
-	svm_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type)
-	result_ab_a = classifier_test(svm_ab_a, X_test_AB, Y_test_A, classifier_type)
+	clf_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type)
+	export_classifier(clf_ab_b, long_prefix, label_ab_b)
+	result_ab_a = classifier_test(clf_ab_a, X_test_AB, Y_test_A, classifier_type)
 	export_result(result_ab_a, long_prefix, label_ab_a)
 
 	print("ab_b")
-	svm_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type)
-	result_ab_b = classifier_test(svm_ab_b, X_test_AB, Y_test_B, classifier_type)
+	clf_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type)
+	export_classifier(clf_ab_b, long_prefix, label_ab_b)
+	result_ab_b = classifier_test(clf_ab_b, X_test_AB, Y_test_B, classifier_type)
 	export_result(result_ab_b, long_prefix, label_ab_b)
 
 
@@ -656,7 +723,7 @@ def get_temporal_vectors(folds, unique_title, exp_batch_id, grouping_type, seed=
 def run_experiments():
 	num_folds = 1
 	unique_title = 's111_'
-	exp_batch_id = 14
+	exp_batch_id = 15
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_export = 'results/' + exp_batch_id
 
@@ -667,15 +734,13 @@ def run_experiments():
 
 	grouping_type = GROUPING_RANDOM
 
-	all_svm_vectors 		= get_stateless_vectors(num_folds, unique_title, exp_batch_id, grouping_type)
+	all_stateless_vectors 	= get_stateless_vectors(num_folds, unique_title, exp_batch_id, grouping_type)
 	all_temporal_vectors 	= get_temporal_vectors(num_folds, unique_title, exp_batch_id, grouping_type)
 	
-	print("Time elapsed: " + str("hi"))
-
 	# exp_types = [CLASSIFIER_KNN3, CLASSIFIER_DecisionTree, CLASSIFIER_ADABOOST, CLASSIFIER_KNN5, CLASSIFIER_KNN9]#, CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]#, CLASSIFIER_SGDC, CLASSIFIER_SVM]
 	# exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SVM]
 	# exp_types = [CLASSIFIER_LSTM]
-	exp_types = [CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_DecisionTree]
+	exp_types = [CLASSIFIER_LSTM_TINY]#, CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_DecisionTree]
 
 	for i in range(len(exp_types)):		
 		classifier_type = exp_types[i]
@@ -684,7 +749,7 @@ def run_experiments():
 		if classifier_type in CLASSIFIERS_TEMPORAL:
 			train_test_vectors = all_temporal_vectors
 		elif classifier_type in CLASSIFIERS_STATELESS:
-			train_test_vectors = all_svm_vectors
+			train_test_vectors = all_stateless_vectors
 		else:
 			print("Classifier type and corresponding vectors for " + classifier_type + " not found!")
 			exit()
@@ -693,10 +758,11 @@ def run_experiments():
 			fold_data = train_test_vectors[fold_id]
 
 			if classifier_type != CLASSIFIER_LSTM:
-				experiment_duo_vs_solo(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
-				experiment_pose_vs_poseauxlabel(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
-			experiment_swapped_poses(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+				pass
 
+			experiment_duo_vs_solo(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+			experiment_pose_vs_poseauxlabel(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+			experiment_swapped_poses(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 			# experiment_label_to_label(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 
 
