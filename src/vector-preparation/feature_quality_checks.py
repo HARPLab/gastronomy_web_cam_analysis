@@ -6,32 +6,47 @@ import pandas as pd
 import numpy as np
 import json
 
+import sys
+sys.path.append("..")
+import qchecks
+import arconsts
+
 # np.set_printoptions(suppress=True)
 
-activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
-                        'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
-                        'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
-                        'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20, 'leaving-table':21, 'cleaning-up':22, 'NONE':23}
+# activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
+#                         'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
+#                         'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
+#                         'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20, 'leaving-table':21, 'cleaning-up':22, 'NONE':23}
 
-activity_from_key = {0:'away-from-table', 1:'idle', 2:'eating', 3: 'drinking', 4: 'talking', 5: 'ordering', 6: 'standing',
-                        7: 'talking:waiter', 8: 'looking:window', 9: 'looking:waiter', 10: 'reading:bill', 11: 'reading:menu',
-                        12: 'paying:check', 13: 'using:phone', 14: 'using:napkin', 15: 'using:purse', 16: 'using:glasses',
-                        17: 'using:wallet', 18: 'looking:PersonA', 19: 'looking:PersonB', 20: 'takeoutfood', 21: 'leaving-table', 22: 'cleaning-up', 23: 'NONE'}
+# activity_from_key = {0:'away-from-table', 1:'idle', 2:'eating', 3: 'drinking', 4: 'talking', 5: 'ordering', 6: 'standing',
+#                         7: 'talking:waiter', 8: 'looking:window', 9: 'looking:waiter', 10: 'reading:bill', 11: 'reading:menu',
+#                         12: 'paying:check', 13: 'using:phone', 14: 'using:napkin', 15: 'using:purse', 16: 'using:glasses',
+#                         17: 'using:wallet', 18: 'looking:PersonA', 19: 'looking:PersonB', 20: 'takeoutfood', 21: 'leaving-table', 22: 'cleaning-up', 23: 'NONE'}
 
+activity_from_key = arconsts.activity_labels_expanded
 
 # Lookup table for OpenPose keypoint indices
-keypoint_labels = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder",
-                                                "LElbow","LWrist","MidHip","RHip","RKnee","RAnkle","LHip","LKnee","LAnkle","REye","LEye","REar",
-                                                "LEar","LBigToe", "LSmallToe", "LHeel", "RBigToe", "RSmallToe", "RHeel", "Background", '']
+keypoint_labels = arconsts.keypoint_labels
+filenames_all = arconsts.filenames_all
 
-
-filenames_all = ['8-13-18', '8-18-18', '8-17-18', '8-21-18', '8-9-18']
 prefix_qc = './quality-checks/'
 prefix_vectors_in = './output-vectors/raws/'
 prefix_vectors_out = './output-vectors/trimmed/'
 
 INDEX_PA = 0
 INDEX_PB = 1
+
+EXPORT_DROPOUT_STATS                = True
+EXPORT_TYPE_TOO_MANY_POSES          = False
+EXPORT_TYPE_AWAY_BUT_POSE_DETECTED  = True
+EXPORT_TYPE_RANDOM                  = True
+EXPORT_WAITER_MOMENTS               = True
+
+LABEL_TOO_MANY_POSES                = 'err-too-many-poses'
+LABEL_TYPE_AWAY_BUT_POSE_DETECTED   = 'err-away-but-pose'
+LABEL_TYPE_RANDOM                   = 'quality-check-random'
+LABEL_WAITER_MOMENTS                = 'quality-check-waiter'
+LABEL_TYPE_DELETED                  = 'deleted'
 
 
 def get_label_PA(input_row_Y):
@@ -64,24 +79,6 @@ def get_PB(input_row_X):
 
     return input_row_X[25:]
 
-
-def verify_input_output(X, Y):
-    # print(X.shape)
-    # print(Y.shape)
-    # print("Unique values: ")
-    unique_values = np.unique(Y)
-    if(all(x in range(len(activitydict.keys())) for x in unique_values)): 
-        # print("All good")
-        pass
-    else:
-        print("Nope- Y contains more than the valid labels")
-        np.set_printoptions(threshold=np.inf)
-        np.set_printoptions(suppress=True)
-        print(unique_values)
-        np.set_printoptions(threshold=15)
-        np.set_printoptions(suppress=False)
-        exit()
-
 def add_pose_to_image(pose, img, color):
     # TODO verify 
     for p in pose:
@@ -93,8 +90,6 @@ def add_pose_to_image(pose, img, color):
     return frame_img
 
 
-
-
 def export_annotated_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, export_all_poses=False, frame_group=0):
     if not can_annotate:
         return
@@ -102,7 +97,6 @@ def export_annotated_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, 
     COLOR_NEUTRAL = (255, 255, 255)
     COLOR_A = (255, 0, 0)
     COLOR_B = (0, 0, 255)
-
 
     output_file = {}
 
@@ -166,24 +160,13 @@ def export_annotated_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, 
     with open(prefix_qc + title + ".json", 'w') as outfile:  
         json.dump(output_file, outfile)
 
-
-EXPORT_DROPOUT_STATS                = True
-EXPORT_TYPE_TOO_MANY_POSES          = False
-EXPORT_TYPE_AWAY_BUT_POSE_DETECTED  = True
-EXPORT_TYPE_RANDOM                  = True
-EXPORT_WAITER_MOMENTS               = True
-
-LABEL_TOO_MANY_POSES                = 'err-too-many-poses'
-LABEL_TYPE_AWAY_BUT_POSE_DETECTED   = 'err-away-but-pose'
-LABEL_TYPE_RANDOM                   = 'quality-check-random'
-LABEL_WAITER_MOMENTS                = 'quality-check-waiter'
-LABEL_TYPE_DELETED                  = 'deleted'
-
-
 # run the experiment
 def check_quality_and_export_trimmed(filename, export_frames=False):
     print("Running quality checks")
     try:
+        print(prefix_vectors_in + filename + '_raw_X.p')
+        print(prefix_vectors_in + filename + '_roles_X.p')
+        print("\t ~~~")
         X_all = pickle.load(open(prefix_vectors_in + filename + '_roles_X.p',"rb"))
         X_raw = pickle.load(open(prefix_vectors_in + filename + '_raw_X.p',"rb"))
     except FileNotFoundError:
@@ -196,11 +179,11 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
         print("Y labels not found: please run elan to vectors!")
         exit()
 
-    verify_input_output(X_all, Y_all)
+    qchecks.verify_io_expanded(X_all, Y_all)
 
     print("loaded pickle datasets for " + filename)
-    print("Dimensions of input X: " + str(X_all.shape) + " (video length x 25 OpenPose Pts x (x,y,confidence))")
-    print("Dimensions of input Y: " + str(Y_all.shape) + " (video length x (labela, labelb))")
+    print("\tDimensions of input X: " + str(X_all.shape) + " (video length x 25 OpenPose Pts x (x,y,confidence))")
+    print("\tDimensions of input Y: " + str(Y_all.shape) + " (video length x (labela, labelb))")
 
     # Verify that the two input vectors line up
     # Always guaranteed to start at 0, and be the length of the clip
@@ -219,18 +202,17 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
 
     if video_length == 0:
         print("Video file not found for " + filename)
-        print("If you're confident in your vectors this is fine, otherwise, might want to look into that!")
-        print("Exiting without analysis or trimming export, since slides can't be annotated")
-        print("FAILURE ON " + filename)
+        print("\tIf you're confident in your vectors this is fine, otherwise, might want to look into that!")
+        # print("Exiting without analysis or trimming export, since slides can't be annotated")
+        print("\t WARNING ON " + filename)
         CAN_ANNOTATE = False
-        return
 
     elif vector_length != video_length:
         print("Warning: raw video is of length " + str(video_length) + " while vector is of length " + str(vector_length))
-        print("This may lead to off-by-" + str(video_length - vector_length) + " errors.")
-        print("Are you trying to re-trim a clip? Careful!")
+        print("\tThis may lead to off-by-" + str(video_length - vector_length) + " errors.")
+        print("\tAre you trying to re-trim a clip? Careful!")
+        print("\t WARNING ON " + filename)
         CAN_ANNOTATE = False
-        return
 
 
     deletion_log = []
@@ -279,13 +261,13 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
     # print(frame_num)
     # Final removal of incorrect away-from-table-s
 
-    print("Deletion log contains " + str(len(deletion_log)) + " items")
+    print("\tDeletion log contains " + str(len(deletion_log)) + " items")
     X_final = np.delete(X_all, deletion_log, axis=0)
     Y_final = np.delete(Y_all, deletion_log, axis=0)
 
-    print("Post-trim shape: " + str(Y_final.shape))
+    print("\tPost-trim shape: " + str(Y_final.shape))
 
-    verify_input_output(X_final, Y_final)
+    qchecks.verify_io_expanded(X_final, Y_final)
 
     # filehandler = open(prefix_qc + "QC_" + filename_root + "_X.p", "wb")
     # json.dump(X_final, filehandler)
