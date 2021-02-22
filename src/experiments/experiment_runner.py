@@ -90,16 +90,14 @@ def get_LSTM(trainX, trainY, scale=1):
 	return model
 
 def get_CRF():
-
-
-
+	pass
 	return model
 
 def export_confusion_matrix(y1, y2, exp_batch_id, classifier_type, subexp_label, fold_id):
 	save_location = "results/" + exp_batch_id + "f" + str(fold_id) + "_" + classifier_type[1:] + "_" + subexp_label + "_f" + str(fold_id)
 
-	print(y1)
-	print(y2)
+	# print(y1)
+	# print(y2)
 
 	cm = confusion_matrix(y1.astype(int), y2.astype(int), labels=range(len(activity_labels)))
 
@@ -215,24 +213,65 @@ def get_classifier(key, X, Y):
 		return get_LSTM(X, Y, scale=4)
 	if key == CLASSIFIER_LSTM_TINY:
 		return get_LSTM(X, Y, scale = .25)
-	
-
 	return None
 
-def export_result(obj, long_prefix, label):
-	filehandler = open(long_prefix  + label  + "_resultY.p", "wb")
+def export_classifier_history(history, where):
+	loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' not in s]
+	val_loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' in s]
+	acc_list = [s for s in history.history.keys() if 'acc' in s and 'val' not in s]
+	val_acc_list = [s for s in history.history.keys() if 'acc' in s and 'val' in s]
+	
+	if len(loss_list) == 0:
+		print('Loss is missing in history')
+		return 
+	
+	## As loss always exists
+	epochs = range(1,len(history.history[loss_list[0]]) + 1)
+	
+	## Loss
+	plt.figure(1)
+	for l in loss_list:
+		plt.plot(epochs, history.history[l], 'b', label='Training loss (' + str(str(format(history.history[l][-1],'.5f'))+')'))
+	for l in val_loss_list:
+		plt.plot(epochs, history.history[l], 'g', label='Validation loss (' + str(str(format(history.history[l][-1],'.5f'))+')'))
+	
+	plt.title('Loss')
+	plt.xlabel('Epochs')
+	plt.ylabel('Loss')
+	plt.legend()
+	plt.savefig(where + "-loss-history.png")
+	
+	## Accuracy
+	plt.figure(2)
+	for l in acc_list:
+		plt.plot(epochs, history.history[l], 'b', label='Training accuracy (' + str(format(history.history[l][-1],'.5f'))+')')
+	for l in val_acc_list:	
+		plt.plot(epochs, history.history[l], 'g', label='Validation accuracy (' + str(format(history.history[l][-1],'.5f'))+')')
+
+	plt.title('Accuracy')
+	plt.xlabel('Epochs')
+	plt.ylabel('Accuracy')
+	plt.legend()
+
+	plt.savefig(where + "-accuracy-history.png")
+	plt.close()
+	
+
+def export_result(obj, where):
+	filehandler = open(where  + "_resultY.p", "wb")
 	pickle.dump(obj, filehandler)
 	filehandler.close()
-	print("Exported to " + long_prefix + label)
+	print("Exported to " + where)
 
-def export_classifier(clf, long_prefix, label):
-	filehandler = open(long_prefix  + label  + "_model.p", "wb")
-	pickle.dump(clf, filehandler)
+def export_classifier(clf, where):
+	clf.save(where + '_model.p')
 
-
-def classifier_train(X, Y, classifier_key):
+def classifier_train(X, Y, classifier_key, prefix_where):
 	Y = Y.astype(int).ravel()
-	print("Building " + classifier_key)
+	now = datetime.now()
+	current_time = now.strftime("%H:%M:%S")
+	print("Building " + classifier_key + " at " + str(current_time))
+
 	# classifier = KNeighborsClassifier(n_neighbors=9)
 	classifier = get_classifier(classifier_key, X, Y)
 
@@ -244,21 +283,23 @@ def classifier_train(X, Y, classifier_key):
 		batch_size = 256
 		# epochs = 7
 		Y = to_categorical(Y, num_classes=len(activity_labels))
-		epochs = 500
+		epochs = 5
 		print("Fitting to...")
 		print(X.shape)
 		print(Y.shape)
-		classifier.fit(X, Y, batch_size=batch_size, verbose=0, epochs=epochs)
+		history = classifier.fit(X, Y, batch_size=batch_size, verbose=0, epochs=epochs)
 	else:
-		classifier.fit(X, Y)
+		history = classifier.fit(X, Y)
 
-	# clf.fit(X, Y)
 	time_end = time.perf_counter()
 	time_diff = time_end - time_start
 
 	now = datetime.now()
 	current_time = now.strftime("%H:%M:%S")
 	print("Time elapsed: " + str(time_diff) + " ending at " + str(current_time))
+
+	export_classifier(classifier, prefix_where)
+	export_classifier_history(history, prefix_where)
 
 	return classifier
 
@@ -267,12 +308,12 @@ def get_single_vector_of_multiclass_result(result):
 	decoded_result = result.argmax(axis=1)
 	return decoded_result
 
-def classifier_test(classifier, X, Y, classifier_type):
+def classifier_test(classifier, X, Y, classifier_type, prefix_where):
 	print(X.shape)
 	print("Predicting...")
 	time_start = time.perf_counter()
 	result = classifier.predict(X)
-	print(result.shape)
+	# print(result.shape)
 
 	if classifier_type == CLASSIFIER_LSTM:
 		result = get_single_vector_of_multiclass_result(result)
@@ -285,7 +326,9 @@ def classifier_test(classifier, X, Y, classifier_type):
 	current_time = now.strftime("%H:%M:%S")
 	print("Time elapsed: " + str(time_diff) + " at "  + str(current_time))
 
-	print("Done with predictions")
+	export_result(result, prefix_where)
+
+	print("Done with predictions\n")
 	return result
 
 
@@ -439,17 +482,16 @@ def get_A(X_array, Y_array, c_type):
 		print("What kind of classifier is this?")
 		exit()
 
-	print("Unique values: ")
-	print(np.unique(Y_out))
+	verify_input_output(X_out, Y_out)
 	return X_out, Y_out
 
 def get_B(X_array, Y_array, c_type):
 	og_dim_X = X_array.shape
 	og_dim_Y = Y_array.shape
 
-	print(Y_array.shape)
-	print(Y_array[0])
-	print(Y_array[3100])
+	# print(Y_array.shape)
+	# print(Y_array[0])
+	# print(Y_array[3100])
 
 	if c_type in CLASSIFIERS_STATELESS:
 		half_dim_X = int(og_dim_X[1] / 2)
@@ -485,16 +527,12 @@ def experiment_swapped_poses(fold_id, input_set, unique_title, classifier_type, 
 	X_test_B, 	Y_test_B 	= get_B(X_test_AB, Y_test_AB, classifier_type)
 
 	print("a_b")
-	clf_a_b = classifier_train(X_train_A, Y_train_B, classifier_type)
-	export_classifier(clf_a_b, long_prefix, label_a_b)
-	result_a_b = classifier_test(clf_a_b, X_test_A, Y_test_B, classifier_type)
-	export_result(result_a_b, long_prefix, label_a_b)
+	clf_a_b = classifier_train(X_train_A, Y_train_B, classifier_type, long_prefix + label_a_b)
+	result_a_b = classifier_test(clf_a_b, X_test_A, Y_test_B, classifier_type, long_prefix + label_a_b)
 
 	print("b_a")
-	clf_b_a = classifier_train(X_train_B, Y_train_A, classifier_type)
-	export_classifier(clf_b_a, long_prefix, label_b_a)
-	result_b_a = classifier_test(clf_b_a, X_test_B, Y_test_A, classifier_type)
-	export_result(result_b_a, long_prefix, label_b_a)
+	clf_b_a = classifier_train(X_train_B, Y_train_A, classifier_type, long_prefix + label_b_a)
+	result_b_a = classifier_test(clf_b_a, X_test_B, Y_test_A, classifier_type, long_prefix + label_b_a)
 
 
 def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
@@ -518,16 +556,12 @@ def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type,
 
 	# export_confusion_matrix(Y_train_A, Y_train_B, exp_batch_id, classifier_type, "label_to_label", fold_id)
 	print("la_lb")
-	clf_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type)
-	export_classifier(clf_la_lb, long_prefix, label_la_lb)
-	result_la_lb = classifier_test(clf_la_lb, Y_test_A, Y_test_B, classifier_type)
-	export_result(result_la_lb, long_prefix, label_la_lb)
+	clf_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type, prefix_export + label_la_lb)
+	result_la_lb = classifier_test(clf_la_lb, Y_test_A, Y_test_B, classifier_type, prefix_export + label_la_lb)
 
 	print("lb_la")
-	clf_lb_la = classifier_train(Y_train_B, Y_train_A, classifier_type)
-	export_classifier(clf_lb_la, long_prefix, label_lb_la)
-	result_lb_la = classifier_test(clf_lb_la, Y_test_B, Y_test_A, classifier_type)
-	export_result(result_lb_la, long_prefix, label_lb_la)
+	clf_lb_la = classifier_train(Y_train_B, Y_train_A, classifier_type, prefix_export + label_lb_la)
+	result_lb_la = classifier_test(clf_lb_la, Y_test_B, Y_test_A, classifier_type, prefix_export + label_lb_la)
 
 def experiment_pose_vs_poseauxlabel(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
 	print("Experiment: pose_vs_poseauxlabel")
@@ -548,19 +582,14 @@ def experiment_pose_vs_poseauxlabel(fold_id, input_set, unique_title, classifier
 	X_train_BlA, Y_train_B 	= get_BlA(X_train_AB, Y_train_AB, classifier_type)
 	X_test_BlA, Y_test_B 	= get_BlA(X_test_AB, Y_test_AB, classifier_type)
 
-	if classifier_type != CLASSIFIER_LSTM:
-		print("alb_a")
-		clf_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type)
-		export_classifier(clf_alb_a, long_prefix, label_alb_a)
-		result_alb_a = classifier_test(clf_alb_a, X_test_AlB, Y_test_A, classifier_type)
-		export_result(result_alb_a, long_prefix, label_alb_a)
-
+	print("alb_a")
+	clf_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type, prefix_export + label_alb_a)
+	result_alb_a = classifier_test(clf_alb_a, X_test_AlB, Y_test_A, classifier_type, prefix_export + label_alb_a)
+	
 	print("bla_b")
-	clf_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type)
-	export_classifier(clf_bla_b, long_prefix, label_bla_b)
-	result_bla_b = classifier_test(clf_bla_b, X_test_BlA, Y_test_B, classifier_type)
-	export_result(result_bla_b, long_prefix, label_bla_b)
-
+	clf_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type, prefix_export + label_bla_b)
+	result_bla_b = classifier_test(clf_bla_b, X_test_BlA, Y_test_B, classifier_type, prefix_export + label_bla_b)
+	
 
 def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
 	print("Experiment: Duo vs Solo")
@@ -591,28 +620,20 @@ def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, ex
 	verify_input_output(X_test_AB, Y_test_AB)
 
 	print("a_a")
-	clf_a_a = classifier_train(X_train_A, Y_train_A, classifier_type)
-	export_classifier(clf_a_a, long_prefix, label_a_a)
-	result_a_a = classifier_test(clf_a_a, X_test_A, Y_test_A, classifier_type)
-	export_result(result_a_a, long_prefix, label_a_a)
-
+	clf_a_a = classifier_train(X_train_A, Y_train_A, classifier_type, prefix_export + label_a_a)
+	result_a_a = classifier_test(clf_a_a, X_test_A, Y_test_A, classifier_type, prefix_export + label_a_a)
+	
 	print("b_b")
-	clf_b_b = classifier_train(X_train_B, Y_train_B, classifier_type)
-	export_classifier(clf_b_b, long_prefix, label_b_b)
-	result_b_b = classifier_test(clf_b_b, X_test_B, Y_test_B, classifier_type)
-	export_result(result_b_b, long_prefix, label_b_b)
+	clf_b_b = classifier_train(X_train_B, Y_train_B, classifier_type, prefix_export + label_b_b)
+	result_b_b = classifier_test(clf_b_b, X_test_B, Y_test_B, classifier_type, prefix_export + label_b_b)
 
 	print("ab_a")
-	clf_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type)
-	export_classifier(clf_ab_b, long_prefix, label_ab_b)
-	result_ab_a = classifier_test(clf_ab_a, X_test_AB, Y_test_A, classifier_type)
-	export_result(result_ab_a, long_prefix, label_ab_a)
+	clf_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type, prefix_export + label_ab_a)
+	result_ab_a = classifier_test(clf_ab_a, X_test_AB, Y_test_A, classifier_type, prefix_export + label_ab_a)
 
 	print("ab_b")
-	clf_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type)
-	export_classifier(clf_ab_b, long_prefix, label_ab_b)
-	result_ab_b = classifier_test(clf_ab_b, X_test_AB, Y_test_B, classifier_type)
-	export_result(result_ab_b, long_prefix, label_ab_b)
+	clf_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type, prefix_export + label_ab_b)
+	result_ab_b = classifier_test(clf_ab_b, X_test_AB, Y_test_B, classifier_type, prefix_export + label_ab_b)
 
 
 # Given a file location, return the four test/train vectors
@@ -683,8 +704,8 @@ def get_stateless_vectors(folds, unique_title, exp_batch_id, grouping_type, seed
 		print(X_test.shape)
 		print(X_train.shape)
 
-		export_result(Y_train, 	prefix_export, 'Ytruetrain_stateless' + grouping_type + '_f' + str(fold_id))
-		export_result(Y_test, 	prefix_export, 'Ytruetest_stateless' + grouping_type + '_f' + str(fold_id))
+		export_result(Y_train, 	prefix_export + 'Ytruetrain_stateless' 	+ grouping_type + '_f' + str(fold_id))
+		export_result(Y_test, 	prefix_export + 'Ytruetest_stateless' 	+ grouping_type + '_f' + str(fold_id))
 
 		exp_sets[fold_id] = {'xtest': X_test, 'xtrain': X_train, 'ytest': Y_test, 'ytrain': Y_train}
 
@@ -711,8 +732,8 @@ def get_temporal_vectors(folds, unique_title, exp_batch_id, grouping_type, seed=
 		X_test 		= X_test.reshape(X_test.shape[0], window_size, n_features)
 		X_train 	= X_train.reshape(X_train.shape[0], window_size, n_features) # dimension_X_row)
 
-		export_result(Y_train, 	'results/' + exp_batch_id, 'Ytruetrain_temporal' + grouping_type + '_f' + str(fold_id))
-		export_result(Y_test, 	'results/' + exp_batch_id, 'Ytruetest_temporal' + grouping_type + '_f' + str(fold_id))	
+		export_result(Y_train, 	'results/' + exp_batch_id + '/Ytruetrain_temporal' + grouping_type + '_f' + str(fold_id))
+		export_result(Y_test, 	'results/' + exp_batch_id + '/Ytruetest_temporal' + grouping_type + '_f' + str(fold_id))	
 
 		exp_sets[fold_id] = {'xtest': X_test, 'xtrain': X_train, 'ytest': Y_test, 'ytrain': Y_train}
 
