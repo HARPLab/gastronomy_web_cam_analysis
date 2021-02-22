@@ -411,12 +411,12 @@ def export_confusion_matrix(Y_correct, Y_test, exp_batch_id, classifier_type, su
 	corr = cm_precision
 	mask = np.zeros_like(corr)
 	# mask[corr == 0] = True
-	ax = plt.axes()
+	ax2 = plt.axes()
 	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, annot_kws={"size": 6}, fmt='.2f',  ax=ax)
-	ax.set_xticklabels(activity_labels, rotation=90)
-	ax.set_yticklabels(activity_labels, rotation=0)
-	ax.set(ylabel="True Label", xlabel="Predicted Label")
-	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label + "\n Precision: Fraction of predictions k with truth label k")
+	ax2.set_xticklabels(activity_labels, rotation=90)
+	ax2.set_yticklabels(activity_labels, rotation=0)
+	ax2.set(ylabel="True Label", xlabel="Predicted Label")
+	ax2.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label + "\n Precision: Fraction of predictions k with truth label k")
 	plt.tight_layout()
 	fig.get_figure().savefig(save_location + '_precision_cm.png')
 	plt.close()
@@ -450,20 +450,20 @@ def export_confusion_matrix(Y_correct, Y_test, exp_batch_id, classifier_type, su
 		percent_labels.append(percent)
 
 
-	fig, ax = plt.subplots()
+	fig, ax3 = plt.subplots()
 	le_font_size = 10.0
 
-	ax.bar(labels, correct_labels, width, align="center", label='Correct Labels')
-	ax.bar(labels, incorrect_labels, width, align="center", bottom=correct_labels,
+	ax3.bar(labels, correct_labels, width, align="center", label='Correct Labels')
+	ax3.bar(labels, incorrect_labels, width, align="center", bottom=correct_labels,
 		   label='Incorrect Labels')
 
-	ax.set_xlabel('Number of Samples', fontsize=le_font_size)
-	ax.set_ylabel('Predicted Label', fontsize=le_font_size)
-	ax.set_xticklabels(activity_labels, rotation=90, fontsize=le_font_size)
-	ax.yaxis.set_tick_params(labelsize=le_font_size)
+	ax3.set_xlabel('Number of Samples', fontsize=le_font_size)
+	ax3.set_ylabel('Predicted Label', fontsize=le_font_size)
+	ax3.set_xticklabels(activity_labels, rotation=90, fontsize=le_font_size)
+	ax3.yaxis.set_tick_params(labelsize=le_font_size)
 
-	ax.set_title('Per-Class Classification Accuracy for ' + subexp_label, fontsize=le_font_size)
-	ax.legend(fontsize=le_font_size)
+	ax3.set_title('Per-Class Classification Accuracy for ' + subexp_label, fontsize=le_font_size)
+	ax3.legend(fontsize=le_font_size)
 
 	# for p in ax.patches:
 	# 	width, height = p.get_width(), p.get_height()
@@ -765,7 +765,7 @@ def main():
 	# experiment_titles.extend([LABEL_LSTM])#, LABEL_LSTM_BIGGER, LABEL_LSTM_BIGGEST])
 	experiment_titles = [LABEL_LSTM]
 	
-	exp_batch_id = 13
+	exp_batch_id = 14
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_import = 'results/' + exp_batch_id
 	prefix_export = 'results-analysis/' + exp_batch_id
