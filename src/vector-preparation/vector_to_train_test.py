@@ -1,7 +1,6 @@
 import time
 import cv2
 import random
-import ctime
 import pickle
 import pandas as pd
 import numpy as np
@@ -16,6 +15,10 @@ import copy
 
 activitydict = {0: 'NONE', 1: 'away-from-table', 2: 'idle', 3: 'eating', 4: 'talking', 5:'talking:waiter', 6: 'looking:window', 
 	7: 'reading:bill', 8: 'reading:menu', 9: 'paying:check', 10: 'using:phone', 11: 'using:objs', 12: 'standing'}
+
+
+activity_labels = ['NONE', 'away-from-table', 'idle', 'eating', 'talking', 'talk:waiter', 'looking:window', 
+					'reading:bill', 'reading:menu', 'paying:check', 'using:phone', 'obj:wildcard', 'standing']
 
 # activity_from_key = {0:'away-from-table', 1:'idle', 2:'eating', 3: 'drinking', 4: 'talking', 5: 'ordering', 6: 'standing',
 # 						7: 'talking:waiter', 8: 'looking:window', 9: 'looking:waiter', 10: 'reading:bill', 11: 'reading:menu',
@@ -278,6 +281,20 @@ def export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shu
 
 	return total_train_X, total_train_Y, total_test_X, total_test_Y
 
+def verify_input_output(X, Y):
+	# print(X.shape)
+	# print(Y.shape)
+	# print("Unique values: ")
+	unique_values = np.unique(Y)
+	if(all(x in range(len(activity_labels)) for x in unique_values)): 
+		# print("All good")
+		pass
+	else:
+		print("Nope- Y contains more than the valid labels")
+		print(unique_values)
+		exit()
+
+
 def make_slices(X, Y, window_size, overlap_percent):
 	shift_stepsize = int(window_size * overlap_percent)
 
@@ -394,7 +411,11 @@ def export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overla
 		# print(X_all_slices.shape)
 		# print(Y_all_slices.shape)
 
+		verify_input_output(X_all_slices, Y_all_slices)
+
 		X_shuffled, Y_shuffled, Y_solo = unison_shuffled_copies_three(X_all_slices, Y_all_slices, Y_solo_labels, seed)
+
+		verify_input_output(X_shuffled, Y_shuffled)
 
 		# Note that we're passing just the labels in Y
 		total_train_X, total_train_Y, total_test_X, total_test_Y = \
@@ -403,6 +424,7 @@ def export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overla
 	export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed, GROUPING_RANDOM)
 
 def export_folds_mealwise_stateless(filenames_all, prefix_vectors_out, test_size, seed):
+	print("Mealwise stateless")
 	batch_id = BATCH_ID_MEALWISE_STATELESS
 	num_folds = int(1.0 / test_size)
 
@@ -455,6 +477,7 @@ def export_folds_mealwise_stateless(filenames_all, prefix_vectors_out, test_size
 
 
 def export_folds_mealwise_temporal(filenames_all, prefix_vectors_out, test_size, seed, window_size, overlap_percent):
+	print("Export folds mealwise temporal")
 	batch_id = BATCH_ID_MEALWISE_TEMPORAL
 	num_folds = int(1.0 / test_size)
 
@@ -510,6 +533,7 @@ def export_folds_mealwise_temporal(filenames_all, prefix_vectors_out, test_size,
 
 
 def export_folds_stateless(filenames_all, prefix_vectors_out, test_size, seed):
+	print("Export folds stateless")
 	batch_id = BATCH_ID_STATELESS
 	num_folds = int(1.0 / test_size)
 
@@ -555,9 +579,9 @@ def export_folds(filenames_all, prefix_vectors_out, seed):
 	overlap_percent = .2
 	test_percent = .2
 
-	# export_folds_mealwise_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
-	# export_folds_mealwise_temporal(filenames_all, prefix_vectors_out, test_percent, seed, window_size, overlap_percent)
-	# export_folds_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
+	export_folds_mealwise_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
+	export_folds_mealwise_temporal(filenames_all, prefix_vectors_out, test_percent, seed, window_size, overlap_percent)
+	export_folds_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
 	export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overlap_percent, test_percent, seed)
 
 
