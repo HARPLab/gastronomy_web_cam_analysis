@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import json
 import copy
+import os
 
 
 # activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
@@ -573,11 +574,21 @@ def export_folds_stateless(filenames_all, prefix_vectors_out, test_size, seed):
 
 	print("\n")
 
+def make_directories(type_list):
+	for batch_id in type_list:
+		try:
+			os.mkdir(prefix_vectors_out + batch_id)
+		except OSError as error:  
+			print("Directory " + batch_id + " already exists; will overwrite contents")
+
 def export_folds(filenames_all, prefix_vectors_out, seed):
 	print("Creating fold sets for all files")
 	window_size = 128
 	overlap_percent = .2
 	test_percent = .2
+
+	vector_types = [BATCH_ID_STATELESS, BATCH_ID_TEMPORAL, BATCH_ID_MEALWISE_TEMPORAL, BATCH_ID_MEALWISE_STATELESS]
+	make_directories(vector_types)
 
 	export_folds_mealwise_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
 	export_folds_mealwise_temporal(filenames_all, prefix_vectors_out, test_percent, seed, window_size, overlap_percent)
