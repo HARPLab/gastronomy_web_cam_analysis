@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import json
 
+# np.set_printoptions(suppress=True)
+
 activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
                         'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
                         'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
@@ -25,7 +27,8 @@ keypoint_labels = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder",
 
 filenames_all = ['8-13-18', '8-18-18', '8-17-18', '8-21-18', '8-9-18']
 prefix_qc = './quality-checks/'
-prefix_vectors_out = './output-vectors/'
+prefix_vectors_in = './output-vectors/raws/'
+prefix_vectors_out = './output-vectors/trimmed/'
 
 INDEX_PA = 0
 INDEX_PB = 1
@@ -61,6 +64,23 @@ def get_PB(input_row_X):
 
     return input_row_X[25:]
 
+
+def verify_input_output(X, Y):
+    # print(X.shape)
+    # print(Y.shape)
+    # print("Unique values: ")
+    unique_values = np.unique(Y)
+    if(all(x in range(len(activitydict.keys())) for x in unique_values)): 
+        # print("All good")
+        pass
+    else:
+        print("Nope- Y contains more than the valid labels")
+        np.set_printoptions(threshold=np.inf)
+        np.set_printoptions(suppress=True)
+        print(unique_values)
+        np.set_printoptions(threshold=15)
+        np.set_printoptions(suppress=False)
+        exit()
 
 def add_pose_to_image(pose, img, color):
     # TODO verify 
@@ -160,9 +180,20 @@ LABEL_TYPE_DELETED                  = 'deleted'
 # run the experiment
 def check_quality_and_export_trimmed(filename, export_frames=False):
     print("Running quality checks")
-    X_all = pickle.load(open(prefix_vectors_out + filename + '_roles_X.p',"rb"))
-    X_raw = pickle.load(open(prefix_vectors_out + filename + '_raw_X.p',"rb"))
-    Y_all = pickle.load(open(prefix_vectors_out + filename + '_raw_Y.p',"rb"))
+    try:
+        X_all = pickle.load(open(prefix_vectors_in + filename + '_roles_X.p',"rb"))
+        X_raw = pickle.load(open(prefix_vectors_in + filename + '_raw_X.p',"rb"))
+    except FileNotFoundError:
+        print("X pose input information not found- please run pose_to_vectors!")
+        exit()
+
+    try:
+        Y_all = pickle.load(open(prefix_vectors_in + filename + '_raw_Y.p',"rb"))
+    except FileNotFoundError:
+        print("Y labels not found: please run elan to vectors!")
+        exit()
+
+    verify_input_output(X_all, Y_all)
 
     print("loaded pickle datasets for " + filename)
     print("Dimensions of input X: " + str(X_all.shape) + " (video length x 25 OpenPose Pts x (x,y,confidence))")
@@ -248,6 +279,8 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
 
     print("Post-trim shape: " + str(Y_final.shape))
 
+    verify_input_output(X_final, Y_final)
+
     # filehandler = open(prefix_qc + "QC_" + filename_root + "_X.p", "wb")
     # json.dump(X_final, filehandler)
     # filehandler.close()
@@ -260,7 +293,7 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
     pickle.dump(Y_final, filehandler)
     filehandler.close()
 
-    print("Exported trimmmed final clip for " + filename)
+    print("Exported trimmed final clip for " + filename)
     print("\n")
 
 
