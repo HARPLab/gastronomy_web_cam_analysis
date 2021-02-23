@@ -200,6 +200,7 @@ def quality_check_output(X, Y, Y_pred, classifier_type, assessment_label, where,
 		Y_i = Y[lookup_index]
 
 		pose_size 		= CONST_NUM_POINTS*CONST_NUM_SUBPOINTS
+		label_size 		= CONST_NUM_LABEL
 		poses 			= np.zeros((n_window,))
 		input_labels 	= np.zeros((n_window,))
 		
