@@ -3,6 +3,8 @@ import pickle
 from sklearn import svm
 import time
 import numpy as np
+import imageio
+import cv2
 np.set_printoptions(suppress=True)
 
 from sklearn.metrics import confusion_matrix
@@ -28,45 +30,45 @@ from tensorflow.keras.layers import LSTM
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Dropout
 from tensorflow.keras.utils import to_categorical
+from random import randrange
 
-CLASSIFIER_ADABOOST = '_adaboost'
-CLASSIFIER_SGDC = '_sgdc'
-CLASSIFIER_SVM = '_svm'
-CLASSIFIER_KNN9 = '_kNN9'
-CLASSIFIER_KNN5 = '_kNN5'
-CLASSIFIER_KNN3 = '_kNN3'
-CLASSIFIER_DecisionTree = '_dectree'
+import sys
+sys.path.append("..")
+import qchecks
+import arconsts
 
-CLASSIFIER_LSTM = '_lstm-og'
-CLASSIFIER_LSTM_BIGGER = '_lstm-big'
-CLASSIFIER_LSTM_BIGGEST = '_lstm-biggest'
-CLASSIFIER_LSTM_TINY	= '_lstm_tiny'
-CLASSIFIER_CRF = '_crf'
+CLASSIFIER_ADABOOST = arconsts.CLASSIFIER_ADABOOST
+CLASSIFIER_SGDC 	= arconsts.CLASSIFIER_SGDC
+CLASSIFIER_SVM 		= arconsts.CLASSIFIER_SVM
+CLASSIFIER_KNN9 	= arconsts.CLASSIFIER_KNN9
+CLASSIFIER_KNN5 	= arconsts.CLASSIFIER_KNN5
+CLASSIFIER_KNN3 	= arconsts.CLASSIFIER_KNN3
+CLASSIFIER_DecisionTree = arconsts.CLASSIFIER_DecisionTree
 
-GROUPING_MEALWISE = '_g-mw'
-GROUPING_RANDOM = "_g-rand"
+CLASSIFIER_LSTM = arconsts.CLASSIFIER_LSTM
+CLASSIFIER_LSTM_BIGGER = arconsts.CLASSIFIER_LSTM_BIGGER
+CLASSIFIER_LSTM_BIGGEST = arconsts.CLASSIFIER_LSTM_BIGGEST
+CLASSIFIER_LSTM_TINY	= arconsts.CLASSIFIER_LSTM_TINY
+CLASSIFIER_CRF = arconsts.CLASSIFIER_CRF
 
-BATCH_ID_STATELESS 	= '_stateless'
-BATCH_ID_TEMPORAL 	= '_temporal'
-BATCH_ID_MEALWISE_STATELESS 	= '_mwstateless'
-BATCH_ID_MEALWISE_TEMPORAL 	= '_mwtemporal'
+GROUPING_MEALWISE = arconsts.GROUPING_MEALWISE
+GROUPING_RANDOM = arconsts.GROUPING_RANDOM
+
+BATCH_ID_STATELESS 	= arconsts.BATCH_ID_STATELESS
+BATCH_ID_TEMPORAL 	= arconsts.BATCH_ID_TEMPORAL
+BATCH_ID_MEALWISE_STATELESS = arconsts.BATCH_ID_MEALWISE_STATELESS
+BATCH_ID_MEALWISE_TEMPORAL 	= arconsts.BATCH_ID_MEALWISE_TEMPORAL
 
 
-CLASSIFIERS_TEMPORAL = [CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_CRF, CLASSIFIER_LSTM_TINY]
-CLASSIFIERS_STATELESS = [CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_SVM, CLASSIFIER_SGDC, CLASSIFIER_ADABOOST, CLASSIFIER_DecisionTree]
+CLASSIFIERS_TEMPORAL = arconsts.CLASSIFIERS_TEMPORAL
+CLASSIFIERS_STATELESS = arconsts.CLASSIFIERS_STATELESS
 
-# activity_labels = ['away-from-table', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 
-# 					'talking:waiter', 'looking:window', 'looking:waiter', 'reading:bill', 'reading:menu',
-# 					'paying:check', 'using:phone', 'using:napkin', 'using:purse', 'using:glasses',
-# 					'using:wallet', 'looking:PersonA', 'looking:PersonB', 'takeoutfood', 'leaving-table', 'cleaning-up', 'NONE']
-
-activity_labels = ['NONE', 'away-from-table', 'idle', 'eating', 'talking', 'talk:waiter', 'looking:window', 
-					'reading:bill', 'reading:menu', 'paying:check', 'using:phone', 'obj:wildcard', 'standing']
-
-# activitydict = {0: 'NONE', 1: 'away-from-table', 2: 'idle', 3: 'eating', 4: 'talking', 5:'talking:waiter', 6: 'looking:window', 
-# 	7: 'reading:bill', 8: 'reading:menu', 9: 'paying:check', 10: 'using:phone', 11: 'using:objs', 12: 'standing'}
+activity_labels = arconsts.activity_labels
 
 LSTM_NUM_LABELS = len(activity_labels)
+CONST_NUM_POINTS = arconsts.CONST_NUM_POINTS
+CONST_NUM_SUBPOINTS = arconsts.CONST_NUM_SUBPOINTS
+CONST_NUM_LABEL = arconsts.CONST_NUM_LABEL
 
 def get_LSTM(trainX, trainY, scale=1):
 	print(trainX.shape)
@@ -321,7 +323,7 @@ def classifier_test(classifier, X, Y, classifier_type, prefix_where):
 	result = classifier.predict(X)
 	# print(result.shape)
 
-	if classifier_type == CLASSIFIER_LSTM:
+	if classifier_type in CLASSIFIERS_TEMPORAL:
 		result = get_single_vector_of_multiclass_result(result)
 
 	# print(result)
@@ -345,41 +347,6 @@ def unpack_dict(input_set):
 	Y_train = input_set['ytrain']
 
 	return X_train, X_test, Y_train, Y_test
-
-def verify_input_output(X, Y):
-	# print(X.shape)
-	# print(Y.shape)
-	# print("Unique values: ")
-	unique_values = np.unique(Y)
-	# print(unique_values)
-
-	# print(unique_values)
-
-	if(all(x in range(len(activity_labels)) for x in unique_values)): 
-		pass
-	else:
-		print("Nope")
-		exit()
-
-	# result = np.where(Y == 374.416)
-	# print(result)
-	# result = np.where(Y == 321.935)
-	# print(result)
-	# result = np.where(Y == 154.342)
-	# print(result)
-	# result = np.where(Y == 163.06)
-	# print(result)
-
-	# print(Y[11839])
-	# print(Y[10534])
-	# print(Y[12098])
-	# print(Y[11584])
-	# print(Y.shape)
-	# print(Y[0])
-	# print(Y[3100])
-	# exit()
-
-
 
 def get_AlB(X_array, Y_array, c_type):
 	og_dim_X = X_array.shape
@@ -488,7 +455,7 @@ def get_A(X_array, Y_array, c_type):
 		print("What kind of classifier is this?")
 		exit()
 
-	verify_input_output(X_out, Y_out)
+	qchecks.verify_input_output(X_out, Y_out, c_type)
 	return X_out, Y_out
 
 def get_B(X_array, Y_array, c_type):
@@ -510,7 +477,7 @@ def get_B(X_array, Y_array, c_type):
 		X_out = X_array[:, :, half_dim_X:]
 		Y_out = Y_array[:, -1, half_dim_Y:]
 
-	verify_input_output(X_out, Y_out)
+	qchecks.verify_input_output(X_out, Y_out, c_type)
 	return X_out, Y_out
 
 def get_prefix_export_result(unique_title, exp_batch_id, classifier_type, fold_id, grouping_type):
@@ -618,24 +585,28 @@ def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, ex
 	X_train_B, Y_train_B 	= get_B(X_train_AB, Y_train_AB, classifier_type)
 	X_test_B, Y_test_B 		= get_B(X_test_AB, Y_test_AB, classifier_type)
 
-	verify_input_output(X_train_AB, Y_train_AB)
-	verify_input_output(X_test_AB, Y_test_AB)
+	qchecks.verify_input_output(X_train_AB, Y_train_AB, classifier_type)
+	qchecks.verify_input_output(X_test_AB, Y_test_AB, classifier_type)
 
 	print("a_a")
 	clf_a_a = classifier_train(X_train_A, Y_train_A, classifier_type, long_prefix + label_a_a)
 	result_a_a = classifier_test(clf_a_a, X_test_A, Y_test_A, classifier_type, long_prefix + label_a_a)
+	qchecks.quality_check_output(X_test_A, Y_test_A, result_a_a, classifier_type, label_a_a, long_prefix)
 	
 	print("b_b")
 	clf_b_b = classifier_train(X_train_B, Y_train_B, classifier_type, long_prefix + label_b_b)
 	result_b_b = classifier_test(clf_b_b, X_test_B, Y_test_B, classifier_type, long_prefix + label_b_b)
+	qchecks.quality_check_output(X_train_B, Y_train_B, result_b_b, classifier_type, label_b_b, long_prefix)
 
 	print("ab_a")
 	clf_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type, long_prefix + label_ab_a)
 	result_ab_a = classifier_test(clf_ab_a, X_test_AB, Y_test_A, classifier_type, long_prefix + label_ab_a)
+	qchecks.quality_check_output(X_train_AB, Y_train_A, result_ab_a, classifier_type, label_ab_a, long_prefix)
 
 	print("ab_b")
 	clf_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type, long_prefix + label_ab_b)
 	result_ab_b = classifier_test(clf_ab_b, X_test_AB, Y_test_B, classifier_type, long_prefix + label_ab_b)
+	qchecks.quality_check_output(X_train_AB, Y_train_B, result_ab_b, classifier_type, label_ab_b, long_prefix)
 
 
 # Given a file location, return the four test/train vectors
@@ -687,7 +658,7 @@ def get_stateless_vectors(folds, unique_title, exp_batch_id, grouping_type, seed
 	# different seeds, different values
 	
 	prefix = '../vector-preparation/output-vectors/stateless/'
-	n_features = 2*3*25
+	n_features = 2*CONST_NUM_POINTS*CONST_NUM_SUBPOINTS
 
 	if grouping_type == GROUPING_RANDOM:
 		grouping_type = BATCH_ID_STATELESS
@@ -702,14 +673,14 @@ def get_stateless_vectors(folds, unique_title, exp_batch_id, grouping_type, seed
 		print("Geting stateless data for fold " + str(fold_id))
 		X_train, X_test, Y_train, Y_test = import_vectors(unique_title, prefix, fold_id, grouping_type)
 
-		print(X_test.shape)
-		print(X_train.shape)
+		# print(X_test.shape)
+		# print(X_train.shape)
 
 		X_test 		= X_test.reshape(X_test.shape[0], n_features)
 		X_train 	= X_train.reshape(X_train.shape[0], n_features)
 
-		print(X_test.shape)
-		print(X_train.shape)
+		# print(X_test.shape)
+		# print(X_train.shape)
 
 		export_result(Y_train, 	long_prefix + '_Ytruetrain')
 		export_result(Y_test, 	long_prefix + '_Ytruetest')
@@ -755,7 +726,7 @@ def get_temporal_vectors(folds, unique_title, exp_batch_id, grouping_type, seed=
 def run_experiments(exp_batch_id):
 	num_folds = 1
 	seed =111
-	unique_title = 's' + seed + '_'
+	unique_title = 's' + str(seed)
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_export = 'results/' + exp_batch_id
 
@@ -771,8 +742,8 @@ def run_experiments(exp_batch_id):
 	
 	# exp_types = [CLASSIFIER_KNN3, CLASSIFIER_DecisionTree, CLASSIFIER_ADABOOST, CLASSIFIER_KNN5, CLASSIFIER_KNN9]#, CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]#, CLASSIFIER_SGDC, CLASSIFIER_SVM]
 	# exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SVM]
-	# exp_types = [CLASSIFIER_LSTM]
-	exp_types = [CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_DecisionTree]
+	exp_types = [CLASSIFIER_LSTM_TINY]
+	# exp_types = [CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_DecisionTree]
 
 	for i in range(len(exp_types)):		
 		classifier_type = exp_types[i]
