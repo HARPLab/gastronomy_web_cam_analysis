@@ -35,22 +35,24 @@ import matplotlib
 import numpy as np
 import pickle
 
+import sys
+sys.path.append("..")
+import qchecks
+import arconsts
+
 prefix_output = "output-vectors/raws/"
+
+filename_root = "8-21-18"
+filenames_all = arconsts.filenames_all
+
+timedict = {}
+activitydict = arconsts.activitydict_full_text_to_id
 
 def parseXML(elanfile):
     tree = ET.parse(elanfile)
     root = tree.getroot()
     return root
     print(root.tag)
-
-filename_root = "8-21-18"
-filenames_all = ['8-9-18', '8-13-18', '8-17-18', '8-18-18', '8-21-18']
-
-timedict = {}
-activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
-            'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
-            'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
-            'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20, 'NONE': 21}
 
 def getFeatureObj(currentframe):
     feature_data = {}

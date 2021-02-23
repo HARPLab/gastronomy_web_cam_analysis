@@ -5,21 +5,15 @@ from collections import defaultdict
 import pickle
 import pandas as pd
 
-activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
-                        'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
-                        'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
-                        'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20, 'leaving-table':21, 'cleaning-up':22, 'NONE':23}
+import sys
+sys.path.append("..")
+import qchecks
+import arconsts
 
 # Lookup table for OpenPose keypoint indices
-keypoint_labels = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder",
-                                                "LElbow","LWrist","MidHip","RHip","RKnee","RAnkle","LHip","LKnee","LAnkle","REye","LEye","REar",
-                                                "LEar","LBigToe", "LSmallToe", "LHeel", "RBigToe", "RSmallToe", "RHeel", "Background", '']
+keypoint_labels = arconsts.keypoint_labels
 
-
-# filenames_all = ['8-13-18']
-filenames_all = ['8-13-18', '8-18-18', '8-17-18', '8-21-18', '8-9-18']
-# root = parseXML('../../Annotations/' + meal + '-michael.eaf')
-# filename format 8-13-18_cropped_000000000000_keypoints.json
+filenames_all = arconsts.filenames_all
 max_poses = 5
 prefix_output = "output-vectors/raws/"
 
@@ -38,10 +32,6 @@ def get_json_raw_to_tuples(json_raw):
 	return pose
 
 
-bd_box_A = ((70, 80), (200, 340))
-bd_box_B = ((230, 130), (370, 370))
-
-
 def in_bd_box(bd_box, p):
 	pX, pY = p[0], p[1]
 	return pX > bd_box[0][0] and pX < bd_box[1][0] and pY < bd_box[1][1] and pY > bd_box[0][1]
@@ -52,6 +42,9 @@ def get_role_assignments(all_poses_in_frame):
 	best_num_b = 0
 	best_pose_a = np.zeros((25, 3))
 	best_pose_b = np.zeros((25, 3))
+
+	bd_box_A = arconsts.bd_box_A
+	bd_box_B = arconsts.bd_box_B
 
 	for pose in all_poses_in_frame:
 		num_a, num_b = 0, 0
