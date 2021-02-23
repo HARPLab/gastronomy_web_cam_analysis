@@ -2,12 +2,21 @@ import time
 import cv2
 import random
 import numpy as np
+import imageio
 
 # import sys
 # sys.path.append(".")
 import arconsts
+from random import randrange
 
-activity_labels = arconsts.activity_labels
+activity_labels 		= arconsts.activity_labels
+
+CLASSIFIERS_TEMPORAL 	= arconsts.CLASSIFIERS_TEMPORAL
+CLASSIFIERS_STATELESS 	= arconsts.CLASSIFIERS_STATELESS
+
+CONST_NUM_POINTS 	= arconsts.CONST_NUM_POINTS
+CONST_NUM_SUBPOINTS = arconsts.CONST_NUM_SUBPOINTS
+CONST_NUM_LABEL 	= arconsts.CONST_NUM_LABEL
 
 def add_pose_to_image(pose, img, color):
 	for p in pose:
@@ -26,8 +35,8 @@ def get_frame_visualization(poses, input_labels, output_label, predicted_label, 
 	CONST_IMG_WIDTH = 400
 	CONST_IMG_WIDTH = 450
 
-	label_true_a, label_true_b = "", ""
-	label_pred_a, label_pred_b = "", ""
+	label_true_a, label_true_b = "-", "-"
+	label_pred_a, label_pred_b = "-", "-"
 	pose_a, pose_b = [], []
 
 	FRAME_WIDTH = 400
@@ -55,31 +64,40 @@ def get_frame_visualization(poses, input_labels, output_label, predicted_label, 
 
 	halfway = int(FRAME_WIDTH / 2)
 
-	org_a = (50, 0) 
-	org_b = (45 + halfway, 0) 
+	org_a = (50, 25) 
+	org_b = (45 + halfway, 25) 
 
 	org_a2 = (50, 50) 
 	org_b2 = (45 + halfway, 50) 
 
 	font = cv2.FONT_HERSHEY_SIMPLEX 
-	fontScale = .6
+	fontScale = 2#.6
 	color = (255, 0, 0) 
 	thickness = 2
 
+	font = cv2.FONT_HERSHEY_SIMPLEX 
+	org = (00, 185) 
+	fontScale = .6
+
+	# Using cv2.putText() method 
+	image = cv2.putText(frame_img, label_true_a, org_a, font, fontScale, color, thickness, cv2.LINE_AA, False) 
+
+	output_label = int(output_label[0])
 
 	if label_output == "a":
-		label_true_a = output_label
-		label_pred_a = predicted_label
+		label_true_a = activity_labels[output_label]
+		label_pred_a = activity_labels[predicted_label]
 	
-		# frame_img = cv2.putText(frame_img, "TEST", org_a, font, fontScale, COLOR_A, thickness, cv2.LINE_AA) 
+		frame_img = cv2.putText(frame_img, "true: " + label_true_a, org_a, font, fontScale, color, thickness, cv2.LINE_AA, False)
+		frame_img = cv2.putText(frame_img, "pred: " + label_pred_a, org_a2, font, fontScale, COLOR_A, thickness, cv2.LINE_AA) 
 		# frame_img = cv2.putText(frame_img, "pred: " + label_pred_a, org_a2, font, fontScale, COLOR_A, thickness, cv2.LINE_AA) 
 
 	elif label_output == 'b':
-		label_true_b = output_label
-		label_pred_b = predicted_label
+		label_true_b = activity_labels[output_label]
+		label_pred_b = activity_labels[predicted_label]
 
-		# frame_img = cv2.putText(frame_img, label_true_b, org_b, font, fontScale, COLOR_B, thickness, cv2.LINE_AA)
-		# frame_img = cv2.putText(frame_img, "pred: " + label_pred_b, org_b2, font, fontScale, COLOR_B, thickness, cv2.LINE_AA)
+		frame_img = cv2.putText(frame_img, "true: " + label_true_b, org_b, font, fontScale, COLOR_B, thickness, cv2.LINE_AA)
+		frame_img = cv2.putText(frame_img, "pred: " + label_pred_b, org_b2, font, fontScale, COLOR_B, thickness, cv2.LINE_AA)
 
 	return frame_img
 
@@ -90,12 +108,8 @@ def export_gif_of(poses, input_labels, output_label, predicted_label, assessment
 	labels = label.split("_")
 	label_input, label_output = labels[0], labels[1]
 
-	print(input_labels.shape)
-
 	window_size = poses.shape[0]
-	print(window_size)
-	print(input_labels.shape[0])
-
+	
 	frames = []
 	for fi in range(window_size):
 		dummy = poses[fi]
@@ -125,6 +139,15 @@ def export_gif_of(poses, input_labels, output_label, predicted_label, assessment
 #         np.set_printoptions(threshold=15)
 #         np.set_printoptions(suppress=False)
 #         exit()
+
+def verify_Y_valid(Y):
+	unique_values = np.unique(Y)
+	if(all(x in range(len(arconsts.activity_labels)) for x in unique_values)): 
+		pass
+	else:
+		print("Y contains labels outside the correct set")
+		print(unique_values)
+		exit()
 
 def verify_io_expanded(X, Y):
 	unique_values = np.unique(Y)
