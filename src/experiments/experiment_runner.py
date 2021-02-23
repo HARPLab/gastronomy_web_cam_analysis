@@ -3,7 +3,6 @@ import pickle
 from sklearn import svm
 import time
 import numpy as np
-import imageio
 import cv2
 np.set_printoptions(suppress=True)
 
@@ -30,7 +29,6 @@ from tensorflow.keras.layers import LSTM
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Dropout
 from tensorflow.keras.utils import to_categorical
-from random import randrange
 
 import sys
 sys.path.append("..")
@@ -65,10 +63,10 @@ CLASSIFIERS_STATELESS = arconsts.CLASSIFIERS_STATELESS
 
 activity_labels = arconsts.activity_labels
 
-LSTM_NUM_LABELS = len(activity_labels)
-CONST_NUM_POINTS = arconsts.CONST_NUM_POINTS
+LSTM_NUM_LABELS 	= len(activity_labels)
+CONST_NUM_POINTS 	= arconsts.CONST_NUM_POINTS
 CONST_NUM_SUBPOINTS = arconsts.CONST_NUM_SUBPOINTS
-CONST_NUM_LABEL = arconsts.CONST_NUM_LABEL
+CONST_NUM_LABEL 	= arconsts.CONST_NUM_LABEL
 
 def get_LSTM(trainX, trainY, scale=1):
 	print(trainX.shape)
@@ -481,10 +479,10 @@ def get_B(X_array, Y_array, c_type):
 	return X_out, Y_out
 
 def get_prefix_export_result(unique_title, exp_batch_id, classifier_type, fold_id, grouping_type):
-	return 'results/' + exp_batch_id + unique_title + "_f" + str(fold_id) + grouping_type + classifier_type
+	return 'results/' + exp_batch_id + unique_title + "_f" + str(fold_id) + "_" + grouping_type + classifier_type
 
 def get_prefix_export_truth(unique_title, exp_batch_id, fold_id, grouping_type):
-	return 'results/' + exp_batch_id + unique_title + "_f" + str(fold_id) + grouping_type
+	return 'results/' + exp_batch_id + unique_title + "_f" + str(fold_id) + "_" + grouping_type
 
 def experiment_swapped_poses(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
 	print("Experiment: Poses Swapped")
@@ -596,31 +594,28 @@ def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, ex
 	print("b_b")
 	clf_b_b = classifier_train(X_train_B, Y_train_B, classifier_type, long_prefix + label_b_b)
 	result_b_b = classifier_test(clf_b_b, X_test_B, Y_test_B, classifier_type, long_prefix + label_b_b)
-	qchecks.quality_check_output(X_train_B, Y_train_B, result_b_b, classifier_type, label_b_b, long_prefix)
+	qchecks.quality_check_output(X_test_B, Y_test_B, result_b_b, classifier_type, label_b_b, long_prefix)
 
 	print("ab_a")
 	clf_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type, long_prefix + label_ab_a)
 	result_ab_a = classifier_test(clf_ab_a, X_test_AB, Y_test_A, classifier_type, long_prefix + label_ab_a)
-	qchecks.quality_check_output(X_train_AB, Y_train_A, result_ab_a, classifier_type, label_ab_a, long_prefix)
+	qchecks.quality_check_output(X_test_AB, Y_test_A, result_ab_a, classifier_type, label_ab_a, long_prefix)
 
 	print("ab_b")
 	clf_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type, long_prefix + label_ab_b)
 	result_ab_b = classifier_test(clf_ab_b, X_test_AB, Y_test_B, classifier_type, long_prefix + label_ab_b)
-	qchecks.quality_check_output(X_train_AB, Y_train_B, result_ab_b, classifier_type, label_ab_b, long_prefix)
+	qchecks.quality_check_output(X_test_AB, Y_test_B, result_ab_b, classifier_type, label_ab_b, long_prefix)
 
 
 # Given a file location, return the four test/train vectors
 def import_vectors(unique_title, prefix, fold_id, grouping_type):
 	entries = os.listdir(prefix)
-	# print(entries)
 	# print(prefix)
 	# get all the input files from this video
 	entries = list(filter(lambda k: unique_title in k, entries))
-	# print(entries)
 	entries = list(filter(lambda k: grouping_type in k, entries))
 	entries = list(filter(lambda k: 'total' in k, entries))
 	# print(entries)
-
 
 	fold_group = "f" + str(fold_id) + "_"
 	fold_entries = list(filter(lambda k: fold_group in k, entries))
@@ -661,9 +656,9 @@ def get_stateless_vectors(folds, unique_title, exp_batch_id, grouping_type, seed
 	n_features = 2*CONST_NUM_POINTS*CONST_NUM_SUBPOINTS
 
 	if grouping_type == GROUPING_RANDOM:
-		grouping_type = BATCH_ID_STATELESS
+		grouping_type = BATCH_ID_STATELESS[1:]
 	elif grouping_type == GROUPING_MEALWISE:
-		grouping_type = BATCH_ID_MEALWISE_STATELESS
+		grouping_type = BATCH_ID_MEALWISE_STATELESS[1:]
 
 	exp_sets = {}
 	# exp_sets['all'] = import_vectors(unique_title, prefix, -1)
@@ -700,9 +695,9 @@ def get_temporal_vectors(folds, unique_title, exp_batch_id, grouping_type, seed=
 	n_features = 2*25*3
 
 	if grouping_type == GROUPING_RANDOM:
-		grouping_type = BATCH_ID_TEMPORAL
+		grouping_type = BATCH_ID_TEMPORAL[1:]
 	elif grouping_type == GROUPING_MEALWISE:
-		grouping_type = BATCH_ID_MEALWISE_TEMPORAL
+		grouping_type = BATCH_ID_MEALWISE_TEMPORAL[1:]
 
 	exp_sets = {}
 	# exp_sets['all'] = import_vectors(unique_title, prefix, -1)
@@ -725,7 +720,7 @@ def get_temporal_vectors(folds, unique_title, exp_batch_id, grouping_type, seed=
 
 def run_experiments(exp_batch_id):
 	num_folds = 1
-	seed =111
+	seed = 111
 	unique_title = 's' + str(seed)
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_export = 'results/' + exp_batch_id
@@ -766,11 +761,11 @@ def run_experiments(exp_batch_id):
 			experiment_duo_vs_solo(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 			experiment_pose_vs_poseauxlabel(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 			experiment_swapped_poses(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
-			experiment_label_to_label(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+			# experiment_label_to_label(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 
 
 def main():
-	exp_batch_id = 17
+	exp_batch_id = 18
 	prefix_export = 'results/' + str(exp_batch_id)
 	run_experiments(exp_batch_id)
 
