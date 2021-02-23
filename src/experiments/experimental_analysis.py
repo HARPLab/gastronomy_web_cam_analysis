@@ -12,38 +12,60 @@ from dictdiffer import diff
 import seaborn as sn
 import matplotlib.pyplot as plt
 
-LABEL_ADABOOST = '_adaboost'
-LABEL_SGDC = '_sgdc'
-LABEL_SVM = '_svm'
-LABEL_KNN9 = '_kNN9'
-LABEL_KNN5 = '_kNN5'
-LABEL_KNN3 = '_kNN3'
-LABEL_DecisionTree = '_dectree'
+import sys
+sys.path.append("..")
+import qchecks
+import arconsts
 
-LABEL_LSTM = '_lstm-og'
-LABEL_LSTM_BIGGER = '_lstm-big'
-LABEL_LSTM_BIGGEST = '_lstm-biggest'
+LABEL_ADABOOST 	= arconsts.CLASSIFIER_ADABOOST
+LABEL_SGDC 		= arconsts.CLASSIFIER_SGDC
+LABEL_SVM 		= arconsts.CLASSIFIER_SVM
+LABEL_KNN9 		= arconsts.CLASSIFIER_KNN9
+LABEL_KNN5 		= arconsts.CLASSIFIER_KNN5
+LABEL_KNN3 		= arconsts.CLASSIFIER_KNN3
+LABEL_DecisionTree = arconsts.CLASSIFIER_DecisionTree
 
-LABELS_TEMPORAL = [LABEL_LSTM, LABEL_LSTM_BIGGER, LABEL_LSTM_BIGGEST]
-LABELS_STATELESS = [LABEL_KNN3, LABEL_KNN5, LABEL_KNN9, LABEL_SVM, LABEL_SGDC, LABEL_ADABOOST, LABEL_DecisionTree]
+LABEL_LSTM 			= arconsts.CLASSIFIER_LSTM
+LABEL_LSTM_BIGGER 	= arconsts.CLASSIFIER_LSTM_BIGGER
+LABEL_LSTM_BIGGEST 	= arconsts.CLASSIFIER_LSTM_BIGGEST
+LABEL_LSTM_TINY		= arconsts.CLASSIFIER_LSTM_TINY
+LABEL_CRF 			= arconsts.CLASSIFIER_CRF
+
+GROUPING_MEALWISE 	= arconsts.GROUPING_MEALWISE
+GROUPING_RANDOM 	= arconsts.GROUPING_RANDOM
+
+BATCH_ID_STATELESS 	= arconsts.BATCH_ID_STATELESS
+BATCH_ID_TEMPORAL 	= arconsts.BATCH_ID_TEMPORAL
+BATCH_ID_MEALWISE_STATELESS = arconsts.BATCH_ID_MEALWISE_STATELESS
+BATCH_ID_MEALWISE_TEMPORAL 	= arconsts.BATCH_ID_MEALWISE_TEMPORAL
 
 
+CLASSIFIERS_TEMPORAL 	= arconsts.CLASSIFIERS_TEMPORAL
+CLASSIFIERS_STATELESS 	= arconsts.CLASSIFIERS_STATELESS
 
-LABEL_A_A = 'a_a'
-LABEL_B_B = 'b_b'
-LABEL_AB_B = 'ab_b'
-LABEL_AB_A = 'ab_a'
+activity_labels 	= arconsts.activity_labels
 
-LABEL_BLA_B = 'bla_b'
-LABEL_ALB_A = 'alb_a'
+LSTM_NUM_LABELS 	= len(activity_labels)
+CONST_NUM_POINTS 	= arconsts.CONST_NUM_POINTS
+CONST_NUM_SUBPOINTS = arconsts.CONST_NUM_SUBPOINTS
+CONST_NUM_LABEL 	= arconsts.CONST_NUM_LABEL
 
-LABEL_LA_LB = 'la_lb'
-LABEL_LB_LA = 'lb_la'
 
-LABEL_B_A = 'b_a'
-LABEL_A_B = 'a_b'
+LABEL_A_A = arconsts.LABEL_A_A
+LABEL_B_B = arconsts.LABEL_B_B
+LABEL_AB_B = arconsts.LABEL_AB_B
+LABEL_AB_A = arconsts.LABEL_AB_A
 
-CSV_ORDER = ['a_a', 'b_b', 'ab_b', 'ab_a', 'bla_b', 'alb_a', 'la_lb', 'lb_la', 'b_a', 'a_b']
+LABEL_BLA_B = arconsts.LABEL_BLA_B
+LABEL_ALB_A = arconsts.LABEL_ALB_A
+
+LABEL_LA_LB = arconsts.LABEL_LA_LB
+LABEL_LB_LA = arconsts.LABEL_LB_LA
+
+LABEL_B_A = arconsts.LABEL_B_A
+LABEL_A_B = arconsts.LABEL_A_B
+
+CSV_ORDER = arconsts.CSV_ORDER
 
 
 LABEL_RANDOM_CHANCE_UNIFORM_A = 'random_chance_uniform_a'
@@ -74,7 +96,7 @@ ANALYSIS_MCC 		= 'analysis:mcc'
 default_analysis = [ANALYSIS_OVERALL_ACCURACY, ANALYSIS_CLASS_PERFORMANCE, ANALYSIS_MCC]
 
 COMPARISON_TABLE_ACCURACY		= 'comparisons_accuracy'
-COMPARISON_TABLE_MCC		= 'comparisons_mcc'
+COMPARISON_TABLE_MCC			= 'comparisons_mcc'
 COMPARISONS 					= [COMPARISON_TABLE_ACCURACY, COMPARISON_TABLE_MCC]
 
 
@@ -607,6 +629,7 @@ def import_results(unique_title, prefix, fold_id, classifier_type):
 
 	# Given a file location, return the four test/train vectors
 	entries = os.listdir(prefix)
+	print(entries)
 	entries = list(filter(lambda x: x.find('.png') == -1, entries))
 	
 	# get all the input files from this video
@@ -624,7 +647,7 @@ def import_results(unique_title, prefix, fold_id, classifier_type):
 		start = item.find(classifier_type) + len(classifier_type) + len("_")
 		label = item[start : item.rfind("_")]
 
-		# print(item)
+		print(item)
 		
 		Y_test 		= pickle.load(open(prefix + item, 'rb'))
 		result_dict[label] = Y_test
@@ -765,7 +788,7 @@ def main():
 	# experiment_titles.extend([LABEL_LSTM])#, LABEL_LSTM_BIGGER, LABEL_LSTM_BIGGEST])
 	experiment_titles = [LABEL_LSTM]
 	
-	exp_batch_id = 14
+	exp_batch_id = 16
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_import = 'results/' + exp_batch_id
 	prefix_export = 'results-analysis/' + exp_batch_id
