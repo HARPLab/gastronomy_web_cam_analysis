@@ -8,54 +8,31 @@ import json
 import copy
 import os
 
+import sys
+sys.path.append("..")
+import arconsts
 
-# activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
-# 						'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
-# 						'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
-# 						'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20, 'leaving-table':21, 'cleaning-up':22, 'NONE':23}
+activitydict = arconsts.activitydict
+activity_labels = arconsts.activity_labels
 
-activitydict = {0: 'NONE', 1: 'away-from-table', 2: 'idle', 3: 'eating', 4: 'talking', 5:'talking:waiter', 6: 'looking:window', 
-	7: 'reading:bill', 8: 'reading:menu', 9: 'paying:check', 10: 'using:phone', 11: 'using:objs', 12: 'standing'}
-
-
-activity_labels = ['NONE', 'away-from-table', 'idle', 'eating', 'talking', 'talk:waiter', 'looking:window', 
-					'reading:bill', 'reading:menu', 'paying:check', 'using:phone', 'obj:wildcard', 'standing']
-
-# activity_from_key = {0:'away-from-table', 1:'idle', 2:'eating', 3: 'drinking', 4: 'talking', 5: 'ordering', 6: 'standing',
-# 						7: 'talking:waiter', 8: 'looking:window', 9: 'looking:waiter', 10: 'reading:bill', 11: 'reading:menu',
-# 						12: 'paying:check', 13: 'using:phone', 14: 'using:napkin', 15: 'using:purse', 16: 'using:glasses',
-# 						17: 'using:wallet', 18: 'looking:PersonA', 19: 'looking:PersonB', 20: 'takeoutfood', 21: 'leaving-table', 22: 'cleaning-up', 23: 'NONE'}
-
-
-# Lookup table for OpenPose keypoint indices
-keypoint_labels = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder",
-												"LElbow","LWrist","MidHip","RHip","RKnee","RAnkle","LHip","LKnee","LAnkle","REye","LEye","REar",
-												"LEar","LBigToe", "LSmallToe", "LHeel", "RBigToe", "RSmallToe", "RHeel", "Background", '']
-
-
-filenames_all = ['8-13-18', '8-18-18', '8-17-18', '8-21-18', '8-9-18']
+filenames_all = arconsts.filenames_all
 prefix_qc = './quality-checks/'
 prefix_vectors_out = './output-vectors/'
 
 INDEX_PA = 0
 INDEX_PB = 1
 
-BATCH_ID_STATELESS 	= 'stateless'
-BATCH_ID_TEMPORAL 	= 'temporal'
+BATCH_ID_STATELESS 	= arconsts.BATCH_ID_STATELESS
+BATCH_ID_TEMPORAL 	= arconsts.BATCH_ID_TEMPORAL
 
-BATCH_ID_MEALWISE_STATELESS 	= 'mwstateless'
-BATCH_ID_MEALWISE_TEMPORAL 	= 'mwtemporal'
+BATCH_ID_MEALWISE_STATELESS = arconsts.BATCH_ID_MEALWISE_STATELESS
+BATCH_ID_MEALWISE_TEMPORAL 	= arconsts.BATCH_ID_MEALWISE_TEMPORAL
 
 BATCH_ID_TEMPORAL_SPARE = 'temporal_sparse'
 
-GROUPING_MEALWISE = '_g-mw'
-GROUPING_RANDOM = "_g-rand"
+GROUPING_MEALWISE 	= arconsts.GROUPING_MEALWISE
+GROUPING_RANDOM 	= arconsts.GROUPING_RANDOM
 
-# eating contains drinking
-# looking:PersonA, looking:PersonB -> idle
-# standing
-# leaving
-# drinking
 def reduce_labels(Y_array):
 	# activity_from_key = {0:'away-from-table', 1:'idle', 2:'eating', 3: 'drinking', 4: 'talking', 5: 'ordering', 6: 'standing',
 	# 					7: 'talking:waiter', 8: 'looking:window', 9: 'looking:waiter', 10: 'reading:bill', 11: 'reading:menu',
@@ -106,7 +83,6 @@ def reduce_labels(Y_array):
 	Y_new = np.where(Y_array==1, ACT_IDLE, 			Y_new)
 	Y_new = np.where(Y_array==0, ACT_AWAY_FROM_TABLE, Y_new)
 
-
 	return Y_new
 
 
@@ -119,102 +95,6 @@ def unison_shuffled_copies_three(a, b, c, seed_val):
 	assert len(a) == len(b)
 	p = np.random.RandomState(seed=seed_val).permutation(len(a))
 	return a[p], b[p], c[p]
-
-# def slice_vectors(X_train, Y_train, training_suff, logfile, window_size=128, X_test=None, Y_test=None, overlap_percent=.5, percent_test=.2):
-#     test_exclusive = False
-#     test_set_provided = X_test is not None and Y_test is not None
-    
-#     x_sliced_list = []
-#     y_sliced_list = []
-    
-#     # prepare test set for queries outside of its range
-#     if test_set_provided:
-#         X_test_sliced = np.zeros((X_test.shape[0]-window_size, window_size, X_test.shape[1]))
-#         Y_test_sliced = np.zeros((Y_test.shape[0]-window_size, 1))
-    
-#     # counter for frequency of each label
-#     label_freqs = {}
-#     for i in range(0, 25):
-#         label_freqs[i] = 0
-
-#     # offset by one frame
-#     for idx in range(window_size, X_train.shape[0]):
-#         x_sliced_list.append(X_train[idx - window_size:idx].tolist())
-    
-#     # slice Y in the same way
-#     X_train_sliced = np.array(x_sliced_list)
-#     for idx in range(window_size, Y_train.shape[0]):
-#         label_freqs[Y_train[idx]] += 1
-#         y_sliced_list.append(Y_train[idx].tolist())
-    
-#     # turn back into array
-#     Y_train_sliced = np.array(y_sliced_list)
-    
-#     # verify dimensions
-#     print(X_train_sliced.shape)
-#     print(Y_train_sliced.shape)
-#     print(label_freqs)
-
-#     # export class frequencies for this label of output vectors
-#     logfile.write("class freqs: " + str(label_freqs))
-    
-#     # split the test set in the same way as the train set
-#     if test_set_provided:
-#         for idx in range(window_size, X_test.shape[0]):
-#             X_test_sliced[idx-window_size,:] = X_test[idx-window_size:idx]
-#         for idx in range(window_size, Y_test.shape[0]):
-#             Y_test_sliced[idx-window_size,0] = Y_test[idx]
-    
-#     if test_exclusive:
-#         test_set_provided = True
-#         x_sliced_test_list = []
-#         y_sliced_test_list = []
-#         for idx in range(window_size+2, X_train.shape[0]):
-#             x_sliced_test_list.append(X_train[idx-window_size:idx].tolist())
-#         for idx in range(window_size+2, Y_train.shape[0]):
-#             y_sliced_test_list.append(Y_train[idx].tolist())
-#         Y_test_sliced = np.array(y_sliced_test_list)
-#         X_test_sliced = np.array(x_sliced_test_list)
-#     Y_train_sliced = to_categorical(Y_train_sliced)
-
-#     if test_set_provided:
-#         Y_test_sliced = to_categorical(Y_test_sliced)
-#         X_test_sliced, Y_test_sliced = shuffle_in_unison(X_test_sliced, Y_test_sliced)
-
-#     X_sliced, Y_sliced = shuffle_in_unison(X_train_sliced, Y_train_sliced)
-    
-#     if test_set_provided:
-#         # export the pool of all vectors, not yet split into test train
-#         print("test_set_provided")
-#         train_list = [(X_sliced,Y_sliced)]
-#         test_list = [(X_test_sliced, Y_test_sliced)]
-        
-#         pickle.dump(train_list, open("training_sets/train_list_" + training_suff +".p", "wb"),protocol=4)
-#         pickle.dump(test_list, open("training_sets/test_list_" + training_suff +".p", "wb"),protocol=4)
-#         return train_list, test_list
-    
-#     train_list = []
-#     test_list = []
-
-#     num_folds = int(1.0/percent_test)
-#     for fold in range(num_folds):    
-#         index_split = int(len(X_sliced) * (1.0 - percent_test))
-#         lower = int(fold*percent_test*len(X_sliced))
-#         upper = lower + int(percent_test*len(X_sliced))
-#         X_train_sliced = np.concatenate((X_sliced[0:lower], X_sliced[upper:]), axis=0)
-#         Y_train_sliced = np.concatenate((Y_sliced[0:lower], Y_sliced[upper:]), axis=0)
-#         X_test_sliced = X_sliced[lower:upper]
-#         Y_test_sliced = Y_sliced[lower:upper]
-#         train_list.append((X_train_sliced,Y_train_sliced))
-#         test_list.append((X_test_sliced,Y_test_sliced))
-
-#         print(X_train_sliced.shape, Y_train_sliced.shape, X_test_sliced.shape, Y_test_sliced.shape)
-
-# 	    pickle.dump(train_list, open("training_sets/train_list_" + training_suff +".p", "wb"),protocol=4)
-# 	    pickle.dump(test_list, open("training_sets/test_list_" + training_suff +".p", "wb"),protocol=4)
-
-#     return train_list, test_list
-
 
 def export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shuffled, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed):
 	chunk_size = int(len(X_shuffled) * (test_size))

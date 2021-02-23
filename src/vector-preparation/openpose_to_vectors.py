@@ -78,7 +78,7 @@ def get_vectorized(pose):
 	return flat_list
         
 def process_vectors_for_filename(group_name):
-	print("Analyzing " + group_name)
+	print("Analyzing " + group_name + "... ", end="")
 	prefix = '../../Annotations/json/'
 	entries = os.listdir(prefix)
 
@@ -152,6 +152,7 @@ def process_vectors_for_filename(group_name):
 	filehandler = open(prefix_output + group_name + '_roles_X.p', 'wb') 
 	pickle.dump(output_vector_roles, filehandler)
 	filehandler.close()
+	print("Completed!")
 
 
 for group_name in filenames_all:

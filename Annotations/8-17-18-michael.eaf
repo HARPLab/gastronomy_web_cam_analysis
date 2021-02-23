@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ANNOTATION_DOCUMENT AUTHOR="" DATE="2020-02-24T12:12:30-05:00" FORMAT="3.0" VERSION="3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/EAFv3.0.xsd">
+<ANNOTATION_DOCUMENT AUTHOR="" DATE="2021-02-21T21:18:24-05:00" FORMAT="3.0" VERSION="3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/EAFv3.0.xsd">
     <HEADER MEDIA_FILE="" TIME_UNITS="milliseconds">
-        <MEDIA_DESCRIPTOR MEDIA_URL="file:///Users/michaelhuang/Downloads/8-17-18_cropped.mp4" MIME_TYPE="video/mp4" RELATIVE_MEDIA_URL="../Downloads/8-17-18_cropped.mp4"/>
+        <MEDIA_DESCRIPTOR MEDIA_URL="file:///Users/AdaTaylor/Development/gastronomy_web_cam_analysis/videos/8-17-18_cropped.mp4" MIME_TYPE="video/mp4" RELATIVE_MEDIA_URL="../videos/8-17-18_cropped.mp4"/>
         <PROPERTY NAME="URN">urn:nl-mpi-tools-elan-eaf:5b949ae9-74db-45b7-b87d-be130a5b1f5e</PROPERTY>
         <PROPERTY NAME="lastUsedAnnotationId">402</PROPERTY>
     </HEADER>
@@ -1844,8 +1844,8 @@
             </ALIGNABLE_ANNOTATION>
         </ANNOTATION>
         <ANNOTATION>
-            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a202" CVE_REF="cveid_d44429f2-b05f-4d38-a490-3e1b520fce4d" TIME_SLOT_REF1="ts791" TIME_SLOT_REF2="ts795">
-                <ANNOTATION_VALUE>leaving-table</ANNOTATION_VALUE>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a202" CVE_REF="cveid_7c70b22f-79f7-49f7-aada-393eedbb193e" TIME_SLOT_REF1="ts791" TIME_SLOT_REF2="ts795">
+                <ANNOTATION_VALUE>idle</ANNOTATION_VALUE>
             </ALIGNABLE_ANNOTATION>
         </ANNOTATION>
         <ANNOTATION>
@@ -2831,6 +2831,33 @@
     <CONSTRAINT DESCRIPTION="Symbolic subdivision of a parent annotation. Annotations refering to the same parent are ordered" STEREOTYPE="Symbolic_Subdivision"/>
     <CONSTRAINT DESCRIPTION="1-1 association with a parent annotation" STEREOTYPE="Symbolic_Association"/>
     <CONSTRAINT DESCRIPTION="Time alignable annotations within the parent annotation's time interval, gaps are allowed" STEREOTYPE="Included_In"/>
+    <CONTROLLED_VOCABULARY CV_ID="Customer_Group_Transitions">
+        <DESCRIPTION LANG_REF="und"/>
+        <CV_ENTRY_ML CVE_ID="cveid_1737d6aa-a3fb-49e7-b113-892bf22fbe45">
+            <CVE_VALUE LANG_REF="und">reading-menus</CVE_VALUE>
+        </CV_ENTRY_ML>
+        <CV_ENTRY_ML CVE_ID="cveid_91d75ab7-6b44-4f04-b942-62d8a004b01c">
+            <CVE_VALUE LANG_REF="und">ready-to-order</CVE_VALUE>
+        </CV_ENTRY_ML>
+        <CV_ENTRY_ML CVE_ID="cveid_f5ea4efe-5eab-472a-9832-c6b504084b3c">
+            <CVE_VALUE LANG_REF="und">drinking</CVE_VALUE>
+        </CV_ENTRY_ML>
+        <CV_ENTRY_ML CVE_ID="cveid_3a183d3b-8a0d-427e-a19f-a895d112d52e">
+            <CVE_VALUE LANG_REF="und">eating</CVE_VALUE>
+        </CV_ENTRY_ML>
+        <CV_ENTRY_ML CVE_ID="cveid_fdbd4fb3-9ffa-434c-9762-c064f2cff79f">
+            <CVE_VALUE LANG_REF="und">ready-for-cleanup</CVE_VALUE>
+        </CV_ENTRY_ML>
+        <CV_ENTRY_ML CVE_ID="cveid_ad3b8dc9-5469-46f9-92a4-3e3e8fc644c0">
+            <CVE_VALUE LANG_REF="und">ready-for-bill</CVE_VALUE>
+        </CV_ENTRY_ML>
+        <CV_ENTRY_ML CVE_ID="cveid_9bf6c245-d088-4615-acb0-1b29fbc7366b">
+            <CVE_VALUE LANG_REF="und">ready-for-final-check</CVE_VALUE>
+        </CV_ENTRY_ML>
+        <CV_ENTRY_ML CVE_ID="cveid_ba836b51-40e1-45fa-b300-898cc70b3e5f">
+            <CVE_VALUE LANG_REF="und">ready-to-leave</CVE_VALUE>
+        </CV_ENTRY_ML>
+    </CONTROLLED_VOCABULARY>
     <CONTROLLED_VOCABULARY CV_ID="Person_Activities">
         <DESCRIPTION LANG_REF="und"/>
         <CV_ENTRY_ML CVE_ID="cveid_5e285943-398d-4c05-b778-0caeed0ba461">
@@ -2898,33 +2925,6 @@
         </CV_ENTRY_ML>
         <CV_ENTRY_ML CVE_ID="cveid_d44429f2-b05f-4d38-a490-3e1b520fce4d">
             <CVE_VALUE LANG_REF="und">leaving-table</CVE_VALUE>
-        </CV_ENTRY_ML>
-    </CONTROLLED_VOCABULARY>
-    <CONTROLLED_VOCABULARY CV_ID="Customer_Group_Transitions">
-        <DESCRIPTION LANG_REF="und"/>
-        <CV_ENTRY_ML CVE_ID="cveid_1737d6aa-a3fb-49e7-b113-892bf22fbe45">
-            <CVE_VALUE LANG_REF="und">reading-menus</CVE_VALUE>
-        </CV_ENTRY_ML>
-        <CV_ENTRY_ML CVE_ID="cveid_91d75ab7-6b44-4f04-b942-62d8a004b01c">
-            <CVE_VALUE LANG_REF="und">ready-to-order</CVE_VALUE>
-        </CV_ENTRY_ML>
-        <CV_ENTRY_ML CVE_ID="cveid_f5ea4efe-5eab-472a-9832-c6b504084b3c">
-            <CVE_VALUE LANG_REF="und">drinking</CVE_VALUE>
-        </CV_ENTRY_ML>
-        <CV_ENTRY_ML CVE_ID="cveid_3a183d3b-8a0d-427e-a19f-a895d112d52e">
-            <CVE_VALUE LANG_REF="und">eating</CVE_VALUE>
-        </CV_ENTRY_ML>
-        <CV_ENTRY_ML CVE_ID="cveid_fdbd4fb3-9ffa-434c-9762-c064f2cff79f">
-            <CVE_VALUE LANG_REF="und">ready-for-cleanup</CVE_VALUE>
-        </CV_ENTRY_ML>
-        <CV_ENTRY_ML CVE_ID="cveid_ad3b8dc9-5469-46f9-92a4-3e3e8fc644c0">
-            <CVE_VALUE LANG_REF="und">ready-for-bill</CVE_VALUE>
-        </CV_ENTRY_ML>
-        <CV_ENTRY_ML CVE_ID="cveid_9bf6c245-d088-4615-acb0-1b29fbc7366b">
-            <CVE_VALUE LANG_REF="und">ready-for-final-check</CVE_VALUE>
-        </CV_ENTRY_ML>
-        <CV_ENTRY_ML CVE_ID="cveid_ba836b51-40e1-45fa-b300-898cc70b3e5f">
-            <CVE_VALUE LANG_REF="und">ready-to-leave</CVE_VALUE>
         </CV_ENTRY_ML>
     </CONTROLLED_VOCABULARY>
     <CONTROLLED_VOCABULARY CV_ID="Waiter_Actions">
