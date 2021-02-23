@@ -530,11 +530,11 @@ def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type,
 
 	# export_confusion_matrix(Y_train_A, Y_train_B, exp_batch_id, classifier_type, "label_to_label", fold_id)
 	print("la_lb")
-	clf_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type, prefix_export + label_la_lb)
+	clf_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type, long_prefix + label_la_lb)
 	result_la_lb = classifier_test(clf_la_lb, Y_test_A, Y_test_B, classifier_type, long_prefix + label_la_lb)
 
 	print("lb_la")
-	clf_lb_la = classifier_train(Y_train_B, Y_train_A, classifier_type, prefix_export + label_lb_la)
+	clf_lb_la = classifier_train(Y_train_B, Y_train_A, classifier_type, long_prefix + label_lb_la)
 	result_lb_la = classifier_test(clf_lb_la, Y_test_B, Y_test_A, classifier_type, long_prefix + label_lb_la)
 
 def experiment_pose_vs_poseauxlabel(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
@@ -553,12 +553,12 @@ def experiment_pose_vs_poseauxlabel(fold_id, input_set, unique_title, classifier
 	X_test_BlA, Y_test_B 	= get_BlA(X_test_AB, Y_test_AB, classifier_type)
 
 	print("alb_a")
-	clf_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type, prefix_export + label_alb_a)
-	result_alb_a = classifier_test(clf_alb_a, X_test_AlB, Y_test_A, classifier_type, prefix_export + label_alb_a)
+	clf_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type, long_prefix + label_alb_a)
+	result_alb_a = classifier_test(clf_alb_a, X_test_AlB, Y_test_A, classifier_type, long_prefix + label_alb_a)
 	
 	print("bla_b")
-	clf_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type, prefix_export + label_bla_b)
-	result_bla_b = classifier_test(clf_bla_b, X_test_BlA, Y_test_B, classifier_type, prefix_export + label_bla_b)
+	clf_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type, long_prefix + label_bla_b)
+	result_bla_b = classifier_test(clf_bla_b, X_test_BlA, Y_test_B, classifier_type, long_prefix + label_bla_b)
 	
 
 def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
@@ -758,7 +758,7 @@ def run_experiments(exp_batch_id):
 			if classifier_type != CLASSIFIER_LSTM:
 				pass
 
-			experiment_duo_vs_solo(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
+			# experiment_duo_vs_solo(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 			experiment_pose_vs_poseauxlabel(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 			experiment_swapped_poses(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)
 			# experiment_label_to_label(fold_id, fold_data, unique_title, classifier_type, exp_batch_id, grouping_type)

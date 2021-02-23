@@ -40,8 +40,8 @@ BATCH_ID_MEALWISE_STATELESS = arconsts.BATCH_ID_MEALWISE_STATELESS
 BATCH_ID_MEALWISE_TEMPORAL 	= arconsts.BATCH_ID_MEALWISE_TEMPORAL
 
 
-CLASSIFIERS_TEMPORAL 	= arconsts.CLASSIFIERS_TEMPORAL
-CLASSIFIERS_STATELESS 	= arconsts.CLASSIFIERS_STATELESS
+LABELS_TEMPORAL 	= arconsts.CLASSIFIERS_TEMPORAL
+LABELS_STATELESS 	= arconsts.CLASSIFIERS_STATELESS
 
 activity_labels 	= arconsts.activity_labels
 
@@ -562,7 +562,7 @@ def get_single_vector_of_multiclass_result(result):
 	return decoded_result
 	
 
-def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classifier_type, hypothesis_list, fold_id):
+def analyze_results(Ytrue_test, results_dict, exp_batch_id, classifier_type, hypothesis_list, fold_id):
 	if classifier_type in LABELS_STATELESS:
 		Y_correct_a = Ytrue_test[:,:1]
 		Y_correct_b = Ytrue_test[:,1:]
@@ -570,6 +570,9 @@ def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classif
 	elif classifier_type in LABELS_TEMPORAL:
 		Y_correct_a = Ytrue_test[:,-1,:1]
 		Y_correct_b = Ytrue_test[:,-1,1:]
+
+	print(Y_correct_a.shape)
+	print(Y_correct_b.shape)
 
 
 	sub_experiments = list(results_dict.keys())
@@ -597,15 +600,15 @@ def analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classif
 			print("Error, no correct set found for " + subexp_label)
 			continue
 
+		qchecks.verify_Y_valid(Y_test)
+		qchecks.verify_Y_valid(Y_correct)
+
 		Y_correct = Y_correct.astype(int).ravel()
 		Y_test = Y_test.astype(int).ravel()
 		# if classifier_type in LABELS_TEMPORAL:
 		# 	print(Y_test.shape)
 		# 	Y_test = get_single_vector_of_multiclass_result(Y_test)
 		# 	print(Y_test.shape)
-
-		# print(Y_correct.shape)
-		# print(Y_test.shape)
 
 		print(subexp_label + " ", end='')
 		
@@ -629,7 +632,6 @@ def import_results(unique_title, prefix, fold_id, classifier_type):
 
 	# Given a file location, return the four test/train vectors
 	entries = os.listdir(prefix)
-	print(entries)
 	entries = list(filter(lambda x: x.find('.png') == -1, entries))
 	
 	# get all the input files from this video
@@ -647,6 +649,7 @@ def import_results(unique_title, prefix, fold_id, classifier_type):
 		start = item.find(classifier_type) + len(classifier_type) + len("_")
 		label = item[start : item.rfind("_")]
 
+		print(label)
 		print(item)
 		
 		Y_test 		= pickle.load(open(prefix + item, 'rb'))
@@ -788,7 +791,7 @@ def main():
 	# experiment_titles.extend([LABEL_LSTM])#, LABEL_LSTM_BIGGER, LABEL_LSTM_BIGGEST])
 	experiment_titles = [LABEL_LSTM]
 	
-	exp_batch_id = 16
+	exp_batch_id = 14
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_import = 'results/' + exp_batch_id
 	prefix_export = 'results-analysis/' + exp_batch_id
@@ -821,12 +824,12 @@ def main():
 			print("Getting results for " + classifier_type + " fold=" + str(fold_id))
 			results_dict = import_results(unique_title, prefix_import, fold_id, classifier_type)
 
-			print("Imported result dimensions")
-			print(Ytrue_train.shape)
-			print(Ytrue_test.shape)
+			# print("Imported result dimensions")
+			# print(Ytrue_train.shape)
+			# print(Ytrue_test.shape)
 
 			# Note that basedon the label suffix, the correct train and test files will be pulled
-			comparisons_to_log, results = analyze_results(Ytrue_train, Ytrue_test, results_dict, exp_batch_id, classifier_type, hypothesis_list, fold_id)
+			comparisons_to_log, results = analyze_results(Ytrue_test, results_dict, exp_batch_id, classifier_type, hypothesis_list, fold_id)
 			export_hypothesis_analysis_report(results, exp_batch_id, classifier_type)
 			all_comparisons[classifier_type] = comparisons_to_log
 
