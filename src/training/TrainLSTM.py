@@ -3,6 +3,10 @@ import RestaurantFrame
 FLAG_SVM = False
 import time
 
+activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
+                        'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
+                        'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
+                        'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20, 'leaving-table':21, 'cleaning-up':22, 'NONE':23}
 FEATURES_SET_PA = 0
 FEATURES_SET_PB = 1
 FEATURES_SET_BOTH = 2
@@ -88,6 +92,7 @@ class LSTMTrainer:
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         self.logfile.write("fiting model...." + model_name)
         print("fiting model...." + model_name)
+        print("output dim " + str(n_outputs))
         #plot_losses = TrainingPlot()
         history = model.fit(trainX, trainy, epochs=epochs, batch_size=batch_size, verbose=verbose,validation_data=(testX, testy))
         plt.plot(history.history['accuracy'])
@@ -185,7 +190,7 @@ def shuffle_in_unison(set_a, set_b):
     p = np.random.permutation(len(set_a))
     return set_a[p], set_b[p]
 
-def slice_vectors(X_train, Y_train, training_suff, logfile, window_size=128,X_test=None, Y_test=None):#, X_test, Y_test, window_size=128):
+def slice_vectors(X_train, Y_train, training_suff, logfile, window_size=128,X_test=None, Y_test=None, clas=None):#, X_test, Y_test, window_size=128):
     test_exclusive = False
     test_set_provided = X_test is not None and Y_test is not None
     x_sliced_list = []
@@ -201,11 +206,17 @@ def slice_vectors(X_train, Y_train, training_suff, logfile, window_size=128,X_te
     X_train_sliced = np.array(x_sliced_list)
     for idx in range(window_size, Y_train.shape[0]):
         label_freqs[Y_train[idx]] += 1
-        y_sliced_list.append(Y_train[idx].tolist())
+        if clas is None or Y_train[idx] == clas:
+            #y_sliced_list.append(Y_train[idx].tolist()) 
+            y_sliced_list.append([1])
+            print("found correct class")
+        else:
+            y_sliced_list.append([0])
     Y_train_sliced = np.array(y_sliced_list)
     print(X_train_sliced.shape)
     print(Y_train_sliced.shape)
     print(label_freqs)
+    print(np.sum(Y_train_sliced))
     logfile.write("class freqs: " + str(label_freqs))
     if test_set_provided:
         for idx in range(window_size, X_test.shape[0]):
@@ -219,21 +230,24 @@ def slice_vectors(X_train, Y_train, training_suff, logfile, window_size=128,X_te
         for idx in range(window_size+2, X_train.shape[0]):
             x_sliced_test_list.append(X_train[idx-window_size:idx].tolist())
         for idx in range(window_size+2, Y_train.shape[0]):
-            y_sliced_test_list.append(Y_train[idx].tolist())
+            if clas is None or Y_train[idx] == clas:
+                y_sliced_test_list.append([1])
+            else:
+                y_sliced_test_list.append([0])
         Y_test_sliced = np.array(y_sliced_test_list)
         X_test_sliced = np.array(x_sliced_test_list)
-    Y_train_sliced = to_categorical(Y_train_sliced)
     if test_set_provided:
         Y_test_sliced = to_categorical(Y_test_sliced)
         X_test_sliced, Y_test_sliced = shuffle_in_unison(X_test_sliced, Y_test_sliced)
-    X_sliced, Y_sliced = shuffle_in_unison(X_train_sliced, Y_train_sliced)
-    if test_set_provided:
         print("test_set_provided")
         train_list = [(X_sliced,Y_sliced)]
         test_list = [(X_test_sliced, Y_test_sliced)]
         pickle.dump(train_list, open("training_sets/train_list_" + training_suff +".p", "wb"),protocol=4)
         pickle.dump(test_list, open("training_sets/test_list_" + training_suff +".p", "wb"),protocol=4)
         return train_list, test_list
+    #Y_train_sliced = to_categorical(Y_train_sliced)
+    print(Y_train_sliced)
+    X_sliced, Y_sliced = shuffle_in_unison(X_train_sliced, Y_train_sliced)
     train_list = []
     test_list = []
     percent_test = .2
@@ -249,12 +263,12 @@ def slice_vectors(X_train, Y_train, training_suff, logfile, window_size=128,X_te
         train_list.append((X_train_sliced,Y_train_sliced))
         test_list.append((X_test_sliced,Y_test_sliced))
         print(X_train_sliced.shape, Y_train_sliced.shape, X_test_sliced.shape, Y_test_sliced.shape)
-    pickle.dump(train_list, open("training_sets/train_list_" + training_suff +".p", "wb"),protocol=4)
-    pickle.dump(test_list, open("training_sets/test_list_" + training_suff +".p", "wb"),protocol=4)
+    #pickle.dump(train_list, open("training_sets/train_list_" + training_suff +".p", "wb"),protocol=4)
+    #pickle.dump(test_list, open("training_sets/test_list_" + training_suff +".p", "wb"),protocol=4)
 
     return train_list, test_list
-training_suffix = "processed_wn1_ab_b"
-modelpath = "models/AB_B/"
+training_suffix = "processed_wn1_b_b_reading_menu"
+modelpath = "models/B_B/classes/reading_menu"
 X_train, Y_train, X_test, Y_test = None, None, None, None
 log = open("training_log", "a")
 try:
@@ -271,8 +285,8 @@ try:
     """
 except:
     print("generating sliced dataset...")
-    X_train, Y_train, X_test, Y_test = RestarauntFrames2Vec("training_sets/13-17-18-21_data_processed.pickle", training_suffix, FEATURES_SET_BOTH, LABELS_SET_PB, test_data=None)#"training_sets/8-9-18_data_processed.pickle")#, X_test, Y_test = RestarauntFrames2Vec("13-17-18-21_data_processed.pickle", training_suffix)
-    train_list, test_list = slice_vectors(X_train, Y_train, training_suffix, log, X_test=X_test, Y_test=Y_test, window_size=64)
+    X_train, Y_train, X_test, Y_test = RestarauntFrames2Vec("training_sets/13-17-18-21_data_processed.pickle", training_suffix, FEATURES_SET_PB, LABELS_SET_PB, test_data=None)#"training_sets/8-9-18_data_processed.pickle")#, X_test, Y_test = RestarauntFrames2Vec("13-17-18-21_data_processed.pickle", training_suffix)
+    train_list, test_list = slice_vectors(X_train, Y_train, training_suffix, log, X_test=X_test, Y_test=Y_test, window_size=64,clas=activitydict["reading:menu"])
 
 acc_sum = 0.0
 for i in range(0, 1):# len(train_list)):
