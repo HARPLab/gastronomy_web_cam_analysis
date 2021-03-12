@@ -23,7 +23,7 @@ import arconsts
 #                         12: 'paying:check', 13: 'using:phone', 14: 'using:napkin', 15: 'using:purse', 16: 'using:glasses',
 #                         17: 'using:wallet', 18: 'looking:PersonA', 19: 'looking:PersonB', 20: 'takeoutfood', 21: 'leaving-table', 22: 'cleaning-up', 23: 'NONE'}
 
-activity_from_key = arconsts.activity_labels_expanded
+activity_from_key = arconsts.activity_from_key_full
 
 # Lookup table for OpenPose keypoint indices
 keypoint_labels = arconsts.keypoint_labels
@@ -47,16 +47,18 @@ LABEL_TYPE_AWAY_BUT_POSE_DETECTED   = 'err-away-but-pose'
 LABEL_TYPE_RANDOM                   = 'quality-check-random'
 LABEL_WAITER_MOMENTS                = 'quality-check-waiter'
 LABEL_TYPE_DELETED                  = 'deleted'
+LABEL_TYPE_FIRST                    = 'first'
+LABEL_TYPE_FLIPPED                  = 'flipped'
 
 
 def get_label_PA(input_row_Y):
-    if input_row_Y[INDEX_PA] in activity_from_key:
+    if input_row_Y[INDEX_PA] in activity_from_key.keys():
         return activity_from_key[input_row_Y[INDEX_PA]]
     else:
         return -1
 
 def get_label_PB(input_row_Y):
-    if input_row_Y[INDEX_PB] in activity_from_key:
+    if input_row_Y[INDEX_PB] in activity_from_key.keys():
         return activity_from_key[input_row_Y[INDEX_PB]]
     else:
         return -1
@@ -80,6 +82,7 @@ def get_PB(input_row_X):
     return input_row_X[25:]
 
 def add_pose_to_image(pose, img, color):
+    frame_img = img
     # TODO verify 
     for p in pose:
         x1, y1, c1 = p[0], p[1], p[2]
@@ -89,16 +92,62 @@ def add_pose_to_image(pose, img, color):
 
     return frame_img
 
+def get_mirror_A_to_B(pose_A):
+    points_mirrored = []
+    print(pose_A)
+
+    for pt in pose_A:
+        new_pt = (400 - pt[0], pt[1], pt[2])
+
+    print(points_mirrored)
+    return points_mirrored
+
+
+
+def get_mirror_B_to_A(pose_B):
+    points_mirrored = []
+    print(pose_B)
+
+    for pt in pose_B:
+        new_pt = (400 - pt[0], pt[1], pt[2])
+
+    print(points_mirrored)
+    exit()
+    return points_mirrored
+
+pts_A = []
+pts_B = []
+
+def get_homography_A_to_B():
+    
+
+def get_homography_B_to_A():
+    
+
+
+
+def export_flipped_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, export_all_poses=False, frame_group=0):
+    label_a = str(get_label_PA(row_Y))
+    label_b = str(get_label_PB(row_Y))
+    pose_a  = get_PA(row_X)
+    pose_b  = get_PB(row_X)
+    frame_num = int(f_id)
+
+    color_a = (100, 200, 100)
+    color_b = (0, 255, 0)
+
+    pose_A_mirrored = get_mirror_A_to_B(pose_a)
+    pose_B_mirrored = get_mirror_B_to_A(pose_b)
+
+    export_frame(can_annotate, f_id, pose_a, pose_b, label_a, label_b, cap, export_reason=label, color_a=color_a, color_b=color_b)
+    export_frame(can_annotate, f_id, pose_B_mirrored, pose_A_mirrored, label_b + "-flip", label_a + "-flip", cap, export_reason=label + "flop", color_a=color_b, color_b=color_a)
+    print("Exported flipped frame")
+
+
 
 def export_annotated_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, export_all_poses=False, frame_group=0):
     if not can_annotate:
         return
-
-    COLOR_NEUTRAL = (255, 255, 255)
-    COLOR_A = (255, 0, 0)
-    COLOR_B = (0, 0, 255)
-
-    output_file = {}
 
     print("exporting outlier: " + label)
     label_a = str(get_label_PA(row_Y))
@@ -106,35 +155,52 @@ def export_annotated_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, 
     pose_a  = get_PA(row_X)
     pose_b  = get_PB(row_X)
     frame_num = int(f_id)
+    export_reason = label
+    export_frame(can_annotate, f_id, pose_a, pose_b, label_a, label_b, cap, export_reason, raw_poses=raw_X)
 
-    output_file['pose-A'] = pose_a.tolist()
-    output_file['pose-B'] = pose_b.tolist()
+def export_frame(can_annotate, f_id, pose_a, pose_b, label_a, label_b, cap, export_reason, raw_poses=None, color_a=None, color_b=None):
+    COLOR_NEUTRAL = (255, 255, 255)
+    if color_a == None:
+        COLOR_A = (255, 0, 0)
+    else:
+        COLOR_A = color_a
 
-    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
+    if color_b == None:
+        COLOR_B = (0, 0, 255)
+    else:
+        COLOR_B = color_b
+
+    label = export_reason
+    output_file = {}
+
+    if isinstance(pose_a, (np.ndarray, np.generic)):
+        output_file['pose-A'] = pose_a.tolist()
+    if isinstance(pose_b, (np.ndarray, np.generic)):
+        output_file['pose-B'] = pose_b.tolist()
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, f_id)
     ret, frame_img = cap.read()
     
     height, width, channels = frame_img.shape
 
-
-    bd_box_A = ((70, 80), (200, 340))
-    bd_box_B = ((230, 130), (370, 370))
+    bd_box_A = arconsts.bd_box_A
+    bd_box_B = arconsts.bd_box_B
     frame_img = cv2.rectangle(frame_img, bd_box_A[0], bd_box_A[1], COLOR_A, 1)
     frame_img = cv2.rectangle(frame_img, bd_box_B[0], bd_box_B[1], COLOR_B, 1)
 
-    # TODO read in additional poses from the raw pose export
     all_poses = []
-    for pose in raw_X:
-        all_poses.append(pose)
-        # pslice = pose_size * pid
-        # pose = raw_X[pslice : pslice + pose_size]
-        pose = np.array(pose).reshape((25, 3))
-        frame_img = add_pose_to_image(pose, frame_img, COLOR_NEUTRAL)
+    if raw_poses:
+        for pose in raw_poses:
+            all_poses.append(pose)
+            # pslice = pose_size * pid
+            # pose = raw_X[pslice : pslice + pose_size]
+            pose = np.array(pose).reshape((25, 3))
+            frame_img = add_pose_to_image(pose, frame_img, COLOR_NEUTRAL)
         
-    output_file['all-poses'] = all_poses
+        output_file['all-poses'] = all_poses
 
     frame_img = add_pose_to_image(pose_a, frame_img, COLOR_A)
     frame_img = add_pose_to_image(pose_b, frame_img, COLOR_B)
-
 
     halfway = int(width / 2)
 
@@ -153,12 +219,13 @@ def export_annotated_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, 
     frame_imag = cv2.putText(frame_img, label_b, org_b, font, fontScale, COLOR_B, thickness, cv2.LINE_AA) 
 
 
-    title = filename + "_shows_" + label + "_f" + str(frame_num)
+    title = filename + "_shows_" + label + "_f" + str(f_id)
     cv2.imwrite(prefix_qc + title + ".jpg", frame_img) 
     print("Exported outlier " + title)
 
     with open(prefix_qc + title + ".json", 'w') as outfile:  
         json.dump(output_file, outfile)
+
 
 # run the experiment
 def check_quality_and_export_trimmed(filename, export_frames=False):
@@ -216,6 +283,8 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
 
 
     deletion_log = []
+    export_annotated_frame(CAN_ANNOTATE, 0, X_all[0], Y_all[0], X_raw[0], LABEL_TYPE_FIRST, cap, filename)
+
 
     # For each RestaurantFrame in the list
     for rid in range(vector_length):
@@ -257,6 +326,13 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
             export_annotated_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_RANDOM, cap, filename)
             counter += 1
 
+        if export_frames and chance < .0001:
+            if get_label_PA(row_Y) != -1 or get_label_PB != -1:
+                print("Exporting flipped frame")
+                export_flipped_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_FLIPPED, cap, filename)
+                export_annotated_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_FLIPPED + '0', cap, filename)
+                counter += 1
+
 
     # print(frame_num)
     # Final removal of incorrect away-from-table-s
@@ -286,4 +362,4 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
 
 
 for filename in filenames_all:
-    check_quality_and_export_trimmed(filename, export_frames=False)
+    check_quality_and_export_trimmed(filename, export_frames=True)
