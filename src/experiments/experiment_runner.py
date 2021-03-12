@@ -503,10 +503,12 @@ def experiment_swapped_poses(fold_id, input_set, unique_title, classifier_type, 
 	print("a_b")
 	clf_a_b = classifier_train(X_train_A, Y_train_B, classifier_type, long_prefix + label_a_b)
 	result_a_b = classifier_test(clf_a_b, X_test_A, Y_test_B, classifier_type, long_prefix + label_a_b)
+	qchecks.quality_check_output(X_test_A, Y_test_B, result_a_b, classifier_type, label_a_b, long_prefix, num_inspections = 30)
 
 	print("b_a")
 	clf_b_a = classifier_train(X_train_B, Y_train_A, classifier_type, long_prefix + label_b_a)
 	result_b_a = classifier_test(clf_b_a, X_test_B, Y_test_A, classifier_type, long_prefix + label_b_a)
+	qchecks.quality_check_output(X_test_B, Y_test_A, result_b_a, classifier_type, label_b_a, long_prefix, num_inspections = 30)
 
 
 def experiment_label_to_label(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
@@ -555,10 +557,12 @@ def experiment_pose_vs_poseauxlabel(fold_id, input_set, unique_title, classifier
 	print("alb_a")
 	clf_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type, long_prefix + label_alb_a)
 	result_alb_a = classifier_test(clf_alb_a, X_test_AlB, Y_test_A, classifier_type, long_prefix + label_alb_a)
+	qchecks.quality_check_output(X_test_AlB, Y_test_A, result_alb_a, classifier_type, label_alb_a, long_prefix, num_inspections = 30)
 	
 	print("bla_b")
 	clf_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type, long_prefix + label_bla_b)
 	result_bla_b = classifier_test(clf_bla_b, X_test_BlA, Y_test_B, classifier_type, long_prefix + label_bla_b)
+	qchecks.quality_check_output(X_test_BlA, Y_test_B, result_bla_b, classifier_type, label_bla_b, long_prefix, num_inspections = 30)
 	
 
 def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, exp_batch_id, grouping_type):
@@ -589,22 +593,22 @@ def experiment_duo_vs_solo(fold_id, input_set, unique_title, classifier_type, ex
 	print("a_a")
 	clf_a_a = classifier_train(X_train_A, Y_train_A, classifier_type, long_prefix + label_a_a)
 	result_a_a = classifier_test(clf_a_a, X_test_A, Y_test_A, classifier_type, long_prefix + label_a_a)
-	qchecks.quality_check_output(X_test_A, Y_test_A, result_a_a, classifier_type, label_a_a, long_prefix)
+	qchecks.quality_check_output(X_test_A, Y_test_A, result_a_a, classifier_type, label_a_a, long_prefix, num_inspections = 30)
 	
 	print("b_b")
 	clf_b_b = classifier_train(X_train_B, Y_train_B, classifier_type, long_prefix + label_b_b)
 	result_b_b = classifier_test(clf_b_b, X_test_B, Y_test_B, classifier_type, long_prefix + label_b_b)
-	qchecks.quality_check_output(X_test_B, Y_test_B, result_b_b, classifier_type, label_b_b, long_prefix)
+	qchecks.quality_check_output(X_test_B, Y_test_B, result_b_b, classifier_type, label_b_b, long_prefix, num_inspections = 30)
 
 	print("ab_a")
 	clf_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type, long_prefix + label_ab_a)
 	result_ab_a = classifier_test(clf_ab_a, X_test_AB, Y_test_A, classifier_type, long_prefix + label_ab_a)
-	qchecks.quality_check_output(X_test_AB, Y_test_A, result_ab_a, classifier_type, label_ab_a, long_prefix)
+	qchecks.quality_check_output(X_test_AB, Y_test_A, result_ab_a, classifier_type, label_ab_a, long_prefix, num_inspections = 30)
 
 	print("ab_b")
 	clf_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type, long_prefix + label_ab_b)
 	result_ab_b = classifier_test(clf_ab_b, X_test_AB, Y_test_B, classifier_type, long_prefix + label_ab_b)
-	qchecks.quality_check_output(X_test_AB, Y_test_B, result_ab_b, classifier_type, label_ab_b, long_prefix)
+	qchecks.quality_check_output(X_test_AB, Y_test_B, result_ab_b, classifier_type, label_ab_b, long_prefix, num_inspections = 30)
 
 
 # Given a file location, return the four test/train vectors
@@ -765,7 +769,7 @@ def run_experiments(exp_batch_id):
 
 
 def main():
-	exp_batch_id = 18
+	exp_batch_id = 19
 	prefix_export = 'results/' + str(exp_batch_id)
 	run_experiments(exp_batch_id)
 
