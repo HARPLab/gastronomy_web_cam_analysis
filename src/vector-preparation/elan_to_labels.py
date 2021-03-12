@@ -99,17 +99,24 @@ TYPE_CUSTOMER_STATE = 'customer_state'
 INDEX_A = 0
 INDEX_B = 1
 
+LABEL_A = 'A'
+LABEL_B = 'B'
+
 overall_flow = []
 waiter_events = []
 customer_states = []
 
 warned_of = []
 
+checklist = {}
+for meal in filenames_all:
+    for activity in activitydict.keys():
+        for person in [LABEL_A, LABEL_B]:
+            checklist[meal, activity, person] = 0
+
 def get_file_frame_index(file_title):
     start_index = file_title.index('_cropped_') + len('_cropped_')
     return int(file_title[start_index: start_index + index_length])
-
-
 
 for meal in filenames_all:
     root = parseXML('../../Annotations/' + meal + '-michael.eaf')
@@ -199,6 +206,7 @@ for meal in filenames_all:
                     for f_id in range(beginning_frame, ending_frame):
                         if activity in activitydict.keys():
                             timeline_Y[f_id][INDEX_A] = activitydict[activity]
+                            checklist[meal, activity, LABEL_A] = 1
                             # timeline_Y[f_id][INDEX_FID] = f_id
                         else:
                             if activity not in warned_of:
@@ -222,6 +230,7 @@ for meal in filenames_all:
                     for f_id in range(beginning_frame, ending_frame):
                         if activity in activitydict.keys():
                             timeline_Y[f_id][INDEX_B] = activitydict[activity]
+                            checklist[meal, activity, LABEL_B] = 1
                             # timeline_Y[f_id][INDEX_FID] = f_id
                         else:
                             if activity not in warned_of:
@@ -235,7 +244,38 @@ for meal in filenames_all:
     filehandler = open(prefix_output + meal + '_raw_Y.p', 'wb') 
     pickle.dump(timeline_Y, filehandler)
     filehandler.close()
-                     
+
+print("Exporting checklist!")
+cols = ['meal', 'activity', 'person', 'does-activity']
+data = []
+
+data_sum = []
+cols_sum = ['activity', 'person', 'meal-samples']
+
+sums = {}
+for activity in activitydict.keys():
+    for person in [LABEL_A, LABEL_B]:
+        sums[activity, person] = 0
+
+for key in checklist.keys():
+    meal, activity, person = key[0], key[1], key[2]
+    is_sighted = checklist[key]
+    datum = [meal, activity, person, is_sighted]
+    data.append(datum)
+
+    sums[activity, person] = sums[activity, person] + is_sighted
+
+for key in sums.keys():
+    datum = [key[0], key[1], sums[key]]
+    data_sum.append(datum)
+
+
+df = pd.DataFrame(data, columns=cols)
+df.to_csv(prefix_output + "checklist.csv")
+
+df = pd.DataFrame(data_sum, columns=cols_sum)
+df.to_csv(prefix_output + "checklist-sums.csv")
+
 
 
 
