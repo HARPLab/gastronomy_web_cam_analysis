@@ -413,6 +413,20 @@ def export_confusion_matrix(Y_correct, Y_test, exp_batch_id, classifier_type, su
 	cm_recall = cm / cm.astype(np.float).sum(axis=1)
 	cm_precision = cm / cm.astype(np.float).sum(axis=0)
 
+	sn.set_style("white",  {'figure.facecolor': 'white'})
+	corr = cm
+	mask = np.zeros_like(corr)
+	mask[corr == 0] = True
+	ax = plt.axes()
+	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, annot_kws={"size": 6}, fmt='g',  ax=ax)
+	ax.set_xticklabels(activity_labels, rotation=90)
+	ax.set_yticklabels(activity_labels, rotation=0)
+	ax.set(ylabel="True Label", xlabel="Predicted Label")
+	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label + "\n Recall: Samples per class with Correct Label")
+	plt.tight_layout()
+	fig.get_figure().savefig(save_location + '_raw_cm.png')
+	plt.close()
+
 	# plt.subplots(figsize=(22,22))
 	sn.set_style("white",  {'figure.facecolor': 'white'})
 	corr = cm_recall
@@ -534,7 +548,6 @@ def get_comparison(cg, key, all_results_dict):
 
 	return value
 
-
 def meta_analysis_from_classifier_data(all_results_dict, hypothesis_list):
 	output_string = ""
 	
@@ -574,7 +587,6 @@ def analyze_results(Ytrue_test, results_dict, exp_batch_id, classifier_type, hyp
 	print(Y_correct_a.shape)
 	print(Y_correct_b.shape)
 
-
 	sub_experiments = list(results_dict.keys())
 	if '' in sub_experiments:
 		sub_experiments.remove('')
@@ -600,8 +612,7 @@ def analyze_results(Ytrue_test, results_dict, exp_batch_id, classifier_type, hyp
 			print("Error, no correct set found for " + subexp_label)
 			continue
 
-		qchecks.verify_Y_valid(Y_test)
-		qchecks.verify_Y_valid(Y_correct)
+		Y_test = qchecks.multiclass_to_labels(Y_test)
 
 		Y_correct = Y_correct.astype(int).ravel()
 		Y_test = Y_test.astype(int).ravel()
@@ -633,6 +644,8 @@ def import_results(unique_title, prefix, fold_id, classifier_type):
 	# Given a file location, return the four test/train vectors
 	entries = os.listdir(prefix)
 	entries = list(filter(lambda x: x.find('.png') == -1, entries))
+	entries = list(filter(lambda x: x.find('model') == -1, entries))
+	entries = list(filter(lambda x: x.find('gif') == -1, entries))
 	
 	# get all the input files from this video
 	entries = list(filter(lambda k: classifier_type + "_" in k, entries))
@@ -652,6 +665,8 @@ def import_results(unique_title, prefix, fold_id, classifier_type):
 		print(label)
 		print(item)
 		
+		print(prefix + item)
+
 		Y_test 		= pickle.load(open(prefix + item, 'rb'))
 		result_dict[label] = Y_test
 	
@@ -789,9 +804,9 @@ def main():
 
 	# experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3, LABEL_KNN5, LABEL_SGDC, LABEL_SVM, LABEL_LSTM]
 	# experiment_titles.extend([LABEL_LSTM])#, LABEL_LSTM_BIGGER, LABEL_LSTM_BIGGEST])
-	experiment_titles = [LABEL_LSTM]
+	experiment_titles = [LABEL_LSTM_BIGGER, LABEL_LSTM_BIGGEST]
 	
-	exp_batch_id = 14
+	exp_batch_id = 15
 	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
 	prefix_import = 'results/' + exp_batch_id
 	prefix_export = 'results-analysis/' + exp_batch_id
