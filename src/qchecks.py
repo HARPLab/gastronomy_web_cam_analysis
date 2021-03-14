@@ -79,25 +79,37 @@ def get_frame_visualization(poses, input_labels, output_label, predicted_label, 
 	org = (00, 185) 
 	fontScale = .6
 
-	# Using cv2.putText() method 
-	image = cv2.putText(frame_img, label_true_a, org_a, font, fontScale, color, thickness, cv2.LINE_AA, False) 
-
 	output_label = int(output_label[0])
 
 	if label_output == "a":
 		label_true_a = activity_labels[output_label]
 		label_pred_a = activity_labels[predicted_label]
 	
-		frame_img = cv2.putText(frame_img, "true: " + label_true_a, org_a, font, fontScale, color, thickness, cv2.LINE_AA, False)
+		frame_img = cv2.putText(frame_img, "true: " + label_true_a, org_a, font, fontScale, color, thickness, cv2.LINE_AA)
 		frame_img = cv2.putText(frame_img, "pred: " + label_pred_a, org_a2, font, fontScale, COLOR_A, thickness, cv2.LINE_AA) 
 		# frame_img = cv2.putText(frame_img, "pred: " + label_pred_a, org_a2, font, fontScale, COLOR_A, thickness, cv2.LINE_AA) 
 
+		input_labels = int(input_labels)
+
+		try:
+			addtl_b = activity_labels[input_labels]
+			frame_img = cv2.putText(frame_img, "+data: " + addtl_b, org_b, font, fontScale, COLOR_NEUTRAL, thickness, cv2.LINE_AA, False)		
+		except IndexError:
+			pass
+		
 	elif label_output == 'b':
 		label_true_b = activity_labels[output_label]
 		label_pred_b = activity_labels[predicted_label]
 
 		frame_img = cv2.putText(frame_img, "true: " + label_true_b, org_b, font, fontScale, COLOR_B, thickness, cv2.LINE_AA)
 		frame_img = cv2.putText(frame_img, "pred: " + label_pred_b, org_b2, font, fontScale, COLOR_B, thickness, cv2.LINE_AA)
+
+		try:
+			if input_labels.shape[1] > 0:
+				addtl_a = activity_labels[input_labels[0]]
+				frame_img = cv2.putText(frame_img, "+data: " + addtl_a, org_a, font, fontScale, COLOR_NEUTRAL, thickness, cv2.LINE_AA, False)
+		except IndexError:
+			pass
 
 	return frame_img
 
@@ -112,8 +124,6 @@ def export_gif_of(poses, input_labels, output_label, predicted_label, assessment
 	
 	frames = []
 	for fi in range(window_size):
-		dummy = poses[fi]
-		dummy = input_labels[fi]
 		new_img = get_frame_visualization(poses[fi], input_labels[fi], output_label, predicted_label, label_input, label_output)
 		frames.append(new_img)
 
@@ -145,7 +155,7 @@ def verify_Y_valid(Y):
 	if(all(x in range(len(arconsts.activity_labels)) for x in unique_values)): 
 		pass
 	else:
-		print("Y contains labels outside the correct set")
+		print("Y contains labels outside the correct set: verify_Y_valid")
 		print(unique_values)
 		exit()
 
@@ -156,7 +166,7 @@ def verify_io_expanded(X, Y):
 	# elif(all(x in range(len(arconsts.activity_labels_expanded)) for x in unique_values)): 
 	# 	pass
 	else:
-		print("Y contains labels outside the correct set")
+		print("Y contains labels outside the correct set: verify_io_expanded")
 		print(unique_values)
 		exit()
 
@@ -165,9 +175,25 @@ def verify_input_output(X, Y, classifier_type):
 	if(all(x in range(len(arconsts.activity_labels)) for x in unique_values)): 
 		pass
 	else:
-		print("Y contains labels outside the correct set")
+		print("Y contains labels outside the correct set: verify input output")
 		print(unique_values)
 		exit()
+
+# align with experimental analysis
+def multiclass_to_labels(result):
+	if len(result.shape) == 1:
+		return result
+
+	if len(result.shape) == 2 and result.shape[1] == 1:
+		return result
+
+	if result.shape[1] == len(activity_labels):
+		decoded_result = result.argmax(axis=1)
+		verify_Y_valid(decoded_result)
+		return decoded_result
+	
+	verify_Y_valid(result)
+	return result
 
 def quality_check_output(X, Y, Y_pred, classifier_type, assessment_label, where, num_inspections = 2):
 	verify_input_output(X, Y, classifier_type)
@@ -195,7 +221,7 @@ def quality_check_output(X, Y, Y_pred, classifier_type, assessment_label, where,
 	len_pose_block = CONST_NUM_POINTS*CONST_NUM_SUBPOINTS
 	for i in range(num_inspections):
 		lookup_index = randrange(n_timesteps_X)
-		print(lookup_index)
+		# print(lookup_index)
 		X_i = X[lookup_index]
 		Y_i = Y[lookup_index]
 
@@ -223,3 +249,99 @@ def quality_check_output(X, Y, Y_pred, classifier_type, assessment_label, where,
 		predicted_label = Y_pred[lookup_index]
 		export_gif_of(poses, input_labels, output_label, predicted_label, assessment_label, lookup_index, where)
 
+
+def export_qual_confusion_matrix(y1, y2, exp_batch_id, classifier_type, subexp_label, fold_id):
+	save_location = "results/" + exp_batch_id + "f" + str(fold_id) + "_" + classifier_type[1:] + "_" + subexp_label + "_f" + str(fold_id)
+
+	# print(y1)
+	# print(y2)
+
+	cm = confusion_matrix(y1.astype(int), y2.astype(int), labels=range(len(activity_labels)))
+
+	sn.set(font_scale=2)
+	sn.set_style("white",  {'figure.facecolor': 'black'})
+	corr = cm
+	mask = np.zeros_like(corr)
+	mask[corr == 0] = True
+	ax = plt.axes()
+	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, fmt='g', annot_kws={"size": 15}, ax=ax)
+	ax.set_xticklabels(activity_labels, rotation=45)
+	ax.set_yticklabels(activity_labels, rotation=0)
+	ax.set(ylabel="Person 1", xlabel="Person 2")
+	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label)
+	plt.tight_layout()
+	fig.get_figure().savefig(save_location + '_cm.png')
+	plt.close()
+
+	# Export stacked bar chart
+	labels = activity_labels
+	correct_labels = []
+	incorrect_labels = []
+	percent_labels = []
+	width = 0.8	   # the width of the bars: can also be len(x) sequence
+
+	for idx, cls in enumerate(activity_labels):
+		# True negatives are all the samples that are not our current GT class (not the current row) 
+		# and were not predicted as the current class (not the current column)
+		true_negatives = np.sum(np.delete(np.delete(cm, idx, axis=0), idx, axis=1))
+		
+		# True positives are all the samples of our current GT class that were predicted as such
+		true_positives = cm[idx, idx]
+
+		correct 	= true_positives
+		incorrect 	= np.sum(cm[:,idx]) - correct
+		percent = (correct / (correct + incorrect))*100.0
+		percent = "{:.4}".format(percent) + "%"
+		
+		# The accuracy for the current class is ratio between correct predictions to all predictions
+		# per_class_accuracies[cls] = (true_positives + true_negatives) / np.sum(cm)
+
+		correct_labels.append(correct)
+		incorrect_labels.append(incorrect)
+		percent_labels.append(percent)
+
+
+	fig, ax = plt.subplots()
+	le_font_size = 10.0
+
+	ax.bar(labels, correct_labels, width, align="center", label='Correct Labels')
+	ax.bar(labels, incorrect_labels, width, align="center", bottom=correct_labels,
+		   label='Incorrect Labels')
+
+	ax.set_ylabel('Number of Samples', fontsize=le_font_size)
+	ax.set_ylabel('Predicted Label', fontsize=le_font_size)
+	ax.set_xticklabels(activity_labels, rotation=90, fontsize=le_font_size)
+	ax.yaxis.set_tick_params(labelsize=le_font_size)
+
+	ax.set_title('Per-Class Classification Accuracy for ' + subexp_label, fontsize=le_font_size)
+	ax.legend(fontsize=le_font_size)
+
+	# for p in ax.patches:
+	# 	width, height = p.get_width(), p.get_height()
+	# 	x, y = p.get_xy() 
+	# 	ax.text(x+width/2, 
+	# 			y+height/2, 
+	# 			'{:.0f} %'.format(height), 
+	# 			horizontalalignment='center', 
+	# 			verticalalignment='center')
+
+	# set individual bar lables using above list
+	counter = 0
+	for i in ax.patches:
+		if counter % 2 == 0 and int(counter / 2) < len(percent_labels):
+			lookup_index = int(counter / 2)
+			label = percent_labels[lookup_index]
+			counter += 1
+			# get_x pulls left or right; get_height pushes up or down
+			ax.text(i.get_x()+.12, i.get_height()+(60*le_font_size), label, fontsize=(le_font_size),
+					color='black', rotation=90)
+		counter += 1
+
+
+	# for i in range(len(correct_labels)): 
+	#	 label = percent_labels[i]
+	#	 plt.annotate(label, xy=(i, 0), color='white')
+
+	plt.tight_layout()
+	plt.savefig(save_location + '_graphs.png')
+	plt.close()

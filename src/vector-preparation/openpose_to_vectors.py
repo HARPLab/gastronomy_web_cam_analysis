@@ -47,6 +47,10 @@ def get_role_assignments(all_poses_in_frame):
 	bd_box_B = arconsts.bd_box_B
 
 	for pose in all_poses_in_frame:
+		# print("Voila pose")
+		# print(len(pose))
+		# print(pose)
+
 		num_a, num_b = 0, 0
 
 		for pt in pose:
@@ -66,6 +70,16 @@ def get_role_assignments(all_poses_in_frame):
 
 	# TODO alternate take where we check if contiguous with previous?
 	return best_pose_a, best_pose_b
+
+def clean_and_shift_pose(pose, entry):
+	offset = arconsts.offset_dict[entry]
+	new_pose = []
+
+	for p in pose:
+		new_p = [p[0] + offset[0], p[1] + offset[1], p[2] + offset[2]]
+		new_pose.append(new_p)
+
+	return np.array(new_pose)
 
 def get_vectorized(pose):
 	flat_list = []
@@ -123,10 +137,22 @@ def process_vectors_for_filename(group_name):
 
 
 			row_raw_poses.append(json_raw_pose)
+			pose = clean_and_shift_pose(pose, group_name)
+
 			all_poses_in_frame.append(pose)
 
 		pose_a, pose_b = get_role_assignments(all_poses_in_frame)
 		pose_ab = np.concatenate((np.array(pose_a), np.array(pose_b)))
+
+		# print("pose a")
+		# print(pose_a)
+		# print(pose_a.shape)
+		# print("pose b")
+		# print(pose_b)
+		# print(pose_b.shape)
+		# print("pose_ab")
+		# print(pose_ab)
+		# print(pose_ab.shape)
 
 		# Add findings to appropriate data structures
 		output_vector_raw[frame_index] = row_raw_poses

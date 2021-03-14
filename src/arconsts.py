@@ -64,6 +64,15 @@ keypoint_labels = ["Nose","Neck","RShoulder","RElbow","RWrist","LShoulder",
                                                 "LEar","LBigToe", "LSmallToe", "LHeel", "RBigToe", "RSmallToe", "RHeel", "Background", '']
 
 filenames_all = ['8-13-18', '8-18-18', '8-17-18', '8-21-18', '8-9-18']
+filenames_shifted = ['8-9-18']
+
+# offset dicts are applied directly to the openpose info, so it's a 1x3 vector applied to all (x, y, confidence) points
+offset_dict = {}
+offset_dict['8-13-18']  = [0, 0, 0] # 50, 300
+offset_dict['8-18-18']  = [0, 0, 0] # 50, 300
+offset_dict['8-17-18']  = [0, 0, 0] # 50, 295
+offset_dict['8-21-18']  = [0, 0, 0] # 50, 300
+offset_dict['8-9-18']   = [0, 50, 0] # 50, 250
 
 
 bd_box_A = ((70, 80), (200, 340))
