@@ -94,25 +94,25 @@ def add_pose_to_image(pose, img, color):
 
 def get_mirror_A_to_B(pose_A):
     points_mirrored = []
-    print(pose_A)
+    # print(pose_A)
 
     for pt in pose_A:
         new_pt = (400 - pt[0], pt[1], pt[2])
 
-    print(points_mirrored)
+    # print(points_mirrored)
     return points_mirrored
 
 
 
 def get_mirror_B_to_A(pose_B):
     points_mirrored = []
-    print(pose_B)
+    # print(pose_B)
 
     for pt in pose_B:
         new_pt = (400 - pt[0], pt[1], pt[2])
 
-    print(points_mirrored)
-    exit()
+    # print(points_mirrored)
+    # exit()
     return points_mirrored
 
 pts_A = []
