@@ -118,15 +118,18 @@ def get_mirror_B_to_A(pose_B):
 pts_A = []
 pts_B = []
 
+
 def get_homography_A_to_B():
+    pass
     
 
 def get_homography_B_to_A():
+    pass
     
 
 
-
-def export_flipped_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, export_all_poses=False, frame_group=0):
+# CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_FLIPPED, cap, filename
+def export_flipped_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, filename, export_all_poses=False, frame_group=0):
     label_a = str(get_label_PA(row_Y))
     label_b = str(get_label_PB(row_Y))
     pose_a  = get_PA(row_X)
@@ -145,7 +148,7 @@ def export_flipped_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, ex
 
 
 
-def export_annotated_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, export_all_poses=False, frame_group=0):
+def export_annotated_frame(can_annotate, f_id, row_X, row_Y, raw_X, label, cap, filename, export_all_poses=False, frame_group=0):
     if not can_annotate:
         return
 
