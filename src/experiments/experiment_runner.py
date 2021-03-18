@@ -35,6 +35,8 @@ sys.path.append("..")
 import qchecks
 import arconsts
 
+FLAG_TEST_MODE = False
+
 CLASSIFIER_ADABOOST = arconsts.CLASSIFIER_ADABOOST
 CLASSIFIER_SGDC 	= arconsts.CLASSIFIER_SGDC
 CLASSIFIER_SVM 		= arconsts.CLASSIFIER_SVM
@@ -67,6 +69,9 @@ LSTM_NUM_LABELS 	= len(activity_labels)
 CONST_NUM_POINTS 	= arconsts.CONST_NUM_POINTS
 CONST_NUM_SUBPOINTS = arconsts.CONST_NUM_SUBPOINTS
 CONST_NUM_LABEL 	= arconsts.CONST_NUM_LABEL
+
+EPOCHS_SHORTEST = 5
+EPOCHS_STANDARD = 500
 
 def get_LSTM(trainX, trainY, scale=1):
 	print(trainX.shape)
@@ -289,7 +294,12 @@ def classifier_train(X, Y, classifier_key, prefix_where):
 		batch_size = 256
 		# epochs = 7
 		Y = to_categorical(Y, num_classes=len(activity_labels))
-		epochs = 5
+		
+		if FLAG_TEST_MODE == True:
+			epochs = EPOCHS_SHORTEST
+		else:
+			epochs = EPOCHS_STANDARD
+		
 		print("Fitting to...")
 		print(X.shape)
 		print(Y.shape)
@@ -771,6 +781,7 @@ def run_experiments(exp_batch_id):
 def main():
 	exp_batch_id = 19
 	prefix_export = 'results/' + str(exp_batch_id)
+	FLAG_TEST_MODE = True
 	run_experiments(exp_batch_id)
 
 
