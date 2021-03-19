@@ -33,59 +33,6 @@ BATCH_ID_TEMPORAL_SPARE = 'temporal_sparse'
 GROUPING_MEALWISE 	= arconsts.GROUPING_MEALWISE
 GROUPING_RANDOM 	= arconsts.GROUPING_RANDOM
 
-def reduce_labels(Y_array):
-	# activity_from_key = {0:'away-from-table', 1:'idle', 2:'eating', 3: 'drinking', 4: 'talking', 5: 'ordering', 6: 'standing',
-	# 					7: 'talking:waiter', 8: 'looking:window', 9: 'looking:waiter', 10: 'reading:bill', 11: 'reading:menu',
-	# 					12: 'paying:check', 13: 'using:phone', 14: 'using:napkin', 15: 'using:purse', 16: 'using:glasses',
-	# 					17: 'using:wallet', 18: 'looking:PersonA', 19: 'looking:PersonB', 20: 'takeoutfood', 21: 'leaving-table', 22: 'cleaning-up', 23: 'NONE'}
-
-	# activity_labels = [0: 'NONE', 1: 'away-from-table', 2: 'idle', 3: 'eating', 4: 'talking', 5:'talking:waiter', 6: 'looking:window', 
-	# 7: 'reading:bill', 8: 'reading:menu', 9: 'paying:check', 10: 'using:phone', 11: 'using:objs', 12: 'standing']
-	
-	ACT_NONE 			= 0
-	ACT_AWAY_FROM_TABLE = 1
-	ACT_IDLE			= 2
-	ACT_EATING			= 3
-	ACT_TALKING			= 4
-	ACT_WAITER			= 5
-	ACT_LOOKING_WINDOW	= 6
-	ACT_READING_BILL	= 7
-	ACT_READING_MENU	= 8
-	ACT_PAYING_CHECK	= 9
-	ACT_USING_PHONE		= 10
-	ACT_OBJ_WILDCARD 	= 11
-	ACT_STANDING		= 12
-
-
-	Y_new = np.empty_like(Y_array)
-	Y_new = np.where(Y_array==23, ACT_NONE, 		Y_new)
-	Y_new = np.where(Y_array==22, ACT_NONE, 		Y_new)
-	Y_new = np.where(Y_array==21, ACT_STANDING, 	Y_new) 
-	Y_new = np.where(Y_array==20, ACT_OBJ_WILDCARD, Y_new)
-	Y_new = np.where(Y_array==19, ACT_IDLE, 		Y_new)
-	Y_new = np.where(Y_array==18, ACT_IDLE, 		Y_new)
-	Y_new = np.where(Y_array==17, ACT_PAYING_CHECK, Y_new)
-	Y_new = np.where(Y_array==16, ACT_OBJ_WILDCARD, Y_new)
-	Y_new = np.where(Y_array==15, ACT_OBJ_WILDCARD, Y_new)
-	Y_new = np.where(Y_array==14, ACT_OBJ_WILDCARD, Y_new)
-	Y_new = np.where(Y_array==13, ACT_USING_PHONE, 	Y_new)
-	Y_new = np.where(Y_array==12, ACT_PAYING_CHECK, Y_new)
-	Y_new = np.where(Y_array==11, ACT_READING_MENU, Y_new)
-	Y_new = np.where(Y_array==10, ACT_READING_BILL, Y_new)
-	Y_new = np.where(Y_array==9, ACT_WAITER, 		Y_new) 
-	Y_new = np.where(Y_array==8, ACT_LOOKING_WINDOW,Y_new)
-	Y_new = np.where(Y_array==7, ACT_WAITER, 		Y_new)
-	Y_new = np.where(Y_array==6, ACT_STANDING, 		Y_new)
-	Y_new = np.where(Y_array==5, ACT_WAITER, 		Y_new)
-	Y_new = np.where(Y_array==4, ACT_TALKING, 		Y_new)
-	Y_new = np.where(Y_array==3, ACT_EATING, 		Y_new)
-	Y_new = np.where(Y_array==2, ACT_EATING, 		Y_new)
-	Y_new = np.where(Y_array==1, ACT_IDLE, 			Y_new)
-	Y_new = np.where(Y_array==0, ACT_AWAY_FROM_TABLE, Y_new)
-
-	return Y_new
-
-
 def unison_shuffled_copies(a, b, seed_val):
 	assert len(a) == len(b)
 	p = np.random.RandomState(seed=seed_val).permutation(len(a))
@@ -95,6 +42,15 @@ def unison_shuffled_copies_three(a, b, c, seed_val):
 	assert len(a) == len(b)
 	p = np.random.RandomState(seed=seed_val).permutation(len(a))
 	return a[p], b[p], c[p]
+
+def export_df_slices(filename, df):
+	df.to_pickle(prefix_vectors_out + filename + "_slices.p")
+	df.to_csv(prefix_vectors_out + filename + "_slices.csv")
+
+def export_df_all(df_list):
+	df = pd.concat(df_list)
+	df.to_pickle(prefix_vectors_out + 'all' + "_slices.p")
+	df.to_csv(prefix_vectors_out + 'all' + "_slices.csv")
 
 def export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shuffled, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed):
 	chunk_size = int(len(X_shuffled) * (test_size))
@@ -175,6 +131,41 @@ def verify_input_output(X, Y):
 		print(unique_values)
 		exit()
 
+def is_valid_slice(df_XY, start, end):
+	return True
+
+def slice_from_rows(df_rows, index_start, index_end, num_folds):
+	df_slice = df_rows[index_start:index_end]
+	target = df_slice.iloc[[-1]]
+
+	meal_id 		= target[arconsts.PD_MEALID]
+	target_label_a 	= target[arconsts.PD_LABEL_A_RAW]
+	target_label_b 	= target[arconsts.PD_LABEL_B_RAW]
+	test_group		= random.randrange(num_folds)
+
+	# [PD_MEALID, PD_FRAMEID, PD_LABEL_A_RAW, PD_LABEL_B_RAW, PD_INDEX_START, PD_INDEX_END]
+	slice_array = [meal_id, target_label_a, target_label_b, index_start, index_end, test_group]
+	return slice_array
+
+def make_slices_pandas(df_XY, window_size, overlap_percent, num_test_groups):
+	shift_stepsize = int(window_size * overlap_percent)
+	rows, cols = df_XY.shape
+
+	num_steps = int(rows / shift_stepsize)
+
+	df_slices_cols = arconsts.PD_COLS_SLICES
+	df_slices_list = []
+
+	for i in range(num_steps):
+		slice_start, slice_end = int(i*shift_stepsize), int(i*shift_stepsize + window_size)
+		if slice_end < rows:
+			if is_valid_slice(df_XY, slice_start, slice_end):				
+				slice_value = slice_from_rows(df_XY, slice_start, slice_end, num_test_groups)
+				df_slices_list.append(slice_value)
+
+	df_slices = pd.DataFrame(df_slices_list, columns=df_slices_cols)
+
+	return df_slices
 
 def make_slices(X, Y, window_size, overlap_percent):
 	shift_stepsize = int(window_size * overlap_percent)
@@ -201,10 +192,6 @@ def make_slices(X, Y, window_size, overlap_percent):
 	Y_solo_list = np.array(Y_solo_list)
 
 	return X_slices_list, Y_slices_list, Y_solo_list
-
-
-def make_slices_sparse(X, Y, window_size, overlap_percent):
-	pass
 
 		
 def export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed, groupings_type):
@@ -248,6 +235,30 @@ def export_folds_aggregate(test_size, batch_id, total_train_X, total_train_Y, to
 		pickle.dump(fold_test_Y, filehandler)
 		filehandler.close()
 
+
+def export_folds_pandas(filenames_all, prefix_vectors_out, window_size, overlap_percent, test_size, seed):
+	print("Creating folds for pandas")
+	batch_id = BATCH_ID_TEMPORAL
+	num_folds = int(1.0 / test_size)
+
+	all_dfs = []
+
+	# for each of the importable meals
+	for filename in filenames_all:
+		print("Adding vectors from meal " + filename)
+		core_name = prefix_vectors_out + "trimmed/trimmed_" + filename
+		XY_all = pd.read_pickle(core_name + "_vectors.p")
+
+		print(XY_all.shape)
+
+		num_test_groups = num_folds
+		random.seed(seed)
+		df_slices = make_slices_pandas(XY_all, window_size, overlap_percent, num_test_groups)
+		all_dfs.append(df_slices)
+		
+		export_df_slices(filename, df_slices)
+
+	export_df_all(all_dfs)
 
 def export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overlap_percent, test_size, seed):
 	print("Creating temporal folds")
@@ -470,10 +481,12 @@ def export_folds(filenames_all, prefix_vectors_out, seed):
 	vector_types = [BATCH_ID_STATELESS, BATCH_ID_TEMPORAL, BATCH_ID_MEALWISE_TEMPORAL, BATCH_ID_MEALWISE_STATELESS]
 	make_directories(vector_types)
 
-	export_folds_mealwise_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
-	export_folds_mealwise_temporal(filenames_all, prefix_vectors_out, test_percent, seed, window_size, overlap_percent)
-	export_folds_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
-	export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overlap_percent, test_percent, seed)
+	export_folds_pandas(filenames_all, prefix_vectors_out, window_size, overlap_percent, test_percent, seed)
+
+	# export_folds_mealwise_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
+	# export_folds_mealwise_temporal(filenames_all, prefix_vectors_out, test_percent, seed, window_size, overlap_percent)
+	# export_folds_stateless(filenames_all, prefix_vectors_out, test_percent, seed)
+	# export_folds_temporal(filenames_all, prefix_vectors_out, window_size, overlap_percent, test_percent, seed)
 
 
 def export_all_folds():
