@@ -50,6 +50,8 @@ LABEL_TYPE_DELETED                  = 'deleted'
 LABEL_TYPE_FIRST                    = 'first'
 LABEL_TYPE_FLIPPED                  = 'flipped'
 
+VALIDITY_GOOD       = 'ok'
+VALIDITY_BOTH_AWAY  = 'both-away'
 
 def get_label_PA(input_row_Y):
     if input_row_Y[INDEX_PA] in activity_from_key.keys():
@@ -229,6 +231,42 @@ def export_frame(can_annotate, f_id, pose_a, pose_b, label_a, label_b, cap, expo
     with open(prefix_qc + title + ".json", 'w') as outfile:  
         json.dump(output_file, outfile)
 
+def inspection_and_validity(CAN_ANNOTATE, frame_num, label_pa, label_pb, row_X, row_Y, raw_X, LABEL_TYPE_DELETED, cap, filename):
+    validity_state = VALIDITY_GOOD
+    counter = 0
+
+    chance = random.random()
+    # if label_pa == 'leaving-table' and label_pb == 'leaving-table':
+    #     print("meal finish lt noted at " + str(frame_num))
+
+    if label_pa == 'away-from-table' and label_pb == 'away-from-table':
+        validity_state = VALIDITY_BOTH_AWAY
+        # deletion_log.append(rid)
+        if CAN_ANNOTATE and chance < .001:
+            export_annotated_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_DELETED, cap, filename)
+            counter += 1
+
+
+    # if export_frames and label_pa == 'away-from-table' and pose_pb is not None and chance < .01:
+    #     export_annotated_frame(frame_num, row_X, row_Y, LABEL_TYPE_AWAY_BUT_POSE_DETECTED, cap, frame_group)
+    #     counter += 1
+
+    # if export_frames and label_pb == 'away-from-table' and pose_pb is not None and chance < .01:
+    #     export_annotated_frame(frame_num, row_X, row_Y, LABEL_TYPE_AWAY_BUT_POSE_DETECTED, cap, frame_group)
+    #     counter += 1
+
+    if CAN_ANNOTATE and chance < .00005:
+        export_annotated_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_RANDOM, cap, filename)
+        counter += 1
+
+    if CAN_ANNOTATE and chance < .0001:
+        if get_label_PA(row_Y) != -1 or get_label_PB != -1:
+            print("Exporting flipped frame")
+            export_flipped_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_FLIPPED, cap, filename)
+            export_annotated_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_FLIPPED + '0', cap, filename)
+            counter += 1
+
+    return validity_state
 
 # run the experiment
 def check_quality_and_export_trimmed(filename, export_frames=False):
@@ -261,14 +299,12 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
     if X_all.shape[0] != Y_all.shape[0]:
         print("Error processing due to different lengths of input vector")
 
-    counter = 0
-
     prev_frame_num = -1
     cap = cv2.VideoCapture("../../videos/" + filename + "_cropped.mp4")
 
     vector_length = X_all.shape[0]
     video_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    CAN_ANNOTATE = True
+    CAN_ANNOTATE = export_frames
 
     if video_length == 0:
         print("Video file not found for " + filename)
@@ -288,6 +324,9 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
     deletion_log = []
     export_annotated_frame(CAN_ANNOTATE, 0, X_all[0], Y_all[0], X_raw[0], LABEL_TYPE_FIRST, cap, filename)
 
+    # Create a pandas dataframe of all of this
+    pandas_data = []
+    pandas_cols = ['meal_id', 'frame_id', 'label_A_raw', 'label_B_raw', 'pose_a_raw', 'pose_b_raw', 'validity_state']
 
     # For each RestaurantFrame in the list
     for rid in range(vector_length):
@@ -305,64 +344,48 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
         pose_pb = get_PB(row_X)
         frame_num = rid
 
-        chance = random.random()
+        # INSPECTION CODE
+        validity_state = inspection_and_validity(CAN_ANNOTATE, frame_num, label_pa, label_pb, row_X, row_Y, raw_X, LABEL_TYPE_DELETED, cap, filename)
 
-        # if label_pa == 'leaving-table' and label_pb == 'leaving-table':
-        #     print("meal finish lt noted at " + str(frame_num))
+        # PD_COLS_FEAT_QUAL_CHECKS
+        # [PD_MEALID, PD_FRAMEID, PD_LABEL_A_RAW, PD_LABEL_B_RAW, PD_POSE_A_RAW, PD_POSE_B_RAW, PD_VALIDITY_STATE]
+        entry = [filename, frame_num, label_pa, label_pb, pose_pa, pose_pb, validity_state]
+        pandas_data.append(entry)
 
-        if label_pa == 'away-from-table' and label_pb == 'away-from-table':
-            deletion_log.append(rid)
-            if export_frames and chance < .001:
-                export_annotated_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_DELETED, cap, filename)
-                counter += 1
+    print("All vectors processed")
 
+    # TODO remove those with weird validity markers
+    # print("\tDeletion log contains " + str(len(deletion_log)) + " items")
+    # X_final = np.delete(X_all, deletion_log, axis=0)
+    # Y_final = np.delete(Y_all, deletion_log, axis=0)
 
-        # if export_frames and label_pa == 'away-from-table' and pose_pb is not None and chance < .01:
-        #     export_annotated_frame(frame_num, row_X, row_Y, LABEL_TYPE_AWAY_BUT_POSE_DETECTED, cap, frame_group)
-        #     counter += 1
+    # print("\tPost-trim shape: " + str(Y_final.shape))
+    # qchecks.verify_io_expanded(X_final, Y_final)
 
-        # if export_frames and label_pb == 'away-from-table' and pose_pb is not None and chance < .01:
-        #     export_annotated_frame(frame_num, row_X, row_Y, LABEL_TYPE_AWAY_BUT_POSE_DETECTED, cap, frame_group)
-        #     counter += 1
-
-        if export_frames and chance < .00005:
-            export_annotated_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_RANDOM, cap, filename)
-            counter += 1
-
-        if export_frames and chance < .0001:
-            if get_label_PA(row_Y) != -1 or get_label_PB != -1:
-                print("Exporting flipped frame")
-                export_flipped_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_FLIPPED, cap, filename)
-                export_annotated_frame(CAN_ANNOTATE, frame_num, row_X, row_Y, raw_X, LABEL_TYPE_FLIPPED + '0', cap, filename)
-                counter += 1
-
-
-    # print(frame_num)
-    # Final removal of incorrect away-from-table-s
-
-    print("\tDeletion log contains " + str(len(deletion_log)) + " items")
-    X_final = np.delete(X_all, deletion_log, axis=0)
-    Y_final = np.delete(Y_all, deletion_log, axis=0)
-
-    print("\tPost-trim shape: " + str(Y_final.shape))
-
-    qchecks.verify_io_expanded(X_final, Y_final)
 
     # filehandler = open(prefix_qc + "QC_" + filename_root + "_X.p", "wb")
     # json.dump(X_final, filehandler)
     # filehandler.close()
 
-    filehandler = open(prefix_vectors_out + "trimmed_" + filename + "_X.p", "wb")
-    pickle.dump(X_final, filehandler)
-    filehandler.close()
+    df = pd.DataFrame(pandas_data, columns=arconsts.PD_COLS_FEAT_QUAL_CHECKS)
+    print("Made df... ", end="")
+    df.to_pickle(prefix_vectors_out + "trimmed_" + filename + "_vectors.p")
+    print("Exported pickle...", end="")
+    # df.to_csv(prefix_vectors_out + "trimmed_" + filename + "_vectors.csv")
 
-    filehandler = open(prefix_vectors_out + "trimmed_" + filename + "_Y.p", "wb")
-    pickle.dump(Y_final, filehandler)
-    filehandler.close()
+
+
+    # filehandler = open(prefix_vectors_out + "trimmed_" + filename + "_X.p", "wb")
+    # pickle.dump(X_final, filehandler)
+    # filehandler.close()
+
+    # filehandler = open(prefix_vectors_out + "trimmed_" + filename + "_Y.p", "wb")
+    # pickle.dump(Y_final, filehandler)
+    # filehandler.close()
 
     print("Exported trimmed final clip for " + filename)
     print("\n")
 
 
 for filename in filenames_all:
-    check_quality_and_export_trimmed(filename, export_frames=True)
+    check_quality_and_export_trimmed(filename, export_frames=False)
