@@ -150,6 +150,18 @@ def export_gif_of(poses, input_labels, output_label, predicted_label, assessment
 #         np.set_printoptions(suppress=False)
 #         exit()
 
+def verify_pose(pose):
+	if not isinstance(pose, np.ndarray):
+		print("Pose is not an ndarray!")
+		print(pose)
+		exit()
+
+	if pose.shape[0] != 25:
+		print("Pose with less than 25 keypoints")
+		print(pose)
+		exit()
+
+
 def verify_Y_valid(Y):
 	unique_values = np.unique(Y)
 	if(all(x in range(len(arconsts.activity_labels)) for x in unique_values)): 
