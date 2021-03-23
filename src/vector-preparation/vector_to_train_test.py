@@ -44,13 +44,13 @@ def unison_shuffled_copies_three(a, b, c, seed_val):
 	return a[p], b[p], c[p]
 
 def export_df_slices(filename, df):
-	df.to_pickle(prefix_vectors_out + filename + "_slices.p")
-	df.to_csv(prefix_vectors_out + filename + "_slices.csv")
+	df.to_pickle(prefix_vectors_out + "slices/" + filename + "_slices.p")
+	df.to_csv(prefix_vectors_out + "slices/" + filename + "_slices.csv")
 
 def export_df_all(df_list):
 	df = pd.concat(df_list)
-	df.to_pickle(prefix_vectors_out + 'all' + "_slices.p")
-	df.to_csv(prefix_vectors_out + 'all' + "_slices.csv")
+	df.to_pickle(prefix_vectors_out + "slices/" + 'all' + "_slices.p")
+	df.to_csv(prefix_vectors_out + "slices/" + 'all' + "_slices.csv")
 
 def export_each_fold_to_individual_chunks(filename, test_size, X_shuffled, Y_shuffled, batch_id, total_train_X, total_train_Y, total_test_X, total_test_Y, seed):
 	chunk_size = int(len(X_shuffled) * (test_size))
@@ -136,11 +136,14 @@ def is_valid_slice(df_XY, start, end):
 
 def slice_from_rows(df_rows, index_start, index_end, num_folds):
 	df_slice = df_rows[index_start:index_end]
-	target = df_slice.iloc[[-1]]
+	target = df_slice.iloc[-1]
 
-	meal_id 		= target[arconsts.PD_MEALID]
-	target_label_a 	= target[arconsts.PD_LABEL_A_RAW]
-	target_label_b 	= target[arconsts.PD_LABEL_B_RAW]
+	# print(index_start)
+	# print(index_end)
+
+	meal_id 		= target.get(arconsts.PD_MEALID)
+	target_label_a 	= target.get(arconsts.PD_LABEL_A_CODE)
+	target_label_b 	= target.get(arconsts.PD_LABEL_B_CODE)
 	test_group		= random.randrange(num_folds)
 
 	# [PD_MEALID, PD_FRAMEID, PD_LABEL_A_RAW, PD_LABEL_B_RAW, PD_INDEX_START, PD_INDEX_END]
@@ -157,7 +160,7 @@ def make_slices_pandas(df_XY, window_size, overlap_percent, num_test_groups):
 	df_slices_list = []
 
 	for i in range(num_steps):
-		slice_start, slice_end = int(i*shift_stepsize), int(i*shift_stepsize + window_size)
+		slice_start, slice_end = int(i*shift_stepsize), int(i*shift_stepsize + window_size - 1)
 		if slice_end < rows:
 			if is_valid_slice(df_XY, slice_start, slice_end):				
 				slice_value = slice_from_rows(df_XY, slice_start, slice_end, num_test_groups)
