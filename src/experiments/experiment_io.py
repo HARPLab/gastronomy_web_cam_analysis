@@ -80,9 +80,7 @@ def get_slices_from_recipe(df, df_r):
 		meals[meal_id] = df[df[arconsts.PD_MEALID].str.lower().str.contains(meal_id)]
 
 	i = 0
-	for start, end, meal_id, ya, yb in zip(df_r[KEY_START], df_r[KEY_END], df_r[KEY_MEAL], df_r[KEY_YA], df_r[KEY_YB]):
-		Y_pa = ya
-		Y_pb = yb
+	for start, end, meal_id in zip(df_r[KEY_START], df_r[KEY_END], df_r[KEY_MEAL]): #, df_r[KEY_YA], df_r[KEY_YB]
 		# time_start = arconsts.get_start_time()
 		# print(start)
 		# print(end)
@@ -93,7 +91,11 @@ def get_slices_from_recipe(df, df_r):
 		df_t = df_t[df_t[arconsts.PD_FRAMEID].between(start, end, inclusive=True)]
 		# arconsts.print_time(time_start)
 		# print('slice')
+		target = df_t[df_t[arconsts.PD_FRAMEID].between(end, end, inclusive=True)]
 
+		Y_pa = target[arconsts.PD_LABEL_A_CODE]
+		Y_pb = target[arconsts.PD_LABEL_B_CODE]
+		
 		X_pa = df_t.get(arconsts.PD_POSE_A_RAW)
 		X_pb = df_t.get(arconsts.PD_POSE_B_RAW)
 		# print("get pose")
@@ -114,7 +116,7 @@ def get_slices_from_recipe(df, df_r):
 		X_row = np.hstack((X_pa, X_pb))
 
 		X[i] = X_row
-		Y[i] = [arconsts.label_encode(Y_pa), arconsts.label_encode(Y_pb)]
+		Y[i] = [Y_pa, Y_pb]
 		# arconsts.print_time(time_start)
 
 		i += 1
@@ -165,6 +167,29 @@ def get_temporal_vectors(df_transformed, exp_batch_id, fold_id, grouping_type, s
 
 
 def transform_features(df, feature_type):
+	print("Transforming features to type " + str(feature_type))
+	if feature_type == arconsts.FEATURES_VANILLA:
+		print("Vanilla features")
+		df = arconsts.reduce_Y_labels(df)
+
+	elif feature_type == arconsts.FEATURES_OFFSET:
+		print("Offset features")
+		df = arconsts.reduce_Y_labels(df)		
+
+	elif feature_type == arconsts.FEATURES_ANGLES:
+		print("Angle features")
+		df = arconsts.reduce_Y_labels(df)
+
+	elif feature_type == arconsts.FEATURES_NO_PROB:
+		print("Removed probability")
+		df = arconsts.reduce_Y_labels(df)
+
+	elif feature_type == arconsts.FEATURES_LABELS_FULL:
+		print("Expanded labels")
+		df = arconsts.dont_reduce_Y_labels(df)
+	else:
+		print("SAD DAY, NO MATCH FOR " + str(feature_type))
+
 	return df
 
 def import_recipe():
