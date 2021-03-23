@@ -71,7 +71,7 @@ FEATURES_OFFSET 	= arconsts.FEATURES_OFFSET
 FEATURES_ANGLES		= arconsts.FEATURES_ANGLES
 FEATURES_NO_PROB	= arconsts.FEATURES_NO_PROB
 
-LSTM_NUM_LABELS 	= len(activity_labels)
+LSTM_NUM_LABELS 	= arconsts.NUM_REDUCED_ALL
 CONST_NUM_POINTS 	= arconsts.CONST_NUM_POINTS
 CONST_NUM_SUBPOINTS = arconsts.CONST_NUM_SUBPOINTS
 CONST_NUM_LABEL 	= arconsts.CONST_NUM_LABEL
@@ -295,7 +295,10 @@ def classifier_train(X, Y, classifier_key, prefix_where):
 		dropout = 0.1
 		batch_size = 256
 		# epochs = 7
-		Y = to_categorical(Y, num_classes=len(activity_labels))
+
+		# unique_values = np.unique(Y)
+		# num_unique_values = len(unique_values)
+		Y = to_categorical(Y)
 		
 		if FLAG_TEST_MODE == True:
 			epochs = EPOCHS_SHORTEST
@@ -637,14 +640,14 @@ def run_experiments(exp_batch_id):
 	# exp_types = [CLASSIFIER_KNN3, CLASSIFIER_DecisionTree, CLASSIFIER_ADABOOST, CLASSIFIER_KNN5, CLASSIFIER_KNN9]#, CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]#, CLASSIFIER_SGDC, CLASSIFIER_SVM]
 	# exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SVM]
 	exp_types 		= [CLASSIFIER_LSTM_TINY]
-	feature_types 	= [FEATURES_VANILLA] #, FEATURES_OFFSET, FEATURES_ANGLES, FEATURES_NO_PROB]
+	feature_types 	= [arconsts.FEATURES_VANILLA] #, FEATURES_OFFSET, FEATURES_ANGLES, FEATURES_NO_PROB]
 
 	for i in range(len(exp_types)):
 		classifier_type 	= exp_types[i]
 		df_vectors 	= experiment_io.import_vectors()
 		print("Imported vector set")
 
-		for feature_type in range(len(feature_types)):
+		for feature_type in feature_types:
 			df_transformed = experiment_io.transform_features(df_vectors, feature_type)
 		
 			for fold_id in folds:
