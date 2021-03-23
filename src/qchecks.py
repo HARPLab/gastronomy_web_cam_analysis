@@ -92,7 +92,7 @@ def get_frame_visualization(poses, input_labels, output_label, predicted_label, 
 		input_labels = int(input_labels)
 
 		try:
-			addtl_b = str(input_labels[1]) #activity_labels[input_labels]
+			addtl_b = str(input_labels) #activity_labels[input_labels]
 			frame_img = cv2.putText(frame_img, "+data: " + addtl_b, org_b, font, fontScale, COLOR_NEUTRAL, thickness, cv2.LINE_AA, False)		
 		except IndexError:
 			pass
@@ -168,7 +168,6 @@ def verify_integrity_array_entry(pose1, pose2):
 
 def get_num_outputs(Y):
 	outputs = np.unique(Y)
-	print(outputs)
 	n_outputs = len(np.unique(Y))
 	if all(x in arconsts.RANGE_REDUCED for x in outputs):
 		print("in reduced range")
