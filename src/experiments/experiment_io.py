@@ -67,8 +67,13 @@ def get_slices_from_recipe(df, df_r):
 	# print("df_recipe cols")
 	# print(df_recipe.columns)
 
+	df_single = df.iloc[1]
+	X_pa = df_single.get(arconsts.PD_POSE_A_RAW)
+	X_pa = np.concatenate(X_pa, axis=0)
+	n_features = int(X_pa.size)
+
 	# default X value is 0
-	X 	= np.full((df_length, 128, 75 * 2), 0)
+	X 	= np.full((df_length, 128, n_features * 2), 0)
 	# default Y value is unlabeled
 	Y 	= np.full((df_length, 2), -1)
 
@@ -109,8 +114,9 @@ def get_slices_from_recipe(df, df_r):
 		X_pb = np.concatenate(X_pb, axis=0)
 		# arconsts.print_time(time_start)
 
-		X_pa = X_pa.reshape(128, 75)
-		X_pb = X_pb.reshape(128, 75)
+		n_features = int(X_pa.size / 128)
+		X_pa = X_pa.reshape(128, n_features)
+		X_pb = X_pb.reshape(128, n_features)
 		# arconsts.print_time(time_start)
 
 		X_row = np.hstack((X_pa, X_pb))
@@ -165,13 +171,34 @@ def get_temporal_vectors(df_transformed, exp_batch_id, fold_id, grouping_type, s
 	fold_set['pd_train']= df_train_recipe
 	return fold_set
 
+def no_prob_col(value):
+	value.reshape(25,3)
+	return value[:,:2]
+
+def pandas_remove_probs_a(row):
+	return no_prob_col(row[arconsts.PD_POSE_A_RAW])
+
+def pandas_remove_probs_b(row):
+	return no_prob_col(row[arconsts.PD_POSE_B_RAW])
+
+def remove_probabilities(df):
+	df[arconsts.PD_POSE_A_RAW] = df.apply(pandas_remove_probs_a, axis=1)
+	df[arconsts.PD_POSE_B_RAW] = df.apply(pandas_remove_probs_b, axis=1)
+	return df
+
+def points_to_angles(df):
+	return df
+
+def points_to_offsets(df):
+	return df
+
+
 
 def transform_features(df, feature_type):
 	print("Transforming features to type " + str(feature_type))
 	if feature_type == arconsts.FEATURES_VANILLA:
 		print("Vanilla features")
 		df = arconsts.reduce_Y_labels(df)
-
 	elif feature_type == arconsts.FEATURES_OFFSET:
 		print("Offset features")
 		df = arconsts.reduce_Y_labels(df)		
@@ -181,8 +208,11 @@ def transform_features(df, feature_type):
 		df = arconsts.reduce_Y_labels(df)
 
 	elif feature_type == arconsts.FEATURES_NO_PROB:
-		print("Removed probability")
+		print("Removing probability...", end='')
 		df = arconsts.reduce_Y_labels(df)
+		df = remove_probabilities(df)
+		print("Done")
+		
 
 	elif feature_type == arconsts.FEATURES_LABELS_FULL:
 		print("Expanded labels")
