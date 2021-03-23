@@ -45,10 +45,10 @@ activity_labels_expanded = ['away-from-table', 'idle', 'eating', 'drinking', 'ta
 					'using:wallet', 'looking:PersonA', 'looking:PersonB', 'takeoutfood', 'leaving-table', 'cleaning-up', 'NONE']
 
 activity_labels = ['NONE', 'away-from-table', 'idle', 'eating', 'talking', 'talk:waiter', 'looking:window', 
-					'reading:bill', 'reading:menu', 'paying:check', 'using:phone', 'obj:wildcard', 'standing']
+					'reading:bill', 'reading:menu', 'paying:check', 'using:phone', 'obj:wildcard', 'standing', 'leaving', 'drinking']
 
 activitydict = {0: 'NONE', 1: 'away-from-table', 2: 'idle', 3: 'eating', 4: 'talking', 5:'talking:waiter', 6: 'looking:window', 
-	7: 'reading:bill', 8: 'reading:menu', 9: 'paying:check', 10: 'using:phone', 11: 'using:objs', 12: 'standing'}
+	7: 'reading:bill', 8: 'reading:menu', 9: 'paying:check', 10: 'using:phone', 11: 'using:objs', 12: 'standing', 13: 'leaving', 14: 'drinking'}
 
 activity_from_key = {0:'away-from-table', 1:'idle', 2:'eating', 3: 'drinking', 4: 'talking', 5: 'ordering', 6: 'standing',
                 7: 'talking:waiter', 8: 'looking:window', 9: 'looking:waiter', 10: 'reading:bill', 11: 'reading:menu',
@@ -166,10 +166,10 @@ ACT_STANDING            = 12
 ACT_LEAVING             = 13
 ACT_DRINKING            = 14
 
-LEN_REDUCED_ALL = range(ACT_DRINKING)
-NUM_REDUCED_ALL = 15
-LEN_OG_ALL = range(OG_LABEL_NONE)
-NUM_NOT_REDUCED = 24
+LEN_REDUCED = 15
+LEN_OG_ALL = 24
+RANGE_REDUCED = range(LEN_REDUCED)
+RANGE_OG_ALL = range(LEN_OG_ALL)
 
 transform_dict = {}
 transform_dict[OG_LABEL_NA]               = ACT_NONE
