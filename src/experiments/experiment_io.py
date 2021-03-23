@@ -37,10 +37,10 @@ import qchecks
 import arconsts
 
 def get_prefix_export_result(exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed):
-	return 'results/' + str(exp_batch_id) + str(classifier_type) + str(feature_type) + str(grouping_type) + '_i' + str(fold_id) + '_s' + str(seed)
+	return 'results/' + str(exp_batch_id) + str(exp_batch_id[:-1]) + str(classifier_type) + str(feature_type) + str(grouping_type) + '_i' + str(fold_id) + '_s' + str(seed)
 
 def get_prefix_export_truth(exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed):
-	return 'results/' + str(exp_batch_id) + str(classifier_type) + str(feature_type) + str(grouping_type) + '_i' + str(fold_id) + '_s' + str(seed)
+	return 'results/' + str(exp_batch_id) + str(exp_batch_id[:-1]) + str(classifier_type) + str(feature_type) + str(grouping_type) + '_i' + str(fold_id) + '_s' + str(seed)
 
 
 # def get_prefix_export_result(unique_title, exp_batch_id, classifier_type, fold_id, grouping_type):
@@ -75,7 +75,7 @@ def get_slices_from_recipe(df, df_r):
 	# default X value is 0
 	X 	= np.full((df_length, 128, n_features * 2), 0)
 	# default Y value is unlabeled
-	Y 	= np.full((df_length, 2), -1)
+	Y 	= np.full((df_length, 128, 2), -1)
 
 	print("Target = " + str(df_length) + " slices... \t", end='')
 
@@ -98,31 +98,36 @@ def get_slices_from_recipe(df, df_r):
 		# print('slice')
 		target = df_t[df_t[arconsts.PD_FRAMEID].between(end, end, inclusive=True)]
 
-		Y_pa = target[arconsts.PD_LABEL_A_CODE]
-		Y_pb = target[arconsts.PD_LABEL_B_CODE]
-		
 		X_pa = df_t.get(arconsts.PD_POSE_A_RAW)
 		X_pb = df_t.get(arconsts.PD_POSE_B_RAW)
+		Y_pa = df_t.get(arconsts.PD_LABEL_A_CODE)
+		Y_pb = df_t.get(arconsts.PD_LABEL_B_CODE)
+
 		# print("get pose")
 		# arconsts.print_time(time_start)
 
 		X_pa = X_pa.to_numpy() #.values
 		X_pb = X_pb.to_numpy() #.values
+		Y_pa = Y_pa.to_numpy() #.values
+		Y_pb = Y_pb.to_numpy() #.values
 		# arconsts.print_time(time_start)
 
 		X_pa = np.concatenate(X_pa, axis=0)
 		X_pb = np.concatenate(X_pb, axis=0)
-		# arconsts.print_time(time_start)
 
 		n_features = int(X_pa.size / 128)
 		X_pa = X_pa.reshape(128, n_features)
 		X_pb = X_pb.reshape(128, n_features)
+
+		Y_pa = Y_pa.reshape(128, 1)
+		Y_pb = Y_pb.reshape(128, 1)
 		# arconsts.print_time(time_start)
 
 		X_row = np.hstack((X_pa, X_pb))
+		Y_row = np.hstack((Y_pa, Y_pb))
 
 		X[i] = X_row
-		Y[i] = [Y_pa, Y_pb]
+		Y[i] = Y_row
 		# arconsts.print_time(time_start)
 
 		i += 1
