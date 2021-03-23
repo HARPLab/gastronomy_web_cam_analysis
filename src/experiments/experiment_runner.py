@@ -305,6 +305,9 @@ def classifier_train(X, Y, classifier_key, prefix_where):
 		else:
 			epochs = EPOCHS_STANDARD
 		
+		# epochs = EPOCHS_SHORTEST
+
+		print("epochs = " + str(epochs))
 		print("Fitting to...")
 		print(X.shape)
 		print(Y.shape)
@@ -640,7 +643,7 @@ def run_experiments(exp_batch_id):
 	# exp_types = [CLASSIFIER_KNN3, CLASSIFIER_DecisionTree, CLASSIFIER_ADABOOST, CLASSIFIER_KNN5, CLASSIFIER_KNN9]#, CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]#, CLASSIFIER_SGDC, CLASSIFIER_SVM]
 	# exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SVM]
 	exp_types 		= [CLASSIFIER_LSTM_TINY]
-	feature_types 	= [arconsts.FEATURES_VANILLA] #, FEATURES_OFFSET, FEATURES_ANGLES, FEATURES_NO_PROB]
+	feature_types 	= [arconsts.FEATURES_OFFSET, arconsts.FEATURES_NO_PROB, arconsts.FEATURES_VANILLA]
 
 	for i in range(len(exp_types)):
 		classifier_type 	= exp_types[i]
@@ -668,7 +671,7 @@ def run_experiments(exp_batch_id):
 				experiment_duo_vs_solo(fold_id, input_set, classifier_type, long_prefix)
 				experiment_pose_vs_poseauxlabel(fold_id, input_set, classifier_type, long_prefix)
 				experiment_swapped_poses(fold_id, input_set, classifier_type, long_prefix)
-				experiment_label_to_label(fold_id, input_set, classifier_type, long_prefix)
+				# experiment_label_to_label(fold_id, input_set, classifier_type, long_prefix)
 
 
 def main():
