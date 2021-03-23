@@ -82,8 +82,8 @@ def get_frame_visualization(poses, input_labels, output_label, predicted_label, 
 	output_label = int(output_label[0])
 
 	if label_output == "a":
-		label_true_a = activity_labels[output_label]
-		label_pred_a = activity_labels[predicted_label]
+		label_true_a = str(output_label) #activity_labels[output_label]
+		label_pred_a = str(predicted_label) #activity_labels[predicted_label]
 	
 		frame_img = cv2.putText(frame_img, "true: " + label_true_a, org_a, font, fontScale, color, thickness, cv2.LINE_AA)
 		frame_img = cv2.putText(frame_img, "pred: " + label_pred_a, org_a2, font, fontScale, COLOR_A, thickness, cv2.LINE_AA) 
@@ -92,21 +92,21 @@ def get_frame_visualization(poses, input_labels, output_label, predicted_label, 
 		input_labels = int(input_labels)
 
 		try:
-			addtl_b = activity_labels[input_labels]
+			addtl_b = str(input_labels[1]) #activity_labels[input_labels]
 			frame_img = cv2.putText(frame_img, "+data: " + addtl_b, org_b, font, fontScale, COLOR_NEUTRAL, thickness, cv2.LINE_AA, False)		
 		except IndexError:
 			pass
 		
 	elif label_output == 'b':
-		label_true_b = activity_labels[output_label]
-		label_pred_b = activity_labels[predicted_label]
+		label_true_b = str(output_label) #activity_labels[output_label]
+		label_pred_b = str(predicted_label) #activity_labels[predicted_label]
 
 		frame_img = cv2.putText(frame_img, "true: " + label_true_b, org_b, font, fontScale, COLOR_B, thickness, cv2.LINE_AA)
 		frame_img = cv2.putText(frame_img, "pred: " + label_pred_b, org_b2, font, fontScale, COLOR_B, thickness, cv2.LINE_AA)
 
 		try:
 			if input_labels.shape[1] > 0:
-				addtl_a = activity_labels[input_labels[0]]
+				addtl_a = str(input_labels[0]) # activity_labels[input_labels[0]]
 				frame_img = cv2.putText(frame_img, "+data: " + addtl_a, org_a, font, fontScale, COLOR_NEUTRAL, thickness, cv2.LINE_AA, False)
 		except IndexError:
 			pass
@@ -166,8 +166,19 @@ def verify_integrity_array_entry(pose1, pose2):
 		print(pose2)
 		exit()
 
+def get_num_outputs(Y):
+	outputs = np.unique(Y)
+	print(outputs)
+	n_outputs = len(np.unique(Y))
+	if all(x in arconsts.RANGE_REDUCED for x in outputs):
+		print("in reduced range")
+		return arconsts.LEN_REDUCED
+	if all(x in arconsts.RANGE_OG_ALL for x in outputs):
+		print("in range og all")
+		return arconsts.LEN_OG_ALL
 
-
+	print("There is a bug ... exotic label in set {" + str(outputs) + "}")
+	exit()
 
 
 def verify_pose(pose):
@@ -203,7 +214,7 @@ def verify_io_expanded(X, Y):
 		exit()
 
 def verify_input_output(X, Y, classifier_type):
-	good_set= arconsts.LEN_OG_ALL
+	good_set = arconsts.RANGE_OG_ALL
 	# if feature_type == arconsts.FEATURES_LABELS_FULL:
 	# 	good_set = arconsts.LEN_OG_ALL
 	# else:
@@ -243,9 +254,9 @@ def quality_check_output(X, Y, Y_pred, classifier_type, assessment_label, where,
 	n_timesteps_X = dim_X[0]
 	n_timesteps_Y = dim_Y[0]
 
-	print(X.shape)
-	print(Y.shape)
-	print(Y_pred.shape)
+	# print(X.shape)
+	# print(Y.shape)
+	# print(Y_pred.shape)
 
 	if classifier_type in CLASSIFIERS_TEMPORAL:
 		n_window = dim_X[1]
@@ -295,7 +306,7 @@ def export_qual_confusion_matrix(y1, y2, exp_batch_id, classifier_type, subexp_l
 	# print(y1)
 	# print(y2)
 
-	cm = confusion_matrix(y1.astype(int), y2.astype(int), labels=range(len(activity_labels)))
+	cm = confusion_matrix(y1.astype(int), y2.astype(int))#, labels=range(len(activity_labels)))
 
 	sn.set(font_scale=2)
 	sn.set_style("white",  {'figure.facecolor': 'black'})
