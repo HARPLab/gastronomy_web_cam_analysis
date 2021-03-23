@@ -189,7 +189,20 @@ def remove_probabilities(df):
 def points_to_angles(df):
 	return df
 
+def get_offset_format(value):
+	value = value.reshape(25,3)
+	value = value - value[1]
+	return value
+
+def pandas_remove_probs_a(row):
+	return get_offset_format(row[arconsts.PD_POSE_A_RAW])
+
+def pandas_remove_probs_b(row):
+	return get_offset_format(row[arconsts.PD_POSE_B_RAW])
+
 def points_to_offsets(df):
+	df[arconsts.PD_POSE_A_RAW] = df.apply(pandas_offset_a, axis=1)
+	df[arconsts.PD_POSE_B_RAW] = df.apply(pandas_offset_b, axis=1)
 	return df
 
 
