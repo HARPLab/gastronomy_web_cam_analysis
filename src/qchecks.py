@@ -203,10 +203,15 @@ def verify_io_expanded(X, Y):
 		exit()
 
 def verify_input_output(X, Y, classifier_type):
+	good_set= arconsts.LEN_OG_ALL
+	# if feature_type == arconsts.FEATURES_LABELS_FULL:
+	# 	good_set = arconsts.LEN_OG_ALL
+	# else:
+	# 	good_set = arconsts.LEN_REDUCED_ALL
+
 	unique_values = np.unique(Y)
-	good_zone = range(-1, len(arconsts.activity_labels))
-	
-	if(all(x in good_zone for x in unique_values)): 
+
+	if(all(x in good_set for x in unique_values)): 
 		pass
 	else:
 		print("Y contains labels outside the correct set: verify input output")
