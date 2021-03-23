@@ -27,6 +27,12 @@ BATCH_ID_TEMPORAL 	= '_temporal'
 BATCH_ID_MEALWISE_STATELESS 	= '_mwstateless'
 BATCH_ID_MEALWISE_TEMPORAL 	= '_mwtemporal'
 
+FEATURES_VANILLA  = '_fvan'
+FEATURES_OFFSET   = '_foffset'
+FEATURES_ANGLES   = '_fang'
+FEATURES_NO_PROB  = '_fnprob'
+
+CONST_WINDOW_SIZE = 128
 
 CLASSIFIERS_TEMPORAL = [CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST, CLASSIFIER_CRF, CLASSIFIER_LSTM_TINY]
 CLASSIFIERS_STATELESS = [CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_SVM, CLASSIFIER_SGDC, CLASSIFIER_ADABOOST, CLASSIFIER_DecisionTree]\
@@ -75,6 +81,26 @@ offset_dict['8-21-18']  = [0, 0, 0] # 50, 300
 offset_dict['8-9-18']   = [0, 50, 0] # 50, 250
 
 
+PD_MEALID   = 'meal_id'
+PD_FRAMEID  = 'frame_id'
+PD_LABEL_A_RAW    = 'label_A_raw'
+PD_LABEL_B_RAW    = 'label_B_raw'
+PD_LABEL_A_CODE    = 'label_A_code'
+PD_LABEL_B_CODE    = 'label_B_code'
+PD_POSE_A_RAW     = 'pose_A_raw'
+PD_POSE_B_RAW     = 'pose_B_raw'
+PD_VALIDITY_STATE = 'validity_state'
+
+PD_POSE_A_WINDOWED      = 'pose_A_windowed'
+PD_POSE_B_WINDOWED      = 'pose_B_windowed'
+PD_INDEX_START          = 'index_start'
+PD_INDEX_END            = 'index_end'
+PD_TEST_SET             = 'test_set'
+
+PD_COLS_FEAT_QUAL_CHECKS      = [PD_MEALID, PD_FRAMEID, PD_LABEL_A_RAW, PD_LABEL_B_RAW, PD_LABEL_A_CODE, PD_LABEL_B_CODE, PD_POSE_A_RAW, PD_POSE_B_RAW, PD_VALIDITY_STATE]
+PD_COLS_SLICES                = [PD_MEALID, PD_LABEL_A_RAW, PD_LABEL_B_RAW, PD_INDEX_START, PD_INDEX_END, PD_TEST_SET]
+
+
 bd_box_A = ((70, 80), (200, 340))
 bd_box_B = ((230, 130), (370, 370))
 
@@ -94,3 +120,75 @@ LABEL_B_A = 'b_a'
 LABEL_A_B = 'a_b'
 
 CSV_ORDER = ['a_a', 'ab_a', 'alb_a', 'b_a', 'b_b', 'ab_b', 'bla_b', 'a_b', 'la_lb', 'lb_la']
+
+
+def label_encode(label_string):
+      if label_string in activitydict_full_text_to_id:
+            return activitydict_full_text_to_id[label_string]
+
+      return -1
+
+
+def reduce_labels(Y_array):
+      # activity_from_key = {0:'away-from-table', 1:'idle', 2:'eating', 3: 'drinking', 4: 'talking', 5: 'ordering', 6: 'standing',
+      #                             7: 'talking:waiter', 8: 'looking:window', 9: 'looking:waiter', 10: 'reading:bill', 11: 'reading:menu',
+      #                             12: 'paying:check', 13: 'using:phone', 14: 'using:napkin', 15: 'using:purse', 16: 'using:glasses',
+      #                             17: 'using:wallet', 18: 'looking:PersonA', 19: 'looking:PersonB', 20: 'takeoutfood', 21: 'leaving-table', 22: 'cleaning-up', 23: 'NONE'}
+
+      # activity_labels = [0: 'NONE', 1: 'away-from-table', 2: 'idle', 3: 'eating', 4: 'talking', 5:'talking:waiter', 6: 'looking:window', 
+      # 7: 'reading:bill', 8: 'reading:menu', 9: 'paying:check', 10: 'using:phone', 11: 'using:objs', 12: 'standing']
+      
+      ACT_NONE                = 0
+      ACT_AWAY_FROM_TABLE     = 1
+      ACT_IDLE                = 2
+      ACT_EATING              = 3
+      ACT_TALKING             = 4
+      ACT_WAITER              = 5
+      ACT_LOOKING_WINDOW      = 6
+      ACT_READING_BILL        = 7
+      ACT_READING_MENU        = 8
+      ACT_PAYING_CHECK        = 9
+      ACT_USING_PHONE         = 10
+      ACT_OBJ_WILDCARD  = 11
+      ACT_STANDING            = 12
+
+
+      Y_new = np.empty_like(Y_array)
+      Y_new = np.where(Y_array==23, ACT_NONE,         Y_new)
+      Y_new = np.where(Y_array==22, ACT_NONE,         Y_new)
+      Y_new = np.where(Y_array==21, ACT_STANDING,     Y_new) 
+      Y_new = np.where(Y_array==20, ACT_OBJ_WILDCARD, Y_new)
+      Y_new = np.where(Y_array==19, ACT_IDLE,         Y_new)
+      Y_new = np.where(Y_array==18, ACT_IDLE,         Y_new)
+      Y_new = np.where(Y_array==17, ACT_PAYING_CHECK, Y_new)
+      Y_new = np.where(Y_array==16, ACT_OBJ_WILDCARD, Y_new)
+      Y_new = np.where(Y_array==15, ACT_OBJ_WILDCARD, Y_new)
+      Y_new = np.where(Y_array==14, ACT_OBJ_WILDCARD, Y_new)
+      Y_new = np.where(Y_array==13, ACT_USING_PHONE,  Y_new)
+      Y_new = np.where(Y_array==12, ACT_PAYING_CHECK, Y_new)
+      Y_new = np.where(Y_array==11, ACT_READING_MENU, Y_new)
+      Y_new = np.where(Y_array==10, ACT_READING_BILL, Y_new)
+      Y_new = np.where(Y_array==9, ACT_WAITER,        Y_new) 
+      Y_new = np.where(Y_array==8, ACT_LOOKING_WINDOW,Y_new)
+      Y_new = np.where(Y_array==7, ACT_WAITER,        Y_new)
+      Y_new = np.where(Y_array==6, ACT_STANDING,            Y_new)
+      Y_new = np.where(Y_array==5, ACT_WAITER,        Y_new)
+      Y_new = np.where(Y_array==4, ACT_TALKING,             Y_new)
+      Y_new = np.where(Y_array==3, ACT_EATING,        Y_new)
+      Y_new = np.where(Y_array==2, ACT_EATING,        Y_new)
+      Y_new = np.where(Y_array==1, ACT_IDLE,                Y_new)
+      Y_new = np.where(Y_array==0, ACT_AWAY_FROM_TABLE, Y_new)
+
+      return Y_new
+
+def get_start_time():
+      time_start = time.perf_counter()
+      return time_start
+
+def print_time(time_start):
+      time_end = time.perf_counter()
+      time_diff = time_end - time_start
+
+      now = datetime.now()
+      current_time = now.strftime("%H:%M:%S")
+      print("Time elapsed: " + str(time_diff) + " ending at " + str(current_time))
