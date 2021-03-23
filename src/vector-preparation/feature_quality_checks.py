@@ -10,8 +10,7 @@ import sys
 sys.path.append("..")
 import qchecks
 import arconsts
-
-# np.set_printoptions(suppress=True)
+np.set_printoptions(suppress=True)
 
 # activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
 #                         'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
@@ -75,6 +74,7 @@ def get_PA(input_row_X):
     if (input_row_X.shape[0] == 2):
         print("Wrong vector passed for pose extraction")
 
+    qchecks.verify_pose(input_row_X[0:25])
     return input_row_X[0:25]
 
 def get_PB(input_row_X):
@@ -336,6 +336,9 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
         
         label_pa = get_label_PA(row_Y)
         label_pb = get_label_PB(row_Y)
+
+        label_code_pa = arconsts.label_encode(label_pa)
+        label_code_pb = arconsts.label_encode(label_pb)
         
         # num_poses_raw   = get_num_poses_raw(row)
         # num_poses_clean = get_num_poses_clean(row)
@@ -349,7 +352,7 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
 
         # PD_COLS_FEAT_QUAL_CHECKS
         # [PD_MEALID, PD_FRAMEID, PD_LABEL_A_RAW, PD_LABEL_B_RAW, PD_POSE_A_RAW, PD_POSE_B_RAW, PD_VALIDITY_STATE]
-        entry = [filename, frame_num, label_pa, label_pb, pose_pa, pose_pb, validity_state]
+        entry = [filename, frame_num, label_pa, label_pb, label_code_pa, label_code_pb, pose_pa, pose_pb, validity_state]
         pandas_data.append(entry)
 
     print("All vectors processed")
@@ -385,7 +388,15 @@ def check_quality_and_export_trimmed(filename, export_frames=False):
 
     print("Exported trimmed final clip for " + filename)
     print("\n")
+    return df
 
-
+all_frames = []
 for filename in filenames_all:
-    check_quality_and_export_trimmed(filename, export_frames=False)
+    df = check_quality_and_export_trimmed(filename, export_frames=False)
+    all_frames.append(df)
+
+df = pd.concat(all_frames)
+all_name = prefix_vectors_out + "trimmed_" + 'all' + "_vectors.p"
+df.to_pickle(all_name)
+print("Exported all vectors to <" + all_name + ">")
+
