@@ -71,7 +71,6 @@ FEATURES_OFFSET 	= arconsts.FEATURES_OFFSET
 FEATURES_ANGLES		= arconsts.FEATURES_ANGLES
 FEATURES_NO_PROB	= arconsts.FEATURES_NO_PROB
 
-LSTM_NUM_LABELS 	= arconsts.NUM_REDUCED_ALL
 CONST_NUM_POINTS 	= arconsts.CONST_NUM_POINTS
 CONST_NUM_SUBPOINTS = arconsts.CONST_NUM_SUBPOINTS
 CONST_NUM_LABEL 	= arconsts.CONST_NUM_LABEL
@@ -80,14 +79,16 @@ EPOCHS_SHORTEST = 5
 EPOCHS_STANDARD = 500
 
 def get_LSTM(trainX, trainY, scale=1):
-	print(trainX.shape)
-	print(trainY.shape)
+	# print(trainY.shape)rint(trainX.shape)
+	# p
 	# an input layer that expects 1 or more samples, 50 time steps, and 2 features
-	n_timesteps, n_features, n_outputs = trainX.shape[1], trainX.shape[2], LSTM_NUM_LABELS
+	n_outputs = qchecks.get_num_outputs(trainY)
+	print("num_outputs " + str(n_outputs))
+	n_timesteps, n_features = trainX.shape[1], trainX.shape[2]
 	input_shape=(n_timesteps, n_features)
 
-	print("input_shape: " + str(input_shape))
-	print("ought to be (128 , (25*3)*#poses)")
+	# print("input_shape: " + str(input_shape))
+	# print("ought to be (128 , (25*3)*#poses)")
 
 	dropout = 0.1
 	batch_size = 256
@@ -305,7 +306,7 @@ def classifier_train(X, Y, classifier_key, prefix_where):
 		else:
 			epochs = EPOCHS_STANDARD
 		
-		# epochs = EPOCHS_SHORTEST
+		epochs = 5#00 #5 #EPOCHS_SHORTEST
 
 		print("epochs = " + str(epochs))
 		print("Fitting to...")
@@ -385,7 +386,6 @@ def get_AlB(X_array, Y_array, c_type):
 		Y_out = Y_array[:, -1, :half_dim_Y]
 
 	X_alb = np.concatenate((Xa, lb), axis=2)
-
 	return X_alb, Y_out
 
 def get_BlA(X_array, Y_array, c_type):
@@ -428,7 +428,7 @@ def get_lA(X_array, Y_array, c_type):
 		half_dim_X = int(og_dim_X[2] / 2)
 		half_dim_Y = int(og_dim_Y[2] / 2)
 
-		Y_out = Y_array[:, :,	:half_dim_Y]
+		Y_out = Y_array[:, -1,	:half_dim_Y]
 
 	return Y_out
 
@@ -445,7 +445,7 @@ def get_lB(X_array, Y_array, c_type):
 		half_dim_X = int(og_dim_X[2] / 2)
 		half_dim_Y = int(og_dim_Y[2] / 2)
 
-		Y_out = Y_array[:, :, half_dim_Y:]
+		Y_out = Y_array[:, -1, half_dim_Y:]
 
 	return Y_out
 
@@ -462,10 +462,10 @@ def get_A(X_array, Y_array, c_type):
 
 	elif c_type in CLASSIFIERS_TEMPORAL:
 		half_dim_X = int(og_dim_X[2] / 2)
-		half_dim_Y = int(og_dim_Y[1] / 2)
+		half_dim_Y = int(og_dim_Y[2] / 2)
 
 		X_out = X_array[:, :, :half_dim_X]
-		Y_out = Y_array[:, :half_dim_Y]
+		Y_out = Y_array[:, -1, :half_dim_Y]
 
 	else:
 		print("What kind of classifier is this?")
@@ -478,10 +478,6 @@ def get_B(X_array, Y_array, c_type):
 	og_dim_X = X_array.shape
 	og_dim_Y = Y_array.shape
 
-	# print(Y_array.shape)
-	# print(Y_array[0])
-	# print(Y_array[3100])
-
 	if c_type in CLASSIFIERS_STATELESS:
 		half_dim_X = int(og_dim_X[1] / 2)
 		half_dim_Y = int(og_dim_Y[1] / 2)
@@ -489,9 +485,9 @@ def get_B(X_array, Y_array, c_type):
 		Y_out = Y_array[:, 	half_dim_Y:]
 	else:
 		half_dim_X = int(og_dim_X[2] / 2)
-		half_dim_Y = int(og_dim_Y[1] / 2)
+		half_dim_Y = int(og_dim_Y[2] / 2)
 		X_out = X_array[:, :, half_dim_X:]
-		Y_out = Y_array[:, half_dim_Y:]
+		Y_out = Y_array[:, -1, half_dim_Y:]
 
 	qchecks.verify_input_output(X_out, Y_out, c_type)
 	return X_out, Y_out
@@ -500,9 +496,6 @@ def experiment_swapped_poses(fold_id, input_set, classifier_type, long_prefix):
 	print("Experiment: Poses Swapped")
 	label_b_a = "_b_a"
 	label_a_b = "_a_b"
-	
-	experiment_blob = {}
-	long_prefix = experiment_io.get_prefix_export_result(unique_title, exp_batch_id, classifier_type, fold_id, grouping_type)
 
 	X_train_AB, X_test_AB, Y_train_AB, Y_test_AB = unpack_dict(input_set)
 
@@ -528,12 +521,6 @@ def experiment_label_to_label(fold_id, input_set, classifier_type, long_prefix):
 	label_lb_la = "_lb_la"
 	label_la_lb = "_la_lb"
 	
-	experiment_blob_all = {}
-
-	experiment_blob = {}
-	long_prefix = experiment_io.get_prefix_export_result(unique_title, exp_batch_id, classifier_type, fold_id, grouping_type)
-	
-
 	X_train_AB, X_test_AB, Y_train_AB, Y_test_AB = unpack_dict(input_set)
 
 	Y_train_A 	= get_lA(X_train_AB, Y_train_AB, classifier_type)
@@ -555,8 +542,6 @@ def experiment_pose_vs_poseauxlabel(fold_id, input_set, classifier_type, long_pr
 	print("Experiment: pose_vs_poseauxlabel")
 	label_alb_a = "_alb_a"
 	label_bla_b = "_bla_b"
-
-	long_prefix = experiment_io.get_prefix_export_result(unique_title, exp_batch_id, classifier_type, fold_id, grouping_type)
 
 	X_train_AB, X_test_AB, Y_train_AB, Y_test_AB = unpack_dict(input_set)
 
@@ -584,10 +569,6 @@ def experiment_duo_vs_solo(fold_id, input_set, classifier_type, long_prefix):
 
 	label_ab_a = "_ab_a"
 	label_ab_b = "_ab_b"
-
-	experiment_blob_all = {}
-
-	experiment_blob = {}
 
 	X_train_AB, X_test_AB, Y_train_AB, Y_test_AB = unpack_dict(input_set)
 
@@ -668,8 +649,8 @@ def run_experiments(exp_batch_id):
 					pass
 
 				long_prefix = experiment_io.get_prefix_export_result(exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed)
-				experiment_duo_vs_solo(fold_id, input_set, classifier_type, long_prefix)
-				experiment_pose_vs_poseauxlabel(fold_id, input_set, classifier_type, long_prefix)
+				# experiment_duo_vs_solo(fold_id, input_set, classifier_type, long_prefix)
+				# experiment_pose_vs_poseauxlabel(fold_id, input_set, classifier_type, long_prefix)
 				experiment_swapped_poses(fold_id, input_set, classifier_type, long_prefix)
 				# experiment_label_to_label(fold_id, input_set, classifier_type, long_prefix)
 
