@@ -150,6 +150,26 @@ def export_gif_of(poses, input_labels, output_label, predicted_label, assessment
 #         np.set_printoptions(suppress=False)
 #         exit()
 
+def verify_integrity_array_entry(pose1, pose2):
+	if pose1.size != pose2.size:
+		print("Different size poses")
+		exit()
+
+	dim = int(pose1.size)
+
+	pose1 = pose1.reshape(dim)
+	pose2 = pose2.reshape(dim)
+
+	if not (pose1==pose2).all():
+		print("Pose got deformed")
+		print(pose1)
+		print(pose2)
+		exit()
+
+
+
+
+
 def verify_pose(pose):
 	if not isinstance(pose, np.ndarray):
 		print("Pose is not an ndarray!")
@@ -184,7 +204,9 @@ def verify_io_expanded(X, Y):
 
 def verify_input_output(X, Y, classifier_type):
 	unique_values = np.unique(Y)
-	if(all(x in range(len(arconsts.activity_labels)) for x in unique_values)): 
+	good_zone = range(-1, len(arconsts.activity_labels))
+	
+	if(all(x in good_zone for x in unique_values)): 
 		pass
 	else:
 		print("Y contains labels outside the correct set: verify input output")
