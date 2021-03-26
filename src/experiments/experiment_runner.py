@@ -111,99 +111,6 @@ def get_CRF():
 	pass
 	return model
 
-def export_confusion_matrix(y1, y2, exp_batch_id, classifier_type, subexp_label, fold_id):
-	save_location = "results/" + exp_batch_id + "f" + str(fold_id) + "_" + classifier_type[1:] + "_" + subexp_label + "_f" + str(fold_id)
-	cm = confusion_matrix(y1.astype(int), y2.astype(int), labels=range(len(activity_labels)))
-
-	sn.set(font_scale=2)
-	plt.subplots(figsize=(22,22))
-	sn.set_style("white",  {'figure.facecolor': 'black'})
-	corr = cm
-	mask = np.zeros_like(corr)
-	mask[corr == 0] = True
-	ax = plt.axes()
-	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, fmt='g', annot_kws={"size": 15}, ax=ax)
-	ax.set_xticklabels(activity_labels, rotation=45)
-	ax.set_yticklabels(activity_labels, rotation=0)
-	ax.set(ylabel="Person 1", xlabel="Person 2")
-	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label)
-	plt.tight_layout()
-	fig.get_figure().savefig(save_location + '_cm.png')
-	plt.close()
-
-	# Export stacked bar chart
-	labels = activity_labels
-	correct_labels = []
-	incorrect_labels = []
-	percent_labels = []
-	width = 0.8	   # the width of the bars: can also be len(x) sequence
-
-	for idx, cls in enumerate(activity_labels):
-		# True negatives are all the samples that are not our current GT class (not the current row) 
-		# and were not predicted as the current class (not the current column)
-		true_negatives = np.sum(np.delete(np.delete(cm, idx, axis=0), idx, axis=1))
-		
-		# True positives are all the samples of our current GT class that were predicted as such
-		true_positives = cm[idx, idx]
-
-		correct 	= true_positives
-		incorrect 	= np.sum(cm[:,idx]) - correct
-		percent = (correct / (correct + incorrect))*100.0
-		percent = "{:.4}".format(percent) + "%"
-		
-		# The accuracy for the current class is ratio between correct predictions to all predictions
-		# per_class_accuracies[cls] = (true_positives + true_negatives) / np.sum(cm)
-
-		correct_labels.append(correct)
-		incorrect_labels.append(incorrect)
-		percent_labels.append(percent)
-
-
-	fig, ax = plt.subplots()
-	le_font_size = 10.0
-
-	ax.bar(labels, correct_labels, width, align="center", label='Correct Labels')
-	ax.bar(labels, incorrect_labels, width, align="center", bottom=correct_labels,
-		   label='Incorrect Labels')
-
-	ax.set_ylabel('Number of Samples', fontsize=le_font_size)
-	ax.set_ylabel('Predicted Label', fontsize=le_font_size)
-	ax.set_xticklabels(activity_labels, rotation=90, fontsize=le_font_size)
-	ax.yaxis.set_tick_params(labelsize=le_font_size)
-
-	ax.set_title('Per-Class Classification Accuracy for ' + subexp_label, fontsize=le_font_size)
-	ax.legend(fontsize=le_font_size)
-
-	# for p in ax.patches:
-	# 	width, height = p.get_width(), p.get_height()
-	# 	x, y = p.get_xy() 
-	# 	ax.text(x+width/2, 
-	# 			y+height/2, 
-	# 			'{:.0f} %'.format(height), 
-	# 			horizontalalignment='center', 
-	# 			verticalalignment='center')
-
-	# set individual bar lables using above list
-	counter = 0
-	for i in ax.patches:
-		if counter % 2 == 0 and int(counter / 2) < len(percent_labels):
-			lookup_index = int(counter / 2)
-			label = percent_labels[lookup_index]
-			counter += 1
-			# get_x pulls left or right; get_height pushes up or down
-			ax.text(i.get_x()+.12, i.get_height()+(60*le_font_size), label, fontsize=(le_font_size),
-					color='black', rotation=90)
-		counter += 1
-
-
-	# for i in range(len(correct_labels)): 
-	#	 label = percent_labels[i]
-	#	 plt.annotate(label, xy=(i, 0), color='white')
-
-	plt.tight_layout()
-	plt.savefig(save_location + '_graphs.png')
-	plt.close()
-
 def get_classifier(key, X, Y):
 	if key == CLASSIFIER_ADABOOST:
 		return AdaBoostClassifier()
@@ -228,57 +135,6 @@ def get_classifier(key, X, Y):
 	if key == CLASSIFIER_LSTM_TINY:
 		return get_LSTM(X, Y, scale = .25)
 	return None
-
-def export_classifier_history(history, where):
-	loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' not in s]
-	val_loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' in s]
-	acc_list = [s for s in history.history.keys() if 'acc' in s and 'val' not in s]
-	val_acc_list = [s for s in history.history.keys() if 'acc' in s and 'val' in s]
-	
-	if len(loss_list) == 0:
-		print('Loss is missing in history')
-		return 
-	
-	## As loss always exists
-	epochs = range(1,len(history.history[loss_list[0]]) + 1)
-	
-	## Loss
-	plt.figure(1)
-	for l in loss_list:
-		plt.plot(epochs, history.history[l], 'b', label='Training loss (' + str(str(format(history.history[l][-1],'.5f'))+')'))
-	for l in val_loss_list:
-		plt.plot(epochs, history.history[l], 'g', label='Validation loss (' + str(str(format(history.history[l][-1],'.5f'))+')'))
-	
-	plt.title('Loss')
-	plt.xlabel('Epochs')
-	plt.ylabel('Loss')
-	plt.legend()
-	plt.savefig(where + "-loss-history.png")
-	
-	## Accuracy
-	plt.figure(2)
-	for l in acc_list:
-		plt.plot(epochs, history.history[l], 'b', label='Training accuracy (' + str(format(history.history[l][-1],'.5f'))+')')
-	for l in val_acc_list:	
-		plt.plot(epochs, history.history[l], 'g', label='Validation accuracy (' + str(format(history.history[l][-1],'.5f'))+')')
-
-	plt.title('Accuracy')
-	plt.xlabel('Epochs')
-	plt.ylabel('Accuracy')
-	plt.legend()
-
-	plt.savefig(where + "-accuracy-history.png")
-	plt.close()
-	
-
-def export_result(obj, where):
-	filehandler = open(where  + "_resultY.p", "wb")
-	pickle.dump(obj, filehandler)
-	filehandler.close()
-	print("Exported to " + where)
-
-def export_classifier(clf, where):
-	clf.save(where + '_model.p')
 
 def classifier_train(X, Y, classifier_key, prefix_where):
 	Y = Y.astype(int).ravel()
@@ -323,8 +179,8 @@ def classifier_train(X, Y, classifier_key, prefix_where):
 	current_time = now.strftime("%H:%M:%S")
 	print("Time elapsed: " + str(time_diff) + " ending at " + str(current_time))
 
-	export_classifier(classifier, prefix_where)
-	export_classifier_history(history, prefix_where)
+	experiment_io.export_classifier(classifier, prefix_where)
+	experiment_io.export_classifier_history(history, prefix_where)
 
 	return classifier
 
@@ -351,7 +207,7 @@ def classifier_test(classifier, X, Y, classifier_type, prefix_where):
 	current_time = now.strftime("%H:%M:%S")
 	print("Time elapsed: " + str(time_diff) + " at "  + str(current_time))
 
-	export_result(result, prefix_where)
+	experiment_io.export_result(result, Y, prefix_where)
 
 	print("Done with predictions\n")
 	return result
@@ -617,16 +473,18 @@ def run_experiments(exp_batch_id):
 	except OSError as error:  
 		print("This directory already exists; do you want a fresh experiment ID?")
 
+	print("Experimental results being saved to " + str(prefix_export))
+
 	grouping_type = GROUPING_RANDOM
 
 	#  all_stateless_vectors 	= get_stateless_vectors(num_folds, unique_title, exp_batch_id, grouping_type, seed)
 	
 	# exp_types = [CLASSIFIER_KNN3, CLASSIFIER_DecisionTree, CLASSIFIER_ADABOOST, CLASSIFIER_KNN5, CLASSIFIER_KNN9]#, CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]#, CLASSIFIER_SGDC, CLASSIFIER_SVM]
 	# exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SVM]
-	exp_types 		= [CLASSIFIER_LSTM_TINY]
-	feature_types 	= [arconsts.FEATURES_OFFSET, arconsts.FEATURES_NO_PROB, arconsts.FEATURES_VANILLA]
+	exp_types 		= [CLASSIFIER_LSTM]
+	feature_types 	= [arconsts.FEATURES_VANILLA, arconsts.FEATURES_OFFSET, arconsts.FEATURES_NO_PROB, arconsts.FEATURES_LABELS_FULL]
 
-	for i in range(len(exp_types)):
+	for i in range(len(exp_types)): 
 		classifier_type 	= exp_types[i]
 		df_vectors 	= experiment_io.import_vectors()
 		print("Imported vector set")
@@ -637,7 +495,7 @@ def run_experiments(exp_batch_id):
 			for fold_id in folds:
 				
 				if classifier_type in CLASSIFIERS_TEMPORAL:
-					input_set = experiment_io.get_temporal_vectors(df_transformed, exp_batch_id, fold_id, grouping_type, seed)
+					input_set = experiment_io.get_temporal_vectors(df_transformed, exp_batch_id, fold_id, grouping_type, prefix_export, seed)
 				elif classifier_type in CLASSIFIERS_STATELESS:
 					train_test_vectors = all_stateless_vectors
 				else:
@@ -656,7 +514,7 @@ def run_experiments(exp_batch_id):
 
 
 def main():
-	exp_batch_id = 25
+	exp_batch_id = 30
 	prefix_export = 'results/' + str(exp_batch_id)
 	FLAG_TEST_MODE = True
 	run_experiments(exp_batch_id)

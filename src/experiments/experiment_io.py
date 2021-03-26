@@ -39,9 +39,6 @@ import arconsts
 def get_prefix_export_result(exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed):
 	return 'results/' + str(exp_batch_id) + str(exp_batch_id[:-1]) + str(classifier_type) + str(feature_type) + str(grouping_type) + '_i' + str(fold_id) + '_s' + str(seed)
 
-def get_prefix_export_truth(exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed):
-	return 'results/' + str(exp_batch_id) + str(exp_batch_id[:-1]) + str(classifier_type) + str(feature_type) + str(grouping_type) + '_i' + str(fold_id) + '_s' + str(seed)
-
 
 # def get_prefix_export_result(unique_title, exp_batch_id, classifier_type, fold_id, grouping_type):
 # 	return 'results/' + exp_batch_id + unique_title + "_f" + str(fold_id) + "_" + grouping_type + classifier_type
@@ -49,6 +46,18 @@ def get_prefix_export_truth(exp_batch_id, classifier_type, feature_type, groupin
 # def get_prefix_export_truth(unique_title, exp_batch_id, fold_id, grouping_type):
 # 	return 'results/' + exp_batch_id + unique_title + "_f" + str(fold_id) + "_" + grouping_type
 
+def export_result(test, true, where):
+	filehandler = open(where  + "_resultY.p", "wb")
+	pickle.dump(test, filehandler)
+	filehandler.close()
+
+	filehandler = open(where  + "_trueY.p", "wb")
+	pickle.dump(true, filehandler)
+	filehandler.close()
+	print("Exported results and truth to " + where)
+
+def export_classifier(clf, where):
+	clf.save(where + '_model.p')
 
 def get_slices_from_recipe(df, df_r):
 	time_start = time.perf_counter()
@@ -67,6 +76,7 @@ def get_slices_from_recipe(df, df_r):
 	# print("df_recipe cols")
 	# print(df_recipe.columns)
 
+	# Look at the incoming data and prepare the right number of features
 	df_single = df.iloc[1]
 	X_pa = df_single.get(arconsts.PD_POSE_A_RAW)
 	X_pa = np.concatenate(X_pa, axis=0)
@@ -139,7 +149,143 @@ def get_slices_from_recipe(df, df_r):
 	# print(Y.shape)
 	return X, Y
 
-def get_temporal_vectors(df_transformed, exp_batch_id, fold_id, grouping_type, seed):
+def export_confusion_matrix(y1, y2, exp_batch_id, classifier_type, subexp_label, fold_id):
+	save_location = "results/" + exp_batch_id + "f" + str(fold_id) + "_" + classifier_type[1:] + "_" + subexp_label + "_f" + str(fold_id)
+	cm = confusion_matrix(y1.astype(int), y2.astype(int), labels=range(len(activity_labels)))
+
+	sn.set(font_scale=2)
+	plt.subplots(figsize=(22,22))
+	sn.set_style("white",  {'figure.facecolor': 'black'})
+	corr = cm
+	mask = np.zeros_like(corr)
+	mask[corr == 0] = True
+	ax = plt.axes()
+	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, fmt='g', annot_kws={"size": 15}, ax=ax)
+	ax.set_xticklabels(activity_labels, rotation=45)
+	ax.set_yticklabels(activity_labels, rotation=0)
+	ax.set(ylabel="Person 1", xlabel="Person 2")
+	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label)
+	plt.tight_layout()
+	fig.get_figure().savefig(save_location + '_cm.png')
+	plt.close()
+
+	# Export stacked bar chart
+	labels = activity_labels
+	correct_labels = []
+	incorrect_labels = []
+	percent_labels = []
+	width = 0.8	   # the width of the bars: can also be len(x) sequence
+
+	for idx, cls in enumerate(activity_labels):
+		# True negatives are all the samples that are not our current GT class (not the current row) 
+		# and were not predicted as the current class (not the current column)
+		true_negatives = np.sum(np.delete(np.delete(cm, idx, axis=0), idx, axis=1))
+		
+		# True positives are all the samples of our current GT class that were predicted as such
+		true_positives = cm[idx, idx]
+
+		correct 	= true_positives
+		incorrect 	= np.sum(cm[:,idx]) - correct
+		percent = (correct / (correct + incorrect))*100.0
+		percent = "{:.4}".format(percent) + "%"
+		
+		# The accuracy for the current class is ratio between correct predictions to all predictions
+		# per_class_accuracies[cls] = (true_positives + true_negatives) / np.sum(cm)
+
+		correct_labels.append(correct)
+		incorrect_labels.append(incorrect)
+		percent_labels.append(percent)
+
+
+	fig, ax = plt.subplots()
+	le_font_size = 10.0
+
+	ax.bar(labels, correct_labels, width, align="center", label='Correct Labels')
+	ax.bar(labels, incorrect_labels, width, align="center", bottom=correct_labels,
+		   label='Incorrect Labels')
+
+	ax.set_ylabel('Number of Samples', fontsize=le_font_size)
+	ax.set_ylabel('Predicted Label', fontsize=le_font_size)
+	ax.set_xticklabels(activity_labels, rotation=90, fontsize=le_font_size)
+	ax.yaxis.set_tick_params(labelsize=le_font_size)
+
+	ax.set_title('Per-Class Classification Accuracy for ' + subexp_label, fontsize=le_font_size)
+	ax.legend(fontsize=le_font_size)
+
+	# for p in ax.patches:
+	# 	width, height = p.get_width(), p.get_height()
+	# 	x, y = p.get_xy() 
+	# 	ax.text(x+width/2, 
+	# 			y+height/2, 
+	# 			'{:.0f} %'.format(height), 
+	# 			horizontalalignment='center', 
+	# 			verticalalignment='center')
+
+	# set individual bar lables using above list
+	counter = 0
+	for i in ax.patches:
+		if counter % 2 == 0 and int(counter / 2) < len(percent_labels):
+			lookup_index = int(counter / 2)
+			label = percent_labels[lookup_index]
+			counter += 1
+			# get_x pulls left or right; get_height pushes up or down
+			ax.text(i.get_x()+.12, i.get_height()+(60*le_font_size), label, fontsize=(le_font_size),
+					color='black', rotation=90)
+		counter += 1
+
+
+	# for i in range(len(correct_labels)): 
+	#	 label = percent_labels[i]
+	#	 plt.annotate(label, xy=(i, 0), color='white')
+
+	plt.tight_layout()
+	plt.savefig(save_location + '_graphs.png')
+	plt.close()
+
+
+def export_classifier_history(history, where):
+	loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' not in s]
+	val_loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' in s]
+	acc_list = [s for s in history.history.keys() if 'acc' in s and 'val' not in s]
+	val_acc_list = [s for s in history.history.keys() if 'acc' in s and 'val' in s]
+	
+	if len(loss_list) == 0:
+		print('Loss is missing in history')
+		return 
+	
+	## As loss always exists
+	epochs = range(1,len(history.history[loss_list[0]]) + 1)
+	
+	## Loss
+	plt.figure(1)
+	for l in loss_list:
+		plt.plot(epochs, history.history[l], 'b', label='Training loss (' + str(str(format(history.history[l][-1],'.5f'))+')'))
+	for l in val_loss_list:
+		plt.plot(epochs, history.history[l], 'g', label='Validation loss (' + str(str(format(history.history[l][-1],'.5f'))+')'))
+	
+	plt.title('Loss')
+	plt.xlabel('Epochs')
+	plt.ylabel('Loss')
+	plt.legend()
+	plt.savefig(where + "-loss-history.png")
+	
+	## Accuracy
+	plt.figure(2)
+	for l in acc_list:
+		plt.plot(epochs, history.history[l], 'b', label='Training accuracy (' + str(format(history.history[l][-1],'.5f'))+')')
+	for l in val_acc_list:	
+		plt.plot(epochs, history.history[l], 'g', label='Validation accuracy (' + str(format(history.history[l][-1],'.5f'))+')')
+
+	plt.title('Accuracy')
+	plt.xlabel('Epochs')
+	plt.ylabel('Accuracy')
+	plt.legend()
+
+	plt.savefig(where + "-accuracy-history.png")
+	plt.close()
+
+
+def get_temporal_vectors(df_transformed, exp_batch_id, fold_id, grouping_type, prefix_export, seed):
 	df = df_transformed
 	df_recipe = import_recipe()
 
@@ -159,14 +305,6 @@ def get_temporal_vectors(df_transformed, exp_batch_id, fold_id, grouping_type, s
 	X_train, Y_train 	= get_slices_from_recipe(df_transformed, df_train_recipe)
 	print("Done")
 
-
-	# for row in df_train_recipe:
-	# 	start = row[PD_INDEX_START]
-	# 	end   = row[PD_INDEX_END]
-
-	# 	df_train.append( : row[PD_INDEX_END])
-
-
 	fold_set = {}
 	fold_set['xtest'] 	= X_test
 	fold_set['xtrain'] 	= X_train
@@ -174,6 +312,7 @@ def get_temporal_vectors(df_transformed, exp_batch_id, fold_id, grouping_type, s
 	fold_set['ytrain'] 	= Y_train
 	fold_set['pd_test'] = df_test_recipe
 	fold_set['pd_train']= df_train_recipe
+
 	return fold_set
 
 def no_prob_col(value):
@@ -256,8 +395,9 @@ def import_recipe():
 		return
 
 	entry = entries[0]
-	df = pd.read_pickle(prefix_vectors + entry)
-
+	location = prefix_vectors + entry
+	# print(location)
+	df = pd.read_pickle(location)
 	return df
 
 def import_vectors():
