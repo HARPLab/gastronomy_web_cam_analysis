@@ -207,7 +207,7 @@ def classifier_test(classifier, X, Y, classifier_type, prefix_where):
 	current_time = now.strftime("%H:%M:%S")
 	print("Time elapsed: " + str(time_diff) + " at "  + str(current_time))
 
-	experiment_io.export_result(result, Y, prefix_where)
+	experiment_io.export_test_result(result, Y, prefix_where)
 
 	print("Done with predictions\n")
 	return result

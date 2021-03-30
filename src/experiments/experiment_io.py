@@ -36,9 +36,81 @@ sys.path.append("..")
 import qchecks
 import arconsts
 
+# dependency set with is_equivalent_output_group, get_matching_strings
 def get_prefix_export_result(exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed):
 	return 'results/' + str(exp_batch_id) + str(exp_batch_id[:-1]) + str(classifier_type) + str(feature_type) + str(grouping_type) + '_i' + str(fold_id) + '_s' + str(seed)
 
+def get_prefix_export_result_analysis(key):
+	exp_batch_id = key[0]
+	start = 'results-analysis/' + str(exp_batch_id) + "/"
+	middle = "_".join(key)
+	try:
+		os.mkdir(start)
+		print("Check in " + start + " for individual results")
+	except OSError as error:  
+		pass
+
+	return start + middle
+
+def get_matching_truth(exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed):
+	return 'results/' + str(exp_batch_id) + str(exp_batch_id[:-1]) + str(classifier_type) + str(feature_type) + str(grouping_type) + '_i' + str(fold_id) + '_s' + str(seed)
+
+def parse_filename(filename):
+	fn = filename.split("/")[-1]
+	matching_string = fn
+	fn = fn.split("_")
+
+	exp_batch_id 	= 'exp_' + fn[1]
+	classifier_type	= fn[2]
+	feature_type 	= fn[3]
+	grouping_type	= fn[4]
+	fold_id 		= fn[5][1:]
+	seed 			= fn[6]
+	input_label 	= fn[7]
+	output_label	= fn[8]
+
+	key = (exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed, input_label, output_label)
+	return key
+
+def is_equivalent_output_group(key1, key2):
+	g1, g2 = key1[3], key2[3]
+	f1, f2 = key1[4], key2[4]
+	s1, s2 = key1[5], key2[5]
+	o1, o2 = key1[7], key2[7]
+
+	if g1 != g2:
+		return False
+	if f1 != f2:
+		return False
+	if s1 != s2:
+		return False
+	if o1 != o2:
+		return False
+	return True
+
+def get_subexp_label(key):
+	exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed, input_label, output_label = key
+	subexp_label 	= input_label + "_" + output_label
+	return subexp_label
+
+def get_matching_strings(filename):
+	fn = filename.split("/")[-1]
+	matching_string = fn
+	fn = fn.split("_")
+
+	exp_batch_id 	= 'exp_' + fn[1]
+	classifier_type	= fn[2]
+	feature_type 	= fn[3]
+	grouping_type	= fn[4]
+	fold_id 		= fn[5][1:]
+	seed 			= fn[6]
+	input_label 	= fn[7]
+	output_label	= fn[8]
+
+	matching_string = matching_string[matching_string.find(exp_batch_id) + len(exp_batch_id) + 1:matching_string.find('result')]
+	secondary_match = matching_string[matching_string.find(feature_type) + len(feature_type) + 1:]
+
+	return matching_string, secondary_match
 
 # def get_prefix_export_result(unique_title, exp_batch_id, classifier_type, fold_id, grouping_type):
 # 	return 'results/' + exp_batch_id + unique_title + "_f" + str(fold_id) + "_" + grouping_type + classifier_type
@@ -46,12 +118,12 @@ def get_prefix_export_result(exp_batch_id, classifier_type, feature_type, groupi
 # def get_prefix_export_truth(unique_title, exp_batch_id, fold_id, grouping_type):
 # 	return 'results/' + exp_batch_id + unique_title + "_f" + str(fold_id) + "_" + grouping_type
 
-def export_result(test, true, where):
-	filehandler = open(where  + "_resultY.p", "wb")
+def export_test_result(test, true, where):
+	filehandler = open(where  + "_test_resultY.p", "wb")
 	pickle.dump(test, filehandler)
 	filehandler.close()
 
-	filehandler = open(where  + "_trueY.p", "wb")
+	filehandler = open(where  + "_test_trueY.p", "wb")
 	pickle.dump(true, filehandler)
 	filehandler.close()
 	print("Exported results and truth to " + where)
@@ -349,8 +421,6 @@ def points_to_offsets(df):
 	df[arconsts.PD_POSE_B_RAW] = df.apply(pandas_offset_b, axis=1)
 	return df
 
-
-
 def transform_features(df, feature_type):
 	print("Transforming features to type " + str(feature_type))
 	if feature_type == arconsts.FEATURES_VANILLA:
@@ -418,8 +488,415 @@ def import_vectors():
 	entry = entries[0]
 	df_XY = pd.read_pickle(prefix_vectors + entry)
 
-	return df_XY
+	return df_XY	
 
+def match_result_to_truth(result, truth_entries):
+	# print("Matching " + result)
+	# find the matching base truth
+	key = parse_filename(result)
+	matching_string, secondary_match = get_matching_strings(result)
+	matching = [s for s in truth_entries if matching_string in s]
+	if len(matching) > 1:
+		pass
+		# print("\tMultiple matches found")
+	
+	if len(matching) == 0:
+		# print("\tNo perfect matches found for: <" + matching_string + ">")
+		# Return a truth with matching group, fold, and subexp
+		matching = [s for s in truth_entries if secondary_match in s]
+		if len(matching) == 0:
+			# print("\tNo match found with extended search for " + secondary_match)
+			for truth_entry in truth_entries:
+				key_truth = parse_filename(truth_entry)
+				if is_equivalent_output_group(key, key_truth):
+					matching = [truth_entry]
+					break
+			
+
+	if len(matching) == 0:
+		print("No match found for <" + result + "> even under flexible constraints. Error in importing from server?")
+		exit()
+
+	truth_filename = matching[0]
+	return truth_filename
+
+def find_all_results(prefix_import):
+	# Given a file location, return the four test/train vectors
+	entries = os.listdir(prefix_import)
+
+	# screen out non-result entries
+	entries = list(filter(lambda x: x.find('.png') == -1, entries))
+	entries = list(filter(lambda x: x.find('model') == -1, entries))
+	entries = list(filter(lambda x: x.find('gif') == -1, entries))
+
+	result_entries = list(filter(lambda k: 'result' in k, entries))
+	truth_entries = list(filter(lambda k: 'true' in k, entries))
+
+	lookup_dict = {}
+	filename_dict = {}
+	for result in result_entries:
+		truth_filename = match_result_to_truth(result, truth_entries)
+
+		result_values 	= pickle.load(open(prefix_import + result, 'rb'))
+		truth_values 	= pickle.load(open(prefix_import + truth_filename, 'rb'))
+
+		key = parse_filename(result)
+		filename_dict[key] = (result, truth_filename)
+		lookup_dict[key] = (result_values, truth_values)
+
+	return lookup_dict, filename_dict
+
+def get_subexp_labeled_dict(all_results_dict):
+	new_dict = {}
+	all_keys = all_results_dict.keys()
+
+	for key in all_keys:
+		subexp_label = get_subexp_label(key)
+		e1, e2 = all_results_dict[key]
+
+		if subexp_label not in new_dict.keys():			
+			new_dict[subexp_label] = []
+		new_dict[subexp_label].append((key, e1, e2))
+		
+	return new_dict
+
+def import_all_results(prefix):
+	result_dict = {}
+
+	# Given a file location, return the four test/train vectors
+	entries = os.listdir(prefix)
+
+	# screen out non-result entries
+	entries = list(filter(lambda x: x.find('.png') == -1, entries))
+	entries = list(filter(lambda x: x.find('model') == -1, entries))
+	entries = list(filter(lambda x: x.find('gif') == -1, entries))
+	
+	# get all the input files from this video
+	entries = list(filter(lambda k: classifier_type + "_" in k, entries))
+	fold_group = "f" + str(fold_id) + "_"
+	fold_entries = list(filter(lambda k: fold_group in k, entries))
+	print(fold_entries)
+	
+	# test 	= list(filter(lambda k: 'test' 	in k, fold_entries))
+	# train 	= list(filter(lambda k: 'train' in k, fold_entries))
+
+	# Y_test_label 	= list(filter(lambda k: '_Y' 	in k, test))
+	# Y_train_label 	= list(filter(lambda k: '_Y' 	in k, train))
+
+	for item in fold_entries:
+		start = item.find(classifier_type) + len(classifier_type) + len("_")
+		label = item[start : item.rfind("_")]
+
+		print(label)
+		print(item)
+		
+		print(prefix + item)
+
+		Y_test 		= pickle.load(open(prefix + item, 'rb'))
+		result_dict[label] = Y_test
+	
+	return result_dict
+
+def import_original_vectors(unique_title, prefix, fold_id, classifier_type, feature_type):
+	# Given a file location, return the four test/train vectors
+	entries = os.listdir(prefix)
+
+	# get all the input files from this video
+	# true is the keyword for the correct vectors
+
+	# entries = list(filter(lambda k: 'true' in k, entries))
+	entries = list(filter(lambda x: x.find('.png') == -1, entries))
+	entries = list(filter(lambda x: x.find('.gif') == -1, entries))
+	# print(entries)
+
+	if classifier_type in LABELS_STATELESS:
+		print("Analysis for stateless models unsupported right now")
+		exit()		
+
+	fold_group = "i" + str(fold_id) + "_"
+	entries = list(filter(lambda k: fold_group in k, entries))
+	entries 	= list(filter(lambda k: classifier_type in k, entries))
+	entries 	= list(filter(lambda k: feature_type in k, entries))
+	entries 	= list(filter(lambda k: 'true' 	in k, entries))
+
+	if len(entries) > 1  or len(entries) > 1:
+		print("Error in import: multiple matching batches for this unique key")
+		print("Please provide a key that aligns with only one of the following, unless all are equivalent")
+		print(entries)
+
+	if len(entries) == 0 or len(entries) == 0:
+		print("No matches found for comparison")
+		return None, None
+
+
+	Y_test_label 	= entries[0]
+	Y_test 		= pickle.load(open(prefix + Y_test_label, 'rb'))
+	
+	print(Y_test.shape)
+
+	# exit()
+	return Y_test
+
+def export_hypothesis_analysis_report(report, key):
+	subexp_label = get_subexp_label(key)
+
+	save_location = get_prefix_export_result_analysis(key)
+	with open(save_location + ".txt", "w") as text_file:
+		text_file.write(report)
+
+	
+def export_raw_classification_report(report, key):
+	exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed, input_label, output_label = key
+	subexp_label 	= input_label + "_" + output_label
+
+	df = pd.DataFrame(report).T
+	save_location = get_prefix_export_result_analysis(key)
+	df.to_csv(save_location + ".csv")
+
+def export_confusion_matrix(Y_correct, Y_test, key, activity_labels):
+	subexp_label 	= get_subexp_label(key)
+
+	cm = confusion_matrix(Y_correct, Y_test, labels=range(len(activity_labels)))
+
+	save_location = get_prefix_export_result_analysis(key)
+
+	cm_recall = cm / cm.astype(np.float).sum(axis=1)
+	cm_precision = cm / cm.astype(np.float).sum(axis=0)
+
+	sn.set_style("white",  {'figure.facecolor': 'white'})
+	corr = cm
+	mask = np.zeros_like(corr)
+	mask[corr == 0] = True
+	ax = plt.axes()
+	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, annot_kws={"size": 6}, fmt='g',  ax=ax)
+	ax.set_xticklabels(activity_labels, rotation=90)
+	ax.set_yticklabels(activity_labels, rotation=0)
+	ax.set(ylabel="True Label", xlabel="Predicted Label")
+	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label + "\n Recall: Samples per class with Correct Label")
+	plt.tight_layout()
+	fig.get_figure().savefig(save_location + '_raw_cm.png')
+	plt.close()
+
+	# plt.subplots(figsize=(22,22))
+	sn.set_style("white",  {'figure.facecolor': 'white'})
+	corr = cm_recall
+	mask = np.zeros_like(corr)
+	mask[corr == 0] = True
+	ax = plt.axes()
+	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, annot_kws={"size": 6}, fmt='.2f',  ax=ax)
+	ax.set_xticklabels(activity_labels, rotation=90)
+	ax.set_yticklabels(activity_labels, rotation=0)
+	ax.set(ylabel="True Label", xlabel="Predicted Label")
+	ax.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label + "\n Recall: Samples per class with Correct Label")
+	plt.tight_layout()
+	fig.get_figure().savefig(save_location + '_recall_cm.png')
+	plt.close()
+
+
+	sn.set_style("white",  {'figure.facecolor': 'white'})
+	corr = cm_precision
+	mask = np.zeros_like(corr)
+	# mask[corr == 0] = True
+	ax2 = plt.axes()
+	fig = sn.heatmap(corr, cmap='Greys', mask=mask, square=True, annot=True, cbar=False, annot_kws={"size": 6}, fmt='.2f',  ax=ax)
+	ax2.set_xticklabels(activity_labels, rotation=90)
+	ax2.set_yticklabels(activity_labels, rotation=0)
+	ax2.set(ylabel="True Label", xlabel="Predicted Label")
+	ax2.set_title('Confusion Matrix for ' + classifier_type + " on " + subexp_label + "\n Precision: Fraction of predictions k with truth label k")
+	plt.tight_layout()
+	fig.get_figure().savefig(save_location + '_precision_cm.png')
+	plt.close()
+
+
+	# Export stacked bar chart
+	labels = activity_labels
+	correct_labels = []
+	incorrect_labels = []
+	percent_labels = []
+	width = 0.8	   # the width of the bars: can also be len(x) sequence
+
+	for idx, cls in enumerate(activity_labels):
+		# True negatives are all the samples that are not our current GT class (not the current row) 
+		# and were not predicted as the current class (not the current column)
+		true_negatives = np.sum(np.delete(np.delete(cm, idx, axis=0), idx, axis=1))
+		
+		# True positives are all the samples of our current GT class that were predicted as such
+		true_positives = cm[idx, idx]
+
+		correct 	= true_positives
+		incorrect 	= np.sum(cm[:,idx]) - correct
+		percent = (correct / (correct + incorrect))*100.0
+		percent = "{:.4}".format(percent) + "%"
+		
+		# The accuracy for the current class is ratio between correct predictions to all predictions
+		# per_class_accuracies[cls] = (true_positives + true_negatives) / np.sum(cm)
+
+		correct_labels.append(correct)
+		incorrect_labels.append(incorrect)
+		percent_labels.append(percent)
+
+
+	fig, ax3 = plt.subplots()
+	le_font_size = 10.0
+
+	ax3.bar(labels, correct_labels, width, align="center", label='Correct Labels')
+	ax3.bar(labels, incorrect_labels, width, align="center", bottom=correct_labels,
+		   label='Incorrect Labels')
+
+	ax3.set_xlabel('Number of Samples', fontsize=le_font_size)
+	ax3.set_ylabel('Predicted Label', fontsize=le_font_size)
+	ax3.set_xticklabels(activity_labels, rotation=90, fontsize=le_font_size)
+	ax3.yaxis.set_tick_params(labelsize=le_font_size)
+
+	ax3.set_title('Per-Class Classification Accuracy for ' + subexp_label, fontsize=le_font_size)
+	ax3.legend(fontsize=le_font_size)
+
+	# for p in ax.patches:
+	# 	width, height = p.get_width(), p.get_height()
+	# 	x, y = p.get_xy() 
+	# 	ax.text(x+width/2, 
+	# 			y+height/2, 
+	# 			'{:.0f} %'.format(height), 
+	# 			horizontalalignment='center', 
+	# 			verticalalignment='center')
+
+	# set individual bar lables using above list
+	counter = 0
+	for i in ax.patches:
+		if counter % 2 == 0 and int(counter / 2) < len(percent_labels):
+			lookup_index = int(counter / 2)
+			label = percent_labels[lookup_index]
+			counter += 1
+			# get_x pulls left or right; get_height pushes up or down
+			ax.text(i.get_x()+.12, i.get_height()+(60*le_font_size), label, fontsize=(le_font_size),
+					color='black', rotation=90)
+		counter += 1
+
+
+	# for i in range(len(correct_labels)): 
+	#	 label = percent_labels[i]
+	#	 plt.annotate(label, xy=(i, 0), color='white')
+
+	plt.tight_layout()
+	plt.savefig(save_location + '_graphs.png')
+	plt.close()
+
+def export_all_comparisons(all_comparisons, all_results_dict, prefix_export):
+	# dictionary for each classifier, which contains comparisons per label
+	# returns: rows of labels, columns of classifier types
+
+	COMPARISONS = arconsts.COMPARISONS
+	all_stat_types = COMPARISONS
+	df_stacks = {}
+
+	feature_types = []
+	grouping_types = []
+	classifier_types = []
+
+
+	for comparison_type in COMPARISONS:
+		df_stacks[comparison_type] = {}
+
+		for wild_key in all_comparisons[comparison_type]:
+			
+			text_key = "_".join(wild_key)
+			exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed, input_label, output_label = wild_key
+			subexp_label = get_subexp_label(wild_key)
+			comparison_value = all_comparisons[comparison_type][wild_key]
+
+			if classifier_type not in df_stacks[comparison_type]:
+				df_stacks[comparison_type][classifier_type] = {}
+			if feature_type not in df_stacks[comparison_type]:
+				df_stacks[comparison_type][feature_type] = {}
+			if grouping_type not in df_stacks[comparison_type]:
+				df_stacks[comparison_type][grouping_type] = {}
+
+			df_stacks[comparison_type][classifier_type][subexp_label]	= comparison_value
+			df_stacks[comparison_type][feature_type][subexp_label]		= comparison_value
+			df_stacks[comparison_type][grouping_type][subexp_label] 	= comparison_value
+
+
+	for comparison_type in COMPARISONS:
+		df = pd.DataFrame.from_dict(df_stacks[comparison_type])
+		# sort alphabetically
+		df = df.reindex(sorted(df.columns), axis=1)
+		save_location = prefix_export + 'comparisons-' + comparison_type + ".csv"
+		df.to_csv(save_location)
+
+		# df = pd.DataFrame.from_dict(df_stacks[comparison_type][feature_type])
+		# save_location = prefix_export + 'feature_type_' + ".csv"
+		# df.to_csv(save_location)
+
+		# df = pd.DataFrame.from_dict(df_stacks[comparison_type][grouping_type])
+		# save_location = prefix_export + 'grouping_type_' + ".csv"
+		# df.to_csv(save_location)
+
+
+
+	
+def export_raw_vector_report(Y_true_test, fold_id, exp_batch_id, classifier_type):
+	if Y_true_test is None:
+		return
+
+	type = "unknown"
+	if classifier_type in LABELS_TEMPORAL:
+		type = "TEMPORAL"
+	elif classifier_type in LABELS_STATELESS:
+		type = "STATELESS"
+
+	save_location = "results-analysis/" + exp_batch_id + "/_f" + str(fold_id) + "_" + type
+
+	print(Y_true_test)
+	print(Y_true_test.shape)
+
+	Y_true_test 	= Y_true_test[:, -1, :]
+
+	print(Y_true_test.shape)
+
+	# n, bins, patches = plt.hist(Y_true_train, bins=len(activity_labels), facecolor='green', alpha=0.75)
+	# plt.xlabel('Class')
+	# plt.ylabel('Instances')
+	# ax = plt.axes()
+	# # ax.set_xticks(bins)
+	# ax.set_xticklabels(activity_labels, rotation=45)
+	# plt.title('Histogram of Class Occurence in Train Labels:')
+	# plt.grid(True)
+
+	# data = ""
+	# unique_elements, counts_elements = np.unique(Y_true_train.astype(int), return_counts=True)
+	# for b, f in zip(unique_elements, counts_elements):
+	# 	data += str(b) + ":" + activity_labels[int(b)] + " -> \t freq: " + str(f) + '\n'
+
+	# print(data)
+	# with open(save_location + "_train_hist.txt", "w") as text_file:
+	# 	text_file.write(data)
+
+	plt.tight_layout()
+	plt.savefig(save_location + '_true_train' + ".png")
+	plt.close()
+
+	n, bins, patches = plt.hist(Y_true_test, len(activity_labels), facecolor='green', alpha=0.75)
+	plt.xlabel('Class')
+	plt.ylabel('Instances')
+	ax = plt.axes()
+	# ax.set_xticks(bins)
+	ax.set_xticklabels(activity_labels, rotation=45)
+	plt.title('Histogram of Class Occurence in Test Labels:')
+	plt.grid(True)
+
+	plt.tight_layout()
+	plt.savefig(save_location + '_true_test' + ".png")
+	plt.close()
+
+	data = ""
+	unique_elements, counts_elements = np.unique(Y_true_test.astype(int), return_counts=True)
+	for b, f in zip(unique_elements, counts_elements):
+		if int(b) < len(activity_labels):
+			data += str(b) + ":" + activity_labels[int(b)] + " -> \t freq: " + str(f) + '\n'
+
+	print(data)
+	with open(save_location + "_test_hist.txt", "w") as text_file:
+		text_file.write(data)
 
 
 # def import_vectors_temporal_mealwise(unique_title, prefix, fold_id, grouping_type):
@@ -580,3 +1057,48 @@ def import_vectors():
 
 # 	print()
 # 	return exp_sets
+
+
+
+# if classifier_type in LABELS_STATELESS:
+# # 	Y_correct_a = Ytrue_test[:,:1]
+# # 	Y_correct_b = Ytrue_test[:,1:]
+
+# # elif classifier_type in LABELS_TEMPORAL:
+# # 	Y_correct_a = Ytrue_test[:,-1,:1]
+# # 	Y_correct_b = Ytrue_test[:,-1,1:]
+
+# # sub_experiments = list(results_dict.keys())
+# # if '' in sub_experiments:
+# # 	sub_experiments.remove('')
+# # if 'results' in sub_experiments:
+# # 	sub_experiments.remove('results')
+
+# results_lookup = {}
+# # print(results_dict.keys())
+# print("Loading and generating classification report for: {", end='')
+# # for subexp_label in sub_experiments:
+
+# Y_test = Y_result
+# # # identify the correct test set from label
+# # if '_a' in subexp_label:
+# # 	Y_correct = Y_correct_a
+# # elif '_b' in subexp_label:
+# # 	Y_correct = Y_correct_b
+# # elif '_la' in subexp_label:
+# # 	Y_correct = Y_correct_a
+# # elif '_lb' in subexp_label:
+# # 	Y_correct = Y_correct_b
+# # else:
+# # 	print("Error, no correct set found for " + subexp_label)
+# # 	continue
+
+# Y_test = qchecks.multiclass_to_labels(Y_test)
+
+# Y_correct = Y_true.astype(int).ravel()
+# Y_test = Y_test.astype(int).ravel()
+# # if classifier_type in LABELS_TEMPORAL:
+# # 	print(Y_test.shape)
+# # 	Y_test = get_single_vector_of_multiclass_result(Y_test)
+# # 	print(Y_test.shape)
+# # print(subexp_label + " ", end='')
