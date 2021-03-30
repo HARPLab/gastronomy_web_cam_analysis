@@ -162,7 +162,7 @@ def classifier_train(X, Y, classifier_key, prefix_where):
 		else:
 			epochs = EPOCHS_STANDARD
 		
-		epochs = 5#00 #5 #EPOCHS_SHORTEST
+		epochs = 500 #5 #EPOCHS_SHORTEST
 
 		print("epochs = " + str(epochs))
 		print("Fitting to...")
@@ -361,10 +361,10 @@ def experiment_swapped_poses(fold_id, input_set, classifier_type, long_prefix):
 	X_train_B, 	Y_train_B 	= get_B(X_train_AB, Y_train_AB, classifier_type)
 	X_test_B, 	Y_test_B 	= get_B(X_test_AB, Y_test_AB, classifier_type)
 
-	print("a_b")
-	clf_a_b = classifier_train(X_train_A, Y_train_B, classifier_type, long_prefix + label_a_b)
-	result_a_b = classifier_test(clf_a_b, X_test_A, Y_test_B, classifier_type, long_prefix + label_a_b)
-	qchecks.quality_check_output(X_test_A, Y_test_B, result_a_b, classifier_type, label_a_b, long_prefix, num_inspections = 30)
+	# print("a_b")
+	# clf_a_b = classifier_train(X_train_A, Y_train_B, classifier_type, long_prefix + label_a_b)
+	# result_a_b = classifier_test(clf_a_b, X_test_A, Y_test_B, classifier_type, long_prefix + label_a_b)
+	# qchecks.quality_check_output(X_test_A, Y_test_B, result_a_b, classifier_type, label_a_b, long_prefix, num_inspections = 30)
 
 	print("b_a")
 	clf_b_a = classifier_train(X_train_B, Y_train_A, classifier_type, long_prefix + label_b_a)
@@ -386,9 +386,9 @@ def experiment_label_to_label(fold_id, input_set, classifier_type, long_prefix):
 	Y_test_B 	= get_lB(X_test_AB, Y_test_AB, classifier_type)
 
 	# export_confusion_matrix(Y_train_A, Y_train_B, exp_batch_id, classifier_type, "label_to_label", fold_id)
-	print("la_lb")
-	clf_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type, long_prefix + label_la_lb)
-	result_la_lb = classifier_test(clf_la_lb, Y_test_A, Y_test_B, classifier_type, long_prefix + label_la_lb)
+	# print("la_lb")
+	# clf_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type, long_prefix + label_la_lb)
+	# result_la_lb = classifier_test(clf_la_lb, Y_test_A, Y_test_B, classifier_type, long_prefix + label_la_lb)
 
 	print("lb_la")
 	clf_lb_la = classifier_train(Y_train_B, Y_train_A, classifier_type, long_prefix + label_lb_la)
@@ -412,10 +412,10 @@ def experiment_pose_vs_poseauxlabel(fold_id, input_set, classifier_type, long_pr
 	result_alb_a = classifier_test(clf_alb_a, X_test_AlB, Y_test_A, classifier_type, long_prefix + label_alb_a)
 	qchecks.quality_check_output(X_test_AlB, Y_test_A, result_alb_a, classifier_type, label_alb_a, long_prefix, num_inspections = 30)
 	
-	print("bla_b")
-	clf_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type, long_prefix + label_bla_b)
-	result_bla_b = classifier_test(clf_bla_b, X_test_BlA, Y_test_B, classifier_type, long_prefix + label_bla_b)
-	qchecks.quality_check_output(X_test_BlA, Y_test_B, result_bla_b, classifier_type, label_bla_b, long_prefix, num_inspections = 30)
+	# print("bla_b")
+	# clf_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type, long_prefix + label_bla_b)
+	# result_bla_b = classifier_test(clf_bla_b, X_test_BlA, Y_test_B, classifier_type, long_prefix + label_bla_b)
+	# qchecks.quality_check_output(X_test_BlA, Y_test_B, result_bla_b, classifier_type, label_bla_b, long_prefix, num_inspections = 30)
 	
 
 def experiment_duo_vs_solo(fold_id, input_set, classifier_type, long_prefix):
@@ -442,20 +442,20 @@ def experiment_duo_vs_solo(fold_id, input_set, classifier_type, long_prefix):
 	result_a_a = classifier_test(clf_a_a, X_test_A, Y_test_A, classifier_type, long_prefix + label_a_a)
 	qchecks.quality_check_output(X_test_A, Y_test_A, result_a_a, classifier_type, label_a_a, long_prefix, num_inspections = 30)
 	
-	print("b_b")
-	clf_b_b = classifier_train(X_train_B, Y_train_B, classifier_type, long_prefix + label_b_b)
-	result_b_b = classifier_test(clf_b_b, X_test_B, Y_test_B, classifier_type, long_prefix + label_b_b)
-	qchecks.quality_check_output(X_test_B, Y_test_B, result_b_b, classifier_type, label_b_b, long_prefix, num_inspections = 30)
+	# print("b_b")
+	# clf_b_b = classifier_train(X_train_B, Y_train_B, classifier_type, long_prefix + label_b_b)
+	# result_b_b = classifier_test(clf_b_b, X_test_B, Y_test_B, classifier_type, long_prefix + label_b_b)
+	# qchecks.quality_check_output(X_test_B, Y_test_B, result_b_b, classifier_type, label_b_b, long_prefix, num_inspections = 30)
 
 	print("ab_a")
 	clf_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type, long_prefix + label_ab_a)
 	result_ab_a = classifier_test(clf_ab_a, X_test_AB, Y_test_A, classifier_type, long_prefix + label_ab_a)
 	qchecks.quality_check_output(X_test_AB, Y_test_A, result_ab_a, classifier_type, label_ab_a, long_prefix, num_inspections = 30)
 
-	print("ab_b")
-	clf_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type, long_prefix + label_ab_b)
-	result_ab_b = classifier_test(clf_ab_b, X_test_AB, Y_test_B, classifier_type, long_prefix + label_ab_b)
-	qchecks.quality_check_output(X_test_AB, Y_test_B, result_ab_b, classifier_type, label_ab_b, long_prefix, num_inspections = 30)
+	# print("ab_b")
+	# clf_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type, long_prefix + label_ab_b)
+	# result_ab_b = classifier_test(clf_ab_b, X_test_AB, Y_test_B, classifier_type, long_prefix + label_ab_b)
+	# qchecks.quality_check_output(X_test_AB, Y_test_B, result_ab_b, classifier_type, label_ab_b, long_prefix, num_inspections = 30)
 
 
 
@@ -482,7 +482,7 @@ def run_experiments(exp_batch_id):
 	# exp_types = [CLASSIFIER_KNN3, CLASSIFIER_DecisionTree, CLASSIFIER_ADABOOST, CLASSIFIER_KNN5, CLASSIFIER_KNN9]#, CLASSIFIER_LSTM, CLASSIFIER_LSTM_BIGGER, CLASSIFIER_LSTM_BIGGEST]#, CLASSIFIER_SGDC, CLASSIFIER_SVM]
 	# exp_types = [CLASSIFIER_DecisionTree, CLASSIFIER_KNN3, CLASSIFIER_KNN5, CLASSIFIER_KNN9, CLASSIFIER_ADABOOST, CLASSIFIER_SVM]
 	exp_types 		= [CLASSIFIER_LSTM]
-	feature_types 	= [arconsts.FEATURES_VANILLA, arconsts.FEATURES_OFFSET, arconsts.FEATURES_NO_PROB, arconsts.FEATURES_LABELS_FULL]
+	feature_types 	= [arconsts.FEATURES_NO_PROB, arconsts.FEATURES_VANILLA, arconsts.FEATURES_LABELS_FULL, arconsts.FEATURES_OFFSET]
 
 	for i in range(len(exp_types)): 
 		classifier_type 	= exp_types[i]
@@ -507,14 +507,14 @@ def run_experiments(exp_batch_id):
 					pass
 
 				long_prefix = experiment_io.get_prefix_export_result(exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed)
-				# experiment_duo_vs_solo(fold_id, input_set, classifier_type, long_prefix)
-				# experiment_pose_vs_poseauxlabel(fold_id, input_set, classifier_type, long_prefix)
+				experiment_duo_vs_solo(fold_id, input_set, classifier_type, long_prefix)
+				experiment_pose_vs_poseauxlabel(fold_id, input_set, classifier_type, long_prefix)
 				experiment_swapped_poses(fold_id, input_set, classifier_type, long_prefix)
 				# experiment_label_to_label(fold_id, input_set, classifier_type, long_prefix)
 
 
 def main():
-	exp_batch_id = 30
+	exp_batch_id = 32
 	prefix_export = 'results/' + str(exp_batch_id)
 	FLAG_TEST_MODE = True
 	run_experiments(exp_batch_id)
