@@ -1,3 +1,4 @@
+import os
 import time
 import cv2
 import random
@@ -170,11 +171,24 @@ def get_num_outputs(Y):
 	outputs = np.unique(Y)
 	n_outputs = len(np.unique(Y))
 	if all(x in arconsts.RANGE_REDUCED for x in outputs):
-		print("in reduced range")
+		# print("in reduced range")
 		return arconsts.LEN_REDUCED
 	if all(x in arconsts.RANGE_OG_ALL for x in outputs):
-		print("in range og all")
+		# print("in range og all")
 		return arconsts.LEN_OG_ALL
+
+	print("There is a bug ... exotic label in set {" + str(outputs) + "}")
+	exit()
+
+def get_output_set(Y):
+	outputs = np.unique(Y)
+	n_outputs = len(np.unique(Y))
+	if all(x in arconsts.RANGE_REDUCED for x in outputs):
+		# print("in reduced range")
+		return arconsts.activity_labels
+	if all(x in arconsts.RANGE_OG_ALL for x in outputs):
+		# print("in range og all")
+		return arconsts.activity_labels_expanded
 
 	print("There is a bug ... exotic label in set {" + str(outputs) + "}")
 	exit()
