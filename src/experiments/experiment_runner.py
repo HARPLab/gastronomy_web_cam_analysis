@@ -361,15 +361,15 @@ def experiment_swapped_poses(fold_id, input_set, classifier_type, long_prefix):
 	X_train_B, 	Y_train_B 	= get_B(X_train_AB, Y_train_AB, classifier_type)
 	X_test_B, 	Y_test_B 	= get_B(X_test_AB, Y_test_AB, classifier_type)
 
-	# print("a_b")
-	# clf_a_b = classifier_train(X_train_A, Y_train_B, classifier_type, long_prefix + label_a_b)
-	# result_a_b = classifier_test(clf_a_b, X_test_A, Y_test_B, classifier_type, long_prefix + label_a_b)
-	# qchecks.quality_check_output(X_test_A, Y_test_B, result_a_b, classifier_type, label_a_b, long_prefix, num_inspections = 30)
+	print("a_b")
+	clf_a_b = classifier_train(X_train_A, Y_train_B, classifier_type, long_prefix + label_a_b)
+	result_a_b = classifier_test(clf_a_b, X_test_A, Y_test_B, classifier_type, long_prefix + label_a_b)
+	qchecks.quality_check_output(X_test_A, Y_test_B, result_a_b, classifier_type, label_a_b, long_prefix, num_inspections = 30)
 
-	print("b_a")
-	clf_b_a = classifier_train(X_train_B, Y_train_A, classifier_type, long_prefix + label_b_a)
-	result_b_a = classifier_test(clf_b_a, X_test_B, Y_test_A, classifier_type, long_prefix + label_b_a)
-	qchecks.quality_check_output(X_test_B, Y_test_A, result_b_a, classifier_type, label_b_a, long_prefix, num_inspections = 30)
+	# print("b_a")
+	# clf_b_a = classifier_train(X_train_B, Y_train_A, classifier_type, long_prefix + label_b_a)
+	# result_b_a = classifier_test(clf_b_a, X_test_B, Y_test_A, classifier_type, long_prefix + label_b_a)
+	# qchecks.quality_check_output(X_test_B, Y_test_A, result_b_a, classifier_type, label_b_a, long_prefix, num_inspections = 30)
 
 
 def experiment_label_to_label(fold_id, input_set, classifier_type, long_prefix):
@@ -385,10 +385,10 @@ def experiment_label_to_label(fold_id, input_set, classifier_type, long_prefix):
 	Y_train_B 	= get_lB(X_train_AB, Y_train_AB, classifier_type)
 	Y_test_B 	= get_lB(X_test_AB, Y_test_AB, classifier_type)
 
-	# export_confusion_matrix(Y_train_A, Y_train_B, exp_batch_id, classifier_type, "label_to_label", fold_id)
-	# print("la_lb")
-	# clf_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type, long_prefix + label_la_lb)
-	# result_la_lb = classifier_test(clf_la_lb, Y_test_A, Y_test_B, classifier_type, long_prefix + label_la_lb)
+	export_confusion_matrix(Y_train_A, Y_train_B, exp_batch_id, classifier_type, "label_to_label", fold_id)
+	print("la_lb")
+	clf_la_lb = classifier_train(Y_train_A, Y_train_B, classifier_type, long_prefix + label_la_lb)
+	result_la_lb = classifier_test(clf_la_lb, Y_test_A, Y_test_B, classifier_type, long_prefix + label_la_lb)
 
 	print("lb_la")
 	clf_lb_la = classifier_train(Y_train_B, Y_train_A, classifier_type, long_prefix + label_lb_la)
@@ -407,15 +407,15 @@ def experiment_pose_vs_poseauxlabel(fold_id, input_set, classifier_type, long_pr
 	X_train_BlA, Y_train_B 	= get_BlA(X_train_AB, Y_train_AB, classifier_type)
 	X_test_BlA, Y_test_B 	= get_BlA(X_test_AB, Y_test_AB, classifier_type)
 
-	print("alb_a")
-	clf_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type, long_prefix + label_alb_a)
-	result_alb_a = classifier_test(clf_alb_a, X_test_AlB, Y_test_A, classifier_type, long_prefix + label_alb_a)
-	qchecks.quality_check_output(X_test_AlB, Y_test_A, result_alb_a, classifier_type, label_alb_a, long_prefix, num_inspections = 30)
+	# print("alb_a")
+	# clf_alb_a = classifier_train(X_train_AlB, Y_train_A, classifier_type, long_prefix + label_alb_a)
+	# result_alb_a = classifier_test(clf_alb_a, X_test_AlB, Y_test_A, classifier_type, long_prefix + label_alb_a)
+	# qchecks.quality_check_output(X_test_AlB, Y_test_A, result_alb_a, classifier_type, label_alb_a, long_prefix, num_inspections = 30)
 	
-	# print("bla_b")
-	# clf_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type, long_prefix + label_bla_b)
-	# result_bla_b = classifier_test(clf_bla_b, X_test_BlA, Y_test_B, classifier_type, long_prefix + label_bla_b)
-	# qchecks.quality_check_output(X_test_BlA, Y_test_B, result_bla_b, classifier_type, label_bla_b, long_prefix, num_inspections = 30)
+	print("bla_b")
+	clf_bla_b = classifier_train(X_train_BlA, Y_train_B, classifier_type, long_prefix + label_bla_b)
+	result_bla_b = classifier_test(clf_bla_b, X_test_BlA, Y_test_B, classifier_type, long_prefix + label_bla_b)
+	qchecks.quality_check_output(X_test_BlA, Y_test_B, result_bla_b, classifier_type, label_bla_b, long_prefix, num_inspections = 30)
 	
 
 def experiment_duo_vs_solo(fold_id, input_set, classifier_type, long_prefix):
@@ -437,25 +437,25 @@ def experiment_duo_vs_solo(fold_id, input_set, classifier_type, long_prefix):
 	qchecks.verify_input_output(X_train_AB, Y_train_AB, classifier_type)
 	qchecks.verify_input_output(X_test_AB, Y_test_AB, classifier_type)
 
-	print("a_a")
-	clf_a_a = classifier_train(X_train_A, Y_train_A, classifier_type, long_prefix + label_a_a)
-	result_a_a = classifier_test(clf_a_a, X_test_A, Y_test_A, classifier_type, long_prefix + label_a_a)
-	qchecks.quality_check_output(X_test_A, Y_test_A, result_a_a, classifier_type, label_a_a, long_prefix, num_inspections = 30)
+	# print("a_a")
+	# clf_a_a = classifier_train(X_train_A, Y_train_A, classifier_type, long_prefix + label_a_a)
+	# result_a_a = classifier_test(clf_a_a, X_test_A, Y_test_A, classifier_type, long_prefix + label_a_a)
+	# qchecks.quality_check_output(X_test_A, Y_test_A, result_a_a, classifier_type, label_a_a, long_prefix, num_inspections = 30)
 	
-	# print("b_b")
-	# clf_b_b = classifier_train(X_train_B, Y_train_B, classifier_type, long_prefix + label_b_b)
-	# result_b_b = classifier_test(clf_b_b, X_test_B, Y_test_B, classifier_type, long_prefix + label_b_b)
-	# qchecks.quality_check_output(X_test_B, Y_test_B, result_b_b, classifier_type, label_b_b, long_prefix, num_inspections = 30)
+	print("b_b")
+	clf_b_b = classifier_train(X_train_B, Y_train_B, classifier_type, long_prefix + label_b_b)
+	result_b_b = classifier_test(clf_b_b, X_test_B, Y_test_B, classifier_type, long_prefix + label_b_b)
+	qchecks.quality_check_output(X_test_B, Y_test_B, result_b_b, classifier_type, label_b_b, long_prefix, num_inspections = 30)
 
-	print("ab_a")
-	clf_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type, long_prefix + label_ab_a)
-	result_ab_a = classifier_test(clf_ab_a, X_test_AB, Y_test_A, classifier_type, long_prefix + label_ab_a)
-	qchecks.quality_check_output(X_test_AB, Y_test_A, result_ab_a, classifier_type, label_ab_a, long_prefix, num_inspections = 30)
+	# print("ab_a")
+	# clf_ab_a = classifier_train(X_train_AB, Y_train_A, classifier_type, long_prefix + label_ab_a)
+	# result_ab_a = classifier_test(clf_ab_a, X_test_AB, Y_test_A, classifier_type, long_prefix + label_ab_a)
+	# qchecks.quality_check_output(X_test_AB, Y_test_A, result_ab_a, classifier_type, label_ab_a, long_prefix, num_inspections = 30)
 
-	# print("ab_b")
-	# clf_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type, long_prefix + label_ab_b)
-	# result_ab_b = classifier_test(clf_ab_b, X_test_AB, Y_test_B, classifier_type, long_prefix + label_ab_b)
-	# qchecks.quality_check_output(X_test_AB, Y_test_B, result_ab_b, classifier_type, label_ab_b, long_prefix, num_inspections = 30)
+	print("ab_b")
+	clf_ab_b = classifier_train(X_train_AB, Y_train_B, classifier_type, long_prefix + label_ab_b)
+	result_ab_b = classifier_test(clf_ab_b, X_test_AB, Y_test_B, classifier_type, long_prefix + label_ab_b)
+	qchecks.quality_check_output(X_test_AB, Y_test_B, result_ab_b, classifier_type, label_ab_b, long_prefix, num_inspections = 30)
 
 
 
@@ -510,11 +510,11 @@ def run_experiments(exp_batch_id):
 				experiment_duo_vs_solo(fold_id, input_set, classifier_type, long_prefix)
 				experiment_pose_vs_poseauxlabel(fold_id, input_set, classifier_type, long_prefix)
 				experiment_swapped_poses(fold_id, input_set, classifier_type, long_prefix)
-				# experiment_label_to_label(fold_id, input_set, classifier_type, long_prefix)
+				experiment_label_to_label(fold_id, input_set, classifier_type, long_prefix)
 
 
 def main():
-	exp_batch_id = 32
+	exp_batch_id = 33
 	prefix_export = 'results/' + str(exp_batch_id)
 	FLAG_TEST_MODE = True
 	run_experiments(exp_batch_id)
