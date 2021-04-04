@@ -340,6 +340,7 @@ def export_classifier_history(history, where):
 	plt.ylabel('Loss')
 	plt.legend()
 	plt.savefig(where + "-loss-history.png")
+	plt.close()
 	
 	## Accuracy
 	plt.figure(2)
@@ -515,6 +516,7 @@ def match_result_to_truth(result, truth_entries):
 
 	if len(matching) == 0:
 		print("No match found for <" + result + "> even under flexible constraints. Error in importing from server?")
+		print(truth_entries)
 		exit()
 
 	truth_filename = matching[0]
@@ -531,6 +533,8 @@ def find_all_results(prefix_import):
 
 	result_entries = list(filter(lambda k: 'result' in k, entries))
 	truth_entries = list(filter(lambda k: 'true' in k, entries))
+
+	print(entries)
 
 	lookup_dict = {}
 	filename_dict = {}
@@ -637,11 +641,8 @@ def import_original_vectors(unique_title, prefix, fold_id, classifier_type, feat
 	# exit()
 	return Y_test
 
-def export_hypothesis_analysis_report(report, key):
-	subexp_label = get_subexp_label(key)
-
-	save_location = get_prefix_export_result_analysis(key)
-	with open(save_location + ".txt", "w") as text_file:
+def export_hypothesis_analysis_report(report, prefix_export):
+	with open(prefix_export + "_hypothesis_log" + ".txt", "w") as text_file:
 		text_file.write(report)
 
 	
@@ -655,6 +656,7 @@ def export_raw_classification_report(report, key):
 
 def export_confusion_matrix(Y_correct, Y_test, key, activity_labels):
 	subexp_label 	= get_subexp_label(key)
+	exp_batch_id, classifier_type, feature_type, grouping_type, fold_id, seed, input_label, output_label = key
 
 	cm = confusion_matrix(Y_correct, Y_test, labels=range(len(activity_labels)))
 
