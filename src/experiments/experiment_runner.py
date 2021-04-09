@@ -196,9 +196,6 @@ def classifier_test(classifier, X, Y, classifier_type, prefix_where):
 	result = classifier.predict(X)
 	# print(result.shape)
 
-	if classifier_type in CLASSIFIERS_TEMPORAL:
-		result = get_single_vector_of_multiclass_result(result)
-
 	# print(result)
 	# print(result.shape)
 	time_end = time.perf_counter()

@@ -544,6 +544,9 @@ def find_all_results(prefix_import):
 		result_values 	= pickle.load(open(prefix_import + result, 'rb'))
 		truth_values 	= pickle.load(open(prefix_import + truth_filename, 'rb'))
 
+		result_values 	= get_single_vector_of_multiclass_result(result_values)
+		truth_values 	= get_single_vector_of_multiclass_result(truth_values)
+
 		key = parse_filename(result)
 		filename_dict[key] = (result, truth_filename)
 		lookup_dict[key] = (result_values, truth_values)
