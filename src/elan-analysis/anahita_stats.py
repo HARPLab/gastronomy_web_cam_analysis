@@ -41,7 +41,7 @@ def parseXML(elanfile):
     print(root.tag)
 
 filename_root = "8-21-18"
-filenames_all = ['8-9-19', '8-13-18', '8-17-18', '8-18-18', '8-21-18']
+filenames_all = ['8-13-18', '8-17-18', '8-18-18', '8-21-18', '8-9-18']
 
 timedict = {}
 activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
@@ -80,6 +80,8 @@ overall_flow = []
 waiter_events = []
 customer_states = []
 
+simple_timeline = {}
+
 for meal in filenames_all:
     root = parseXML('../../Annotations/' + meal + '-michael.eaf')
     print("Processing meal annotations for " + meal)
@@ -105,7 +107,7 @@ for meal in filenames_all:
                     for anno in temp: ## another single iteration loop
                         label = anno.text
 
-                    overall_flow.append((meal, beginning_frame, label, TYPE_WAITER))
+                    overall_flow.append((meal, beginning_frame, ending_frame, label, TYPE_WAITER))
                     waiter_events.append(label)
 
 
@@ -131,7 +133,7 @@ for meal in filenames_all:
                         
                         log[(meal, f_id)][0] = label
 
-                    overall_flow.append((meal, beginning_frame, label, TYPE_CUSTOMER_STATE))
+                    overall_flow.append((meal, beginning_frame, ending_frame, label, TYPE_CUSTOMER_STATE))
                     customer_states.append(label)
 
 
@@ -188,6 +190,18 @@ for meal in filenames_all:
 # print(overall_flow)
 # Process the overall flow
 # list of (meal_id, timestamp, label)
+
+print(overall_flow)
+flow_per_meal = {}
+for meal in filenames_all:
+    flow_per_meal[meal] =[]
+
+for meal, start, end, event, e_type in overall_flow:
+    flow_per_meal[meal].append([start, end, event, e_type])
+
+for meal in filenames_all:
+    df = pd.DataFrame(flow_per_meal[meal], columns = ['start_time', 'end_time', 'event', 'event_type']) 
+    df.to_csv('outputs/readable_highlevel_' + str(meal) + '.csv')
 
 
 waiter_events = list(set(waiter_events))

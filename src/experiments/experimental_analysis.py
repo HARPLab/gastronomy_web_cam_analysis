@@ -466,13 +466,8 @@ def main():
 
 	print("Beginning analysis")
 
-	# experiment_titles = [LABEL_DecisionTree, LABEL_KNN9, LABEL_ADABOOST, LABEL_KNN3, LABEL_KNN5, LABEL_SGDC, LABEL_SVM, LABEL_LSTM]
-	# experiment_titles.extend([LABEL_LSTM])#, LABEL_LSTM_BIGGER, LABEL_LSTM_BIGGEST])
-	experiment_titles = [LABEL_LSTM] #_BIGGER, LABEL_LSTM_BIGGEST]
-	feature_types 	= [arconsts.FEATURES_VANILLA, arconsts.FEATURES_OFFSET, arconsts.FEATURES_NO_PROB, arconsts.FEATURES_LABELS_FULL]
-
-	exp_batch_id = 28
-	exp_batch_id = "exp_" + str(exp_batch_id) + "/"
+	exp_batch_id = 35 
+	exp_batch_id = "exp_" + str(exp_batch_id) + "_server"+ "/"
 	prefix_import = 'results/' + exp_batch_id
 	prefix_export = 'results-analysis/' + exp_batch_id
 	
@@ -495,25 +490,19 @@ def main():
 
 	# for each of these pairs, 
 	for key in all_results_dict.keys():
+		print(key)
 		# for possible combo
 		# look if it exists
 		Y_result, Y_true = all_results_dict[key]
 
 		# Judge individual pair for accuracy, etc
-		# !!! analyze_results(Y_true, Y_result, key, hypothesis_list)
+		analyze_results(Y_true, Y_result, key, hypothesis_list)
 
-		# log to cross-comparison lists
-		# Add cross-category comparisons		
-		# comparisons_to_log = report
-		# all_comparisons[classifier_type]	= 	comparisons_to_log
-		# all_comparisons[feature_type] 		= 	comparisons_to_log
-		# all_comparisons[grouping_type] 		= 	comparisons_to_log
 
 	comparison_dict, hypothesis_log = meta_analysis_from_classifier_data(all_results_dict, hypothesis_list)
 	# Now that all values are logged, attempt hypothesis analysis
-	experiment_io.export_hypothesis_analysis_report(hypothesis_log, key)
+	experiment_io.export_hypothesis_analysis_report(hypothesis_log, prefix_export)
 	# Now that all data is collected export cross-group comparison tables
 	experiment_io.export_all_comparisons(comparison_dict, all_results_dict, prefix_export)
-	
 
 main()
