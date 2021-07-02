@@ -326,11 +326,11 @@ def make_graph(data, graph_label, customer_states):
 
 
     
-    g.write_png("graphs/table_states-" + graph_label + ".png")
+    g.write_png("graphs/ada_table_states-" + graph_label + ".png")
     print("Output graph " + graph_label)
 
     df = pd.DataFrame(data_overview, columns = ['before', 'operation', 'after', 'probability']) 
-    df.to_csv('outputs/table_states-' + graph_label + '.csv')
+    df.to_csv('outputs/ada_table_states-' + graph_label + '.csv')
 
 
 
@@ -393,8 +393,6 @@ for ts in table_state_labels:
 
 
 cols_emi = ["table-state"] + list(activity_labels)
-# print(cols_emi)
-
 
 d_emi = pd.DataFrame(data, columns = cols_emi) 
 d_emi.to_csv('outputs/observerations.csv')
