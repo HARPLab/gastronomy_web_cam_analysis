@@ -212,53 +212,62 @@ customer_states = list(set(customer_states))
 
 no_op = (meal, None, 'NOP', TYPE_WAITER)
 
-data_all = []
-data_individual_meals = []
+def import_meals():
+    data_individual_meals = []
+    data_all = []
 
-for meal in filenames_all:
-    print("Adding timeline info for " + meal)
-    timeline = list(filter(lambda entry: entry[0] == meal, overall_flow))
-    timeline.sort(key=lambda x: x[1])
-    prev_event = (meal, 0, 'NONE', TYPE_CUSTOMER_STATE)
-    prev_action = no_op
-    data = []
+    # Import all the meals on the list
+    for meal in filenames_all:
+        print("Adding timeline info for " + meal)
+        timeline = list(filter(lambda entry: entry[0] == meal, overall_flow))
+        timeline.sort(key=lambda x: x[1])
+        prev_event = (meal, 0, 'NONE', TYPE_CUSTOMER_STATE)
+        prev_action = no_op
+        data = []
 
-    INDEX_MEALID = 0
-    INDEX_TIMESTAMP = 1
-    INDEX_LABEL = 2
-    INDEX_TYPE = 3
+        # Constants for reading/interpreting each of the entries
+        INDEX_MEALID = 0
+        INDEX_TIMESTAMP = 1
+        INDEX_LABEL = 2
+        INDEX_TYPE = 3
 
-    for event in timeline:
-        # if the waiter took a novel action, ex not a NO-OP, then hold onto it
-        if prev_event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_TYPE] == TYPE_WAITER:
-            # if it's the unique waiter event
-            if event[INDEX_LABEL] not in ['arriving', 'leaving']:
-                prev_action = event
+        for event in timeline:
+            # if the waiter took a novel action, ex not a NO-OP, then hold onto it
+            if prev_event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_TYPE] == TYPE_WAITER:
+                # if it's the unique waiter event
+                if event[INDEX_LABEL] not in ['arriving', 'leaving']:
+                    prev_action = event
 
-        # if we have a transition between two events
-        elif prev_event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_TYPE] == TYPE_CUSTOMER_STATE:
-            datum = [meal, prev_event[INDEX_LABEL], prev_action[INDEX_LABEL], event[INDEX_LABEL], prev_event[INDEX_TIMESTAMP], event[INDEX_TIMESTAMP]]
-            data.append(datum)
-            # print("added " + str(prev_event[INDEX_LABEL]) + " --" + prev_action[INDEX_LABEL] + "--> " + event[INDEX_LABEL])
+            # if we have a transition between two events
+            elif prev_event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_TYPE] == TYPE_CUSTOMER_STATE:
+                # read it off and record it 
+                # into a list of tuples, for future parsing
+                datum = [meal, prev_event[INDEX_LABEL], prev_action[INDEX_LABEL], event[INDEX_LABEL], prev_event[INDEX_TIMESTAMP], event[INDEX_TIMESTAMP]]
+                data.append(datum)
+                # print("added " + str(prev_event[INDEX_LABEL]) + " --" + prev_action[INDEX_LABEL] + "--> " + event[INDEX_LABEL])
 
-            prev_event = event
-            prev_action = no_op
+                prev_event = event
+                prev_action = no_op
 
-        elif prev_event[INDEX_LABEL] == 'NONE':
-            prev_event = event
+            elif prev_event[INDEX_LABEL] == 'NONE':
+                prev_event = event
 
-        else:
-            # print("ERR")
-            # print(prev_event)
-            # print(prev_action)
-            # print(event)
-            # print("~~~")
-            pass
+            else:
+                # print("ERR")
+                # print(prev_event)
+                # print(prev_action)
+                # print(event)
+                # print("~~~")
+                pass
 
-    data_individual_meals.append(data)
-    data_all.extend(data)
+        data_individual_meals.append(data)
+        data_all.extend(data)
 
-transition_log = pd.DataFrame(data_all, columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at'])
+    # transform these readings into a dataframe
+    # this allows filtering by meal or events
+    transition_log = pd.DataFrame(data_all, columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at'])
+    return transition_log, data_individual_meals, data_all
+
 
 
 def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10)):
@@ -339,8 +348,12 @@ def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     # sns.countplot(df['person-B'])
     histo = df['value'].value_counts().reindex(labels, fill_value=0)
 
-    print(histo)
-    print("~~~~~~")
+    # print(histo)
+    # print("~~~~~~")
+    f = open(filename + "_histo.txt", "w")
+    f.write(str(histo))
+    f.close()
+
 
     # df['value'].value_counts().plot(kind='bar', rot=0)
 
@@ -350,7 +363,7 @@ def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     ax.set_ylabel("Count")
     ax.set_ylabel("Activity Label")
     plt.tight_layout()
-    plt.savefig(filename)
+    plt.savefig(filename + "_count.png")
     plt.clf()
 
 
@@ -362,15 +375,7 @@ def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     # ax.xlabel("Activity Label")
     # ax.ylabel("# of Frames")
 
-
-
     # sns.barplot(x = "class", y = "survived", hue = "embark_town", data = titanic_dataset)
-
-    
-
-
-
-
 
 # Make nice graph
 import pydot_ng as pydot
@@ -448,89 +453,92 @@ def make_graph(data, graph_label, customer_states):
     df = pd.DataFrame(data_overview, columns = ['before', 'operation', 'after', 'probability']) 
     df.to_csv('outputs/table_states-' + graph_label + '.csv')
 
+if __name__ == "__main__":
+    # transition log columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at']
+    transition_log, data_individual_meals, data_all = import_meals()
+
+    graph_data = data_individual_meals
+    graph_data.append(data_all)
+
+    graph_names = filenames_all
+    graph_names.append("all")
+
+    for i in range(len(graph_data)):
+        data_list = graph_data[i]
+        graph_name = graph_names[i]
+        make_graph(data_list, graph_name, customer_states)
 
 
-graph_data = data_individual_meals
-graph_data.append(data_all)
-
-graph_names = filenames_all
-graph_names.append("all")
-
-for i in range(len(graph_data)):
-    data_list = graph_data[i]
-    graph_name = graph_names[i]
-    make_graph(data_list, graph_name, customer_states)
+    data = []
+    for entry in log.keys():
+        datum = []
+        value = log[entry] 
+        # value = value / sum(value)
+        datum = [entry[0], entry[1], value[0], value[1], value[2]]
+        data.append(datum)
 
 
-data = []
-for entry in log.keys():
-    datum = []
-    value = log[entry] 
-    # value = value / sum(value)
-    datum = [entry[0], entry[1], value[0], value[1], value[2]]
-    data.append(datum)
+    # Create the pandas DataFrame 
+    df = pd.DataFrame(data, columns = ['Meal ID', 'timestamp', 'table-state', 'person-A', 'person-B']) 
 
 
-# Create the pandas DataFrame 
-df = pd.DataFrame(data, columns = ['Meal ID', 'timestamp', 'table-state', 'person-A', 'person-B']) 
+    # POST ANALYSIS
+    table_state_labels = df['table-state'].unique()
+    # print all the unique table state labels found
+    # print(table_state_labels)
 
 
-# POST ANALYSIS
-table_state_labels = df['table-state'].unique()
-# print(table_state_labels)
+    data = []
+    table_state_emissions = {}
+    activity_labels = activitydict.keys()
+    labels = list(activity_labels)
 
+    cm_analysis(df['person-A'], df['person-B'], 'all', labels)
 
-data = []
-table_state_emissions = {}
-activity_labels = activitydict.keys()
-labels = list(activity_labels)
+    # Operations per-table-state
+    for ts in table_state_labels:
+        datum = [ts]
 
-cm_analysis(df['person-A'], df['person-B'], 'all', labels)
+        df_ts = df.loc[(df['table-state'] == ts)]
+        total = len(df_ts)
 
-# Operations per-table-state
-for ts in table_state_labels:
-    datum = [ts]
-
-    df_ts = df.loc[(df['table-state'] == ts)]
-    total = len(df_ts)
-
-    cm_analysis(df_ts['person-A'], df_ts['person-B'], ts, labels)
-    activity_fingerprint(df_ts, labels, ts)
-
-
-
-
-    for activity in activity_labels:
-        entries_A = df.loc[(df['person-A'] == activity) & (df['table-state'] == ts)]
-        entries_B = df.loc[(df['person-B'] == activity) & (df['table-state'] == ts)]
-        num_entries = len(entries_A) + len(entries_B)
-
-        if num_entries != 0:
-            value = (num_entries / (1.0 * total))
-        else:
-            value = 0
-
-
-        table_state_emissions[activity] = value
-        datum.append(value)
-
-    data.append(datum)
-
-
-cols_emi = ["table-state"] + list(activity_labels)
-# print(cols_emi)
-
-
-d_emi = pd.DataFrame(data, columns = cols_emi) 
-d_emi.to_csv('outputs/observerations.csv')
+        cm_analysis(df_ts['person-A'], df_ts['person-B'], ts, labels)
+        activity_fingerprint(df_ts, labels, ts)
 
 
 
 
+        for activity in activity_labels:
+            entries_A = df.loc[(df['person-A'] == activity) & (df['table-state'] == ts)]
+            entries_B = df.loc[(df['person-B'] == activity) & (df['table-state'] == ts)]
+            num_entries = len(entries_A) + len(entries_B)
 
-# exit()
-df.to_csv('outputs/all_data.csv')
+            if num_entries != 0:
+                value = (num_entries / (1.0 * total))
+            else:
+                value = 0
 
 
-print("Done")
+            table_state_emissions[activity] = value
+            datum.append(value)
+
+        data.append(datum)
+
+
+    cols_emi = ["table-state"] + list(activity_labels)
+    # print(cols_emi)
+
+
+    d_emi = pd.DataFrame(data, columns = cols_emi) 
+    d_emi.to_csv('outputs/observerations.csv')
+
+
+
+
+
+    # exit()
+    df.to_csv('outputs/all_data.csv')
+
+
+    print("Done")
 
