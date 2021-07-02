@@ -1,0 +1,23 @@
+away-from-table     217
+idle               8723
+eating              127
+drinking           1752
+talking            8545
+ordering              0
+standing              0
+talking:waiter      413
+looking:window     3864
+looking:waiter      913
+reading:bill          0
+reading:menu          0
+paying:check          0
+using:phone         793
+using:napkin       5429
+using:purse           0
+using:glasses         0
+using:wallet          0
+looking:PersonA    3582
+looking:PersonB    3962
+takeoutfood           0
+NONE                906
+Name: value, dtype: int64
