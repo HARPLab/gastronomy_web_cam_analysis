@@ -1,0 +1,13 @@
+,before,operation,after,probability
+0,NONE,waiter_action,reading-menus,1.0
+1,reading-menus,NOP,table-waiting,1.0
+2,table-waiting,NOP,ready-to-order,0.5
+3,ready-to-order,waiter_action,table-waiting,1.0
+4,table-waiting,waiter_action,eating,0.333
+5,eating,NOP,ready-for-cleanup,1.0
+6,ready-for-cleanup,waiter_action,table-waiting,1.0
+7,table-waiting,waiter_action,ready-for-bill,0.333
+8,ready-for-bill,waiter_action,table-waiting,1.0
+9,table-waiting,waiter_action,ready-for-final-check,0.333
+10,ready-for-final-check,waiter_action,table-waiting,1.0
+11,table-waiting,NOP,ready-to-leave,0.5
