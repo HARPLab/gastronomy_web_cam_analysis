@@ -49,10 +49,11 @@ def parseXML(elanfile):
 
 
 FLAG_CONSOLIDATE_WAITER_EVENTS = False #True
+FLAG_TRANSLATE_WAITING_TYPES = False
 
 
 filename_root = "8-21-18"
-filenames_all = ['8-13-18'] #, '8-17-18', '8-18-18', '8-21-18', '8-9-18']
+filenames_all = ['8-21-18'] #['8-13-18', '8-17-18', '8-18-18', '8-21-18', '8-9-18']
 
 timedict = {}
 activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
@@ -100,29 +101,30 @@ waiter_ignore_list = ['arriving', 'leaving']
 # 'take:dishes', 'bring:check', 'take:bill', 'take:check', 
 # 'bring:menus', 'bring:bill', 'bring:drinks']
 wevent_priority = {}
-wevent_priority['take:info']    = 10
-wevent_priority['bring:drinks'] = 9
-wevent_priority['take:dishes']  = 8
-wevent_priority['bring:menus']  = 7
+wevent_priority['bring:to-seat']   = -1
+wevent_priority['take:info']    = 100
+wevent_priority['bring:drinks'] = 80
+wevent_priority['take:dishes']  = 1
+wevent_priority['bring:menus']  = 1
 
-wevent_priority['take:order']   = 6
-wevent_priority['clear:table']  = 5
-wevent_priority['bring:food']   = 4
+wevent_priority['take:order']   = 90
+wevent_priority['clear:table']  = 1
+wevent_priority['bring:food']   = 1
 
-wevent_priority['bring:check']  = 3
-wevent_priority['take:bill']    = 2
+wevent_priority['bring:check']  = 1
+wevent_priority['take:bill']    = 1
 wevent_priority['take:check']   = 1
-wevent_priority['bring:bill']   = 0
+wevent_priority['bring:bill']   = 1
 
 
 wait_type_event = {}
-wait_type_event['reading-menus'] = 'waiting-3'
-wait_type_event['eating'] = 'waiting-2'
-wait_type_event['NONE'] = 'waiting-1'
-wait_type_event['ready-to-order'] = 'waiting-4'
+wait_type_event['reading-menus'] = 'XXXwaiting-for-food'
+wait_type_event['eating'] = 'waiting-for-cleanup'
+wait_type_event['NONE'] = 'waiting-?'
+wait_type_event['ready-to-order'] = 'waiting-for-food'
 wait_type_event['ready-for-cleanup'] = 'waiting-5'
-wait_type_event['ready-for-bill'] = 'waiting-6'
-wait_type_event['ready-for-final-check'] = 'waiting-7'
+wait_type_event['ready-for-bill'] = 'waiting-for-final-check'
+wait_type_event['ready-for-final-check'] = 'waiting-to-leave?'
 wait_type_event['ready-to-leave'] = 'waiting-8'
 
 def get_com(e):
@@ -155,6 +157,16 @@ def consolidate_event_list(old_timeline):
 
     # merge sequential identical groupings
     for datum in timeline:
+        if timeline_type == TYPE_CUSTOMER_STATE and datum[E_LABEL] == 'table-waiting':
+            if FLAG_TRANSLATE_WAITING_TYPES:
+                prev = new_timeline[-1]
+                label = wait_type_event[prev[E_LABEL]]
+                datum[E_LABEL] = label
+
+            length = datum[E_END] - datum[E_START]
+            print("length: " + length)
+
+
         # if they're identical, merge them
         if datum[E_LABEL] == prev_event[E_LABEL] and datum[E_LABEL] != BLANK_EVENT_TABLE[E_LABEL]:
             prev_unit = new_timeline.pop()
@@ -170,31 +182,36 @@ def consolidate_event_list(old_timeline):
         merged_timeline = []
         prev_event = BLANK_EVENT_WAITER
         for t in new_timeline:
-            overlap = abs(prev_event[E_END] - t[E_START])
+            overlap = (t[E_START] - prev_event[E_END])
             if overlap < 1000 and prev_event != BLANK_EVENT_WAITER:
 
-                # print("merge events?")
-                # print("overlap = " + str(overlap))
+                print("\nmerge events?")
+                print("overlap = " + str(overlap))
                 
                 prev_event = merged_timeline.pop()
-                p_prev = wevent_priority[prev_event[E_LABEL]]
-                p_this = wevent_priority[t[E_LABEL]]
+                try:
+                    p_prev = wevent_priority[prev_event[E_LABEL]]
+                    p_this = wevent_priority[t[E_LABEL]]
 
-                # print(prev_event)
-                # print(t)
+                    better_label = ''
+                    if p_prev < p_this:
+                        better_label = prev_event[E_LABEL]
+                    elif p_this < p_prev:
+                        better_label = t[E_LABEL]
+                    else:
+                        better_label = prev_event[E_LABEL] + ',' + t[E_LABEL]
+                except KeyError:
+                    if t[E_LABEL] not in better_label:
+                        better_label = prev_event[E_LABEL] + ',' + t[E_LABEL]
 
-                better_label = ''
-                if p_prev < p_this:
-                    better_label = prev_event[E_LABEL]
-                elif p_this < p_prev:
-                    better_label = t[E_LABEL]
-                else:
-                    print("Err, equal priority")
-                    exit()
+                print(prev_event)
+                print(t)
 
-                # print("winner: " + better_label)
+                
 
-                datum = [datum[0], int(prev_event[1]), int(datum[2]), better_label, datum[4]]
+                print("winner: " + better_label)
+                datum = [t[0], int(prev_event[1]), int(t[2]), better_label, t[4]]
+                print(datum)
 
 
                 merged_timeline.append(datum)
@@ -204,17 +221,28 @@ def consolidate_event_list(old_timeline):
                 merged_timeline.append(t)
                 prev_event = t
 
+        print("MERGED TIMELINE")
+        pprint.pprint(merged_timeline)
+
+        new_timeline = merged_timeline
+
     return new_timeline
 
+def combine_wait_and_ts(w_events, ts_events):
+    all_e = copy.copy(w_events)
+    all_e.extend(copy.copy(ts_events))
+    all_e.sort(key=lambda x: (x[E_MEALID], x[E_START]))
+   
+
+
+    return all_e
 
 def generate_links(w_events, ts_events):
     ts_prev = BLANK_EVENT_TABLE
     w_prev = BLANK_EVENT_WAITER
     all_links = []
 
-    all_e = copy.copy(w_events)
-    all_e.extend(copy.copy(ts_events))
-    all_e.sort(key=lambda x: (x[E_MEALID], x[E_START]))
+    all_e = combine_wait_and_ts(w_events, ts_events) 
 
     pprint.pprint(all_e)
     print("----LINK FORMAT----")
@@ -235,7 +263,8 @@ def generate_links(w_events, ts_events):
                 label_b = e[E_LABEL]
 
                 # TODO: decide if these times are appropriate
-                time_a = ts_prev[E_START]
+                # TODO !!!
+                time_a = w_prev[E_START]
                 time_b = e[E_END]
 
                 link = [meal, label_a, label_op, label_b, time_a, time_b]
