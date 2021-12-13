@@ -62,157 +62,159 @@ def addActivityToFeatureObj(feature_obj, personLabel, activity):
     return feature_obj
 
 
-
-## database initialization
-frame_to_poseact ={} #f_id -> (posedata, personAactivity, personBactivity)
-frame_to_poseact ={} #f_id -> (personAactivity, personBactivity)
-frames = {}
-
-log = {}
-# log[(mealid, index)] = {customerTransition, }
-
-LABEL_NONE = "NONE"
-
-BLANK_LABELS = [LABEL_NONE, LABEL_NONE, LABEL_NONE]
-TYPE_WAITER = 'waiter_action'
-TYPE_CUSTOMER_STATE = 'customer_state'
-
-
-
-overall_flow = []
-waiter_events = []
-customer_states = []
-
-simple_timeline = {}
-
-for meal in filenames_all:
-    root = parseXML('../../Annotations/' + meal + '-michael.eaf')
-    print("Processing meal annotations for " + meal)
-    timeline = []
-
-    ## start looping through annotation labels
-    for child in root:
-        if child.tag == 'TIME_ORDER':
-            for times in child:
-                timedict[times.attrib['TIME_SLOT_ID']] = times.attrib['TIME_VALUE']
-
-        elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'Waiter':
-            for annotation in child:
-                # print(annotation)
-                label = ""
-                for temp in annotation:
-                    beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
-                    ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
-                    # print(beginning_frame, ending_frame)
-                   
-                    label = LABEL_NONE
-                    # for each of the labeled activities in this block of time
-                    for anno in temp: ## another single iteration loop
-                        label = anno.text
-
-                    overall_flow.append((meal, beginning_frame, ending_frame, label, TYPE_WAITER))
-                    waiter_events.append(label)
-
-
-        # initial setup happens here
-        elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'CustomerTransitions':
-            # print("opening table state tier")
-            for annotation in child:
-                # print(annotation)
-                label = ""
-                for temp in annotation:
-                    beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
-                    ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
-                    # print(beginning_frame, ending_frame)
-                   
-                    label = LABEL_NONE
-                    # for each of the labeled activities in this block of time
-                    for anno in temp: ## another single iteration loop
-                        label = anno.text
-
-                    for f_id in range(beginning_frame, ending_frame):
-                        if (meal, f_id) not in log.keys():
-                            log[(meal, f_id)] = copy.copy(BLANK_LABELS)
-                        
-                        log[(meal, f_id)][0] = label
-
-                    overall_flow.append((meal, beginning_frame, ending_frame, label, TYPE_CUSTOMER_STATE))
-                    customer_states.append(label)
-
-
-
-        elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonA':
-            for annotation in child:
-                # print("adding PersonA's annotations...")
-                for temp in annotation: ## this should only loop once, couldnt figure out how to access a child xml tag without looping
-                    #print(temp.attrib['TIME_SLOT_REF1'])
-                    ## beginning frame
-                    beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
-                    ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
-                    
-                    activity = LABEL_NONE
-                    # for each of the labeled activities in this block of time
-                    for anno in temp: ## another single iteration loop
-                        activity=anno.text
-
-                    for f_id in range(beginning_frame, ending_frame):
-
-                        if (meal, f_id) not in log.keys():
-                            log[(meal, f_id)] = copy.copy(BLANK_LABELS)
-
-                        log[(meal, f_id)][1] = activity
-
-                        # frame_to_poseact[f_id] = feature_data
-                        # print("added personA " + str(f_id))
-
-
-        elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonB':
-             for annotation in child:
-                # print("adding PersonB's annotations...")
-                for temp in annotation: ## this should only loop once, couldnt figure out how to access a child xml tag without looping
-                    ## beginning frame
-                    beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
-                    ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
-                    activity = LABEL_NONE
-                    for anno in temp: ## another single iteration loop
-                        activity=anno.text
-
-                    # for every ms, add to the listing
-                    for f_id in range(beginning_frame, ending_frame):
-
-                        if (meal, f_id) not in log.keys():
-                            log[(meal, f_id)] = copy.copy(BLANK_LABELS)
-                        
-                        log[(meal, f_id)][2] = activity
-
-                            # print(log[meal, f_id])
-
-                        
-# print(log)
-
-# print(overall_flow)
-# Process the overall flow
-# list of (meal_id, timestamp, label)
-
-# print(overall_flow)
-flow_per_meal = {}
-for meal in filenames_all:
-    flow_per_meal[meal] =[]
-
-for meal, start, end, event, e_type in overall_flow:
-    flow_per_meal[meal].append([start, end, event, e_type])
-
-for meal in filenames_all:
-    df = pd.DataFrame(flow_per_meal[meal], columns = ['start_time', 'end_time', 'event', 'event_type']) 
-    df.to_csv('outputs/readable_highlevel_' + str(meal) + '.csv')
-
-
-waiter_events = list(set(waiter_events))
-customer_states = list(set(customer_states))
-
-no_op = (meal, None, 'NOP', TYPE_WAITER)
-
 def import_meals():
+    ## database initialization
+    frame_to_poseact ={} #f_id -> (posedata, personAactivity, personBactivity)
+    frame_to_poseact ={} #f_id -> (personAactivity, personBactivity)
+    frames = {}
+
+    log = {}
+    # log[(mealid, index)] = {customerTransition, }
+
+    LABEL_NONE = "NONE"
+
+    BLANK_LABELS = [LABEL_NONE, LABEL_NONE, LABEL_NONE]
+    TYPE_WAITER = 'waiter_action'
+    TYPE_CUSTOMER_STATE = 'customer_state'
+
+
+
+    overall_flow = []
+    waiter_events = []
+    customer_states = []
+
+    simple_timeline = {}
+
+    for meal in filenames_all:
+        root = parseXML('../../Annotations/' + meal + '-michael.eaf')
+        print("Processing meal annotations for " + meal)
+        timeline = []
+
+        ## start looping through annotation labels
+        for child in root:
+            if child.tag == 'TIME_ORDER':
+                for times in child:
+                    timedict[times.attrib['TIME_SLOT_ID']] = times.attrib['TIME_VALUE']
+
+            elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'Waiter':
+                for annotation in child:
+                    # print(annotation)
+                    label = ""
+                    for temp in annotation:
+                        beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
+                        ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+                        # print(beginning_frame, ending_frame)
+                       
+                        label = LABEL_NONE
+                        # for each of the labeled activities in this block of time
+                        for anno in temp: ## another single iteration loop
+                            label = anno.text
+
+                        overall_flow.append((meal, beginning_frame, ending_frame, label, TYPE_WAITER))
+                        waiter_events.append(label)
+
+
+            # initial setup happens here
+            elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'CustomerTransitions':
+                # print("opening table state tier")
+                for annotation in child:
+                    # print(annotation)
+                    label = ""
+                    for temp in annotation:
+                        beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
+                        ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+                        # print(beginning_frame, ending_frame)
+                       
+                        label = LABEL_NONE
+                        # for each of the labeled activities in this block of time
+                        for anno in temp: ## another single iteration loop
+                            label = anno.text
+
+                        for f_id in range(beginning_frame, ending_frame):
+                            if (meal, f_id) not in log.keys():
+                                log[(meal, f_id)] = copy.copy(BLANK_LABELS)
+                            
+                            log[(meal, f_id)][0] = label
+
+                        overall_flow.append((meal, beginning_frame, ending_frame, label, TYPE_CUSTOMER_STATE))
+                        customer_states.append(label)
+
+
+
+            elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonA':
+                for annotation in child:
+                    # print("adding PersonA's annotations...")
+                    for temp in annotation: ## this should only loop once, couldnt figure out how to access a child xml tag without looping
+                        #print(temp.attrib['TIME_SLOT_REF1'])
+                        ## beginning frame
+                        beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
+                        ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+                        
+                        activity = LABEL_NONE
+                        # for each of the labeled activities in this block of time
+                        for anno in temp: ## another single iteration loop
+                            activity=anno.text
+
+                        for f_id in range(beginning_frame, ending_frame):
+
+                            if (meal, f_id) not in log.keys():
+                                log[(meal, f_id)] = copy.copy(BLANK_LABELS)
+
+                            log[(meal, f_id)][1] = activity
+
+                            # frame_to_poseact[f_id] = feature_data
+                            # print("added personA " + str(f_id))
+
+
+            elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonB':
+                 for annotation in child:
+                    # print("adding PersonB's annotations...")
+                    for temp in annotation: ## this should only loop once, couldnt figure out how to access a child xml tag without looping
+                        ## beginning frame
+                        beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
+                        ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+                        activity = LABEL_NONE
+                        for anno in temp: ## another single iteration loop
+                            activity=anno.text
+
+                        # for every ms, add to the listing
+                        for f_id in range(beginning_frame, ending_frame):
+
+                            if (meal, f_id) not in log.keys():
+                                log[(meal, f_id)] = copy.copy(BLANK_LABELS)
+                            
+                            log[(meal, f_id)][2] = activity
+
+                                # print(log[meal, f_id])
+
+                            
+    # print(log)
+
+    # print(overall_flow)
+    # Process the overall flow
+    # list of (meal_id, timestamp, label)
+
+    # print(overall_flow)
+    flow_per_meal = {}
+    for meal in filenames_all:
+        flow_per_meal[meal] =[]
+
+    for meal, start, end, event, e_type in overall_flow:
+        flow_per_meal[meal].append([start, end, event, e_type])
+
+    for meal in filenames_all:
+        df = pd.DataFrame(flow_per_meal[meal], columns = ['start_time', 'end_time', 'event', 'event_type']) 
+        df.to_csv('outputs/readable_highlevel_' + str(meal) + '.csv')
+
+
+    waiter_events = list(set(waiter_events))
+    customer_states = list(set(customer_states))
+
+    no_op = (meal, None, 'NOP', TYPE_WAITER)
+
+
+
+
     data_individual_meals = []
     data_all = []
 
@@ -232,6 +234,7 @@ def import_meals():
         INDEX_TYPE = 3
 
         for event in timeline:
+            print(event)
             # if the waiter took a novel action, ex not a NO-OP, then hold onto it
             if prev_event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_TYPE] == TYPE_WAITER:
                 # if it's the unique waiter event
@@ -265,8 +268,18 @@ def import_meals():
 
     # transform these readings into a dataframe
     # this allows filtering by meal or events
+
     transition_log = pd.DataFrame(data_all, columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at'])
-    return transition_log, data_individual_meals, data_all
+
+    print("data")
+    print(data)
+    print("transition_log")
+    print(transition_log)
+    print("data individual meals")
+    print(data_individual_meals)
+    print("data all")
+    print(data_all)
+    return transition_log, data_individual_meals, data_all, customer_states, log
 
 
 
@@ -297,6 +310,8 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10)):
     y_true = y_true.values
     y_pred = y_pred.values
 
+    sns.set(font_scale=1.5)
+
     cm = confusion_matrix(y_true, y_pred, labels=labels)
     cm_sum = np.sum(cm, axis=1, keepdims=True)
     cm_perc = cm / cm_sum.astype(float) * 100
@@ -321,13 +336,19 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10)):
                 else:
                     annot[i,j] = ''
                 # annot[i, j] = '%.1f%%\n%d' % (p, c)
+
     cm = pd.DataFrame(cm, index=labels, columns=labels)
     cm.index.name = 'Person A'
     cm.columns.name = 'Person B'
     fig, ax = plt.subplots(figsize=figsize)
-    sns.heatmap(cm, annot=annot, fmt='', ax=ax)
+
+    print(annot)
+    # print(max(annot))
+    # vmin=0, vmax=100
+    sns.heatmap(cm, annot=annot, fmt='', ax=ax, annot_kws={"size": 10}, cbar=False)
+
     ax.set_title(title)
-    plt.savefig(filename)
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01)
     plt.clf()
 
 
@@ -335,6 +356,7 @@ def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     # Update to normalize
     # https://stackoverflow.com/questions/35692781/python-plotting-percentage-in-seaborn-bar-plot
 
+    sns.set(font_scale=2)
     filename = 'outputs/act-bars-' + title
     # df.columns = ['Meal ID', 'timestamp', 'table-state', 'person-A', 'person-B']
 
@@ -354,14 +376,13 @@ def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     f.write(str(histo))
     f.close()
 
-
     # df['value'].value_counts().plot(kind='bar', rot=0)
 
     ax = sns.countplot(x='value', order=labels, data=df)
     ax.set_xticklabels(rotation=90, labels=labels)
     ax.set_title(title)
     ax.set_ylabel("Count")
-    ax.set_ylabel("Activity Label")
+    ax.set_xlabel("Activity Label")
     plt.tight_layout()
     plt.savefig(filename + "_count.png")
     plt.clf()
@@ -378,10 +399,11 @@ def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     # sns.barplot(x = "class", y = "survived", hue = "embark_town", data = titanic_dataset)
 
 # Make nice graph
-import pydot_ng as pydot
-from pydot_ng import Dot, Edge,Node
+# import pydot_ng as pydot
+# from pydot_ng import Dot, Edge,Node
 
 def make_graph(data, graph_label, customer_states):
+    print(data)
     data_overview = []
 
     g = Dot()
@@ -455,7 +477,7 @@ def make_graph(data, graph_label, customer_states):
 
 if __name__ == "__main__":
     # transition log columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at']
-    transition_log, data_individual_meals, data_all = import_meals()
+    transition_log, data_individual_meals, data_all, customer_states, log = import_meals()
 
     graph_data = data_individual_meals
     graph_data.append(data_all)
@@ -466,7 +488,7 @@ if __name__ == "__main__":
     for i in range(len(graph_data)):
         data_list = graph_data[i]
         graph_name = graph_names[i]
-        make_graph(data_list, graph_name, customer_states)
+        # make_graph(data_list, graph_name, customer_states)
 
 
     data = []
@@ -530,13 +552,9 @@ if __name__ == "__main__":
 
 
     d_emi = pd.DataFrame(data, columns = cols_emi) 
+    # print(d_emi.columns)
     d_emi.to_csv('outputs/observerations.csv')
 
-
-
-
-
-    # exit()
     df.to_csv('outputs/all_data.csv')
 
 
