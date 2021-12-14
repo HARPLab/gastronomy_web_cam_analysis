@@ -63,7 +63,7 @@ activity_shorterdict = {'away-from-table': 'away', 'idle': 'idle', 'eating': 'ea
             'standing':'standing','talking:waiter': 'talk:waiter', 'looking:window': 'look:window', 'looking:waiter': 'look:waiter', 
             'reading:bill':'read:bill', 'reading:menu': 'read:menu',
             'paying:check': 'pay:check', 'using:phone': 'use:phone', 'using:napkin': 'use:napkin', 'using:purse': 'use:purse', 'using:glasses': 'use:glasses',
-            'using:wallet': 'use:wallet', 'looking:PersonA': 'look:partner', 'looking:PersonB':'look:partner', 'takeoutfood':'takeout', 'NONE': 'NONE'}
+            'using:wallet': 'use:wallet', 'looking:PersonA': 'look:partner', 'looking:PersonB':'look:partner', 'takeoutfood':'takeout', 'NONE': 'NONE', 'cleaning-up':'NONE', 'leaving-table':'NONE'}
 
 activitydict_display = ['away', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 'talk:waiter', 'look:window',
             'look:waiter', 'read:bill', 'read:menu', 'pay:check', 'use:phone', 'use:napkin', 'use:purse', 'use:glasses',
@@ -544,6 +544,18 @@ def clean_df(df):
     df = df.replace({person_a_code: activity_shorterdict})
     df = df.replace({person_b_code: activity_shorterdict})
 
+    unique_states_a = df['person-A'].unique()
+    unique_states_b = df['person-B'].unique()
+
+    for state in unique_states_a:
+        if state not in activitydict_display:
+            print("Extra states in A " + state)
+    
+    for state in unique_states_b:
+        if state not in activitydict_display:
+            print("Extra states in B " + state)
+
+
     return df
 
 if __name__ == "__main__":
@@ -586,12 +598,15 @@ if __name__ == "__main__":
     activity_labels = activitydict_display
     labels = list(activity_labels)
 
+    df_events_ts = copy.copy(df)
+    df_events_ts['ts_subgroup'] = (df_events_ts['table-state'] != df_events_ts['table-state'].shift(1)).cumsum()
+
+
     # make analysis of lengths of different types of events
     # and how those change within different group states
 
     df_events_a = copy.copy(df)
     df_events_b = copy.copy(df)
-    print(df_events_a.columns)
 
     # TODO add cuts for meals
     # https://datascience.stackexchange.com/questions/41428/how-to-find-the-count-of-consecutive-same-string-values-in-a-pandas-dataframe/41431
@@ -631,12 +646,22 @@ if __name__ == "__main__":
     print(df_events.columns)
 
 
-    boxplot = df_events.boxplot(column=['length'], by=['activity'])
+    # https://towardsdatascience.com/violin-strip-swarm-and-raincloud-plots-in-python-as-better-sometimes-alternatives-to-a-boxplot-15019bdff8f8
+    # boxplot = df_events.boxplot(column=['length'], by=['activity']) #, sort=False)
+    boxplot = sns.stripplot(y='length', x='activity', data=df_events) 
     boxplot.set_ylabel("Time in ms")
     boxplot.set_xlabel("Activity")
     boxplot.set_title("Lengths of Events")
     plt.xticks(rotation=90)
     plt.savefig(export_prefix + 'activity_length_histo.png', bbox_inches='tight', pad_inches=0.01)
+    plt.clf()
+
+    boxplot = df_events.boxplot(column=['length'], by=['activity']) #, sort=False)
+    boxplot.set_ylabel("Time in ms")
+    boxplot.set_xlabel("Activity")
+    boxplot.set_title("Lengths of Events")
+    plt.xticks(rotation=90)
+    plt.savefig(export_prefix + 'activity_length_boxplot.png', bbox_inches='tight', pad_inches=0.01)
     plt.clf()
 
 
