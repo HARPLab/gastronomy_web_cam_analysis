@@ -18,5 +18,5 @@ use:glasses        0
 use:wallet         0
 look:partner    7544
 takeout            0
-NONE             906
+NONE            1640
 Name: value, dtype: int64

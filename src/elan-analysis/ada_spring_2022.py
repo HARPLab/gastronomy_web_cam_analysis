@@ -660,6 +660,13 @@ if __name__ == "__main__":
 
     df_events = pd.DataFrame(event_datums)
 
+    activity_length_dict = {}
+    for activity in activity_labels:
+        single_activity = df_events.loc[(df_events['activity'] == activity)]
+        activity_length_dict[activity] = single_activity['length'].mean()
+        
+    df_events['norm_length'] = df_events.apply(lambda x: x['length'] / activity_length_dict[x['activity']], axis=1)
+
     if FLAG_EXPORT_ACTIVITY_LENGTH_STATS:
         # https://towardsdatascience.com/violin-strip-swarm-and-raincloud-plots-in-python-as-better-sometimes-alternatives-to-a-boxplot-15019bdff8f8
         # boxplot = df_events.boxplot(column=['length'], by=['activity']) #, sort=False)
@@ -680,11 +687,13 @@ if __name__ == "__main__":
         plt.clf()
         print("EXPORTED activity length graphs")
 
+        
+
 
     # combinations of activity lengths and group states
     
 
-    
+
 
 
     if FLAG_EXPORT_CM:
