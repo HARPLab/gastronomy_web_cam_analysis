@@ -35,6 +35,10 @@ from sklearn.metrics import confusion_matrix
 import numpy as np
 import matplotlib.pyplot as plt
 
+import sys
+sys.path.append("..")
+import arconsts
+
 
 def parseXML(elanfile):
     tree = ET.parse(elanfile)
@@ -46,11 +50,24 @@ def parseXML(elanfile):
 filename_root = "8-21-18"
 filenames_all = ['8-13-18', '8-17-18', '8-18-18', '8-21-18', '8-9-18']
 
+export_prefix = 'outputs-2022/'
+
 timedict = {}
 activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
             'talking:waiter': 7, 'looking:window': 8, 'looking:waiter': 9, 'reading:bill':10, 'reading:menu': 11,
             'paying:check': 12, 'using:phone': 13, 'using:napkin': 14, 'using:purse': 15, 'using:glasses': 16,
             'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20, 'NONE': 21}
+
+
+activity_shorterdict = {'away-from-table': 'away', 'idle': 'idle', 'eating': 'eating', 'drinking': 'drinking', 'talking': 'talking', 'ordering': 'ordering', 
+            'standing':'standing','talking:waiter': 'talk:waiter', 'looking:window': 'look:window', 'looking:waiter': 'look:waiter', 
+            'reading:bill':'read:bill', 'reading:menu': 'read:menu',
+            'paying:check': 'pay:check', 'using:phone': 'use:phone', 'using:napkin': 'use:napkin', 'using:purse': 'use:purse', 'using:glasses': 'use:glasses',
+            'using:wallet': 'use:wallet', 'looking:PersonA': 'look:partner', 'looking:PersonB':'look:partner', 'takeoutfood':'takeout', 'NONE': 'NONE'}
+
+activitydict_display = ['away', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 'talk:waiter', 'look:window',
+            'look:waiter', 'read:bill', 'read:menu', 'pay:check', 'use:phone', 'use:napkin', 'use:purse', 'use:glasses',
+            'use:wallet', 'look:partner', 'takeout', 'NONE']
 
 def getFeatureObj(currentframe):
     feature_data = {}
@@ -61,6 +78,12 @@ def addActivityToFeatureObj(feature_obj, personLabel, activity):
     feature_obj[personLabel] = activity
     return feature_obj
 
+def get_label_from_block(temp):
+    activity_label = 'NONE'
+    for anno in temp: ## another single iteration loop
+        activity_label = anno.text
+
+    return activity_label
 
 def import_meals():
     ## database initialization
@@ -140,7 +163,7 @@ def import_meals():
                         customer_states.append(label)
 
 
-
+            # LOGGING PERSON A AND B ACTIVITIES
             elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonA':
                 for annotation in child:
                     # print("adding PersonA's annotations...")
@@ -152,8 +175,10 @@ def import_meals():
                         
                         activity = LABEL_NONE
                         # for each of the labeled activities in this block of time
+                        activity = get_label_from_block(temp)
+
                         for anno in temp: ## another single iteration loop
-                            activity=anno.text
+                            activity = anno.text
 
                         for f_id in range(beginning_frame, ending_frame):
 
@@ -175,7 +200,7 @@ def import_meals():
                         ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
                         activity = LABEL_NONE
                         for anno in temp: ## another single iteration loop
-                            activity=anno.text
+                            activity = anno.text
 
                         # for every ms, add to the listing
                         for f_id in range(beginning_frame, ending_frame):
@@ -204,7 +229,7 @@ def import_meals():
 
     for meal in filenames_all:
         df = pd.DataFrame(flow_per_meal[meal], columns = ['start_time', 'end_time', 'event', 'event_type']) 
-        df.to_csv('outputs/readable_highlevel_' + str(meal) + '.csv')
+        df.to_csv(export_prefix + 'readable_highlevel_' + str(meal) + '.csv')
 
 
     waiter_events = list(set(waiter_events))
@@ -283,7 +308,7 @@ def import_meals():
 
 
 
-def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10)):
+def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), normalize_by=None):
     """
     Generate matrix plot of confusion matrix with pretty annotations.
     The plot image is saved to disk.
@@ -300,7 +325,7 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10)):
       figsize:   the size of the figure plotted.
     """
 
-    filename = 'outputs/cm-' + title
+    filename = export_prefix + 'cm-' + title
 
     if ymap is not None:
         y_pred = [ymap[yi] for yi in y_pred]
@@ -311,9 +336,22 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10)):
     y_pred = y_pred.values
 
     sns.set(font_scale=1.5)
-
     cm = confusion_matrix(y_true, y_pred, labels=labels)
-    cm_sum = np.sum(cm, axis=1, keepdims=True)
+
+    normal_axis = None
+    if normalize_by == None:
+        normal_axis = None
+    elif normalize_by == 'row':
+        normal_axis = 1
+    elif normalize_by == 'col':
+        normal_axis = 0
+
+    # What are we going to normalize by? The rows?
+    if normal_axis != None:
+        cm_sum = np.sum(cm, axis=normal_axis, keepdims=True)
+    else:
+        cm_sum = np.sum(cm, axis=normal_axis)
+    
     cm_perc = cm / cm_sum.astype(float) * 100
     annot = np.empty_like(cm).astype(str)
     nrows, ncols = cm.shape
@@ -322,7 +360,7 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10)):
             c = cm[i, j]
             p = cm_perc[i, j]
             if i == j:
-                s = cm_sum[i]
+                # s = cm_sum[i]
                 # annot[i, j] = '%.1f%%\n%d/%d' % (p, c, s)
                 if not np.isnan(p) and p != 0:
                     annot[i, j] = '%.1f%%' % (p)
@@ -345,7 +383,7 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10)):
     print(annot)
     # print(max(annot))
     # vmin=0, vmax=100
-    sns.heatmap(cm, annot=annot, fmt='', ax=ax, annot_kws={"size": 10}, cbar=False)
+    sns.heatmap(cm, annot=annot, fmt='', ax=ax, square=True, annot_kws={"size": 10}, cbar=False)
 
     ax.set_title(title)
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01)
@@ -357,7 +395,7 @@ def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     # https://stackoverflow.com/questions/35692781/python-plotting-percentage-in-seaborn-bar-plot
 
     sns.set(font_scale=2)
-    filename = 'outputs/act-bars-' + title
+    filename = export_prefix + 'act-bars-' + title
     # df.columns = ['Meal ID', 'timestamp', 'table-state', 'person-A', 'person-B']
 
     # sns.set_palette(sns.color_palette("colorblind", len(labels)))
@@ -473,7 +511,22 @@ def make_graph(data, graph_label, customer_states):
     print("Output graph " + graph_label)
 
     df = pd.DataFrame(data_overview, columns = ['before', 'operation', 'after', 'probability']) 
-    df.to_csv('outputs/table_states-' + graph_label + '.csv')
+    df.to_csv(export_prefix + 'table_states-' + graph_label + '.csv')
+
+def clean_df(df):
+    # columns = ['Meal ID', 'timestamp', 'table-state', 'person-A', 'person-B']
+    # print(df[1000:1010])
+    # df = reduce_Y_labels(df)
+
+    person_a_code = 'person-A'
+    person_b_code = 'person-B'
+    tag_look_partner = 'look:partner'
+
+    # mini_transform = {'looking:PersonA': tag_look_partner, 'looking:PersonB': tag_look_partner}
+    df = df.replace({person_a_code: activity_shorterdict})
+    df = df.replace({person_b_code: activity_shorterdict})
+
+    return df
 
 if __name__ == "__main__":
     # transition log columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at']
@@ -496,13 +549,14 @@ if __name__ == "__main__":
         datum = []
         value = log[entry] 
         # value = value / sum(value)
+        # ['Meal ID', 'timestamp', 'table-state', 'person-A', 'person-B']
         datum = [entry[0], entry[1], value[0], value[1], value[2]]
         data.append(datum)
 
 
     # Create the pandas DataFrame 
     df = pd.DataFrame(data, columns = ['Meal ID', 'timestamp', 'table-state', 'person-A', 'person-B']) 
-    
+    df = clean_df(df)
 
     # POST ANALYSIS
     table_state_labels = df['table-state'].unique()
@@ -512,7 +566,7 @@ if __name__ == "__main__":
 
     data = []
     table_state_emissions = {}
-    activity_labels = activitydict.keys()
+    activity_labels = activitydict_display
     labels = list(activity_labels)
 
     cm_analysis(df['person-A'], df['person-B'], 'all', labels)
@@ -550,9 +604,9 @@ if __name__ == "__main__":
 
     d_emi = pd.DataFrame(data, columns = cols_emi) 
     # print(d_emi.columns)
-    d_emi.to_csv('outputs/observerations.csv')
+    d_emi.to_csv(export_prefix + 'observations.csv')
 
-    df.to_csv('outputs/all_data.csv')
+    df.to_csv(export_prefix + 'all_data.csv')
 
 
     print("Done")

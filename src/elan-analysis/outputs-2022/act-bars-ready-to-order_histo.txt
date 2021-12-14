@@ -1,0 +1,22 @@
+away               0
+idle            2698
+eating             0
+drinking         724
+talking          956
+ordering           0
+standing           0
+talk:waiter        0
+look:window     1022
+look:waiter      127
+read:bill          0
+read:menu       1051
+pay:check          0
+use:phone        926
+use:napkin         0
+use:purse          0
+use:glasses        0
+use:wallet         0
+look:partner    2499
+takeout            0
+NONE             197
+Name: value, dtype: int64
