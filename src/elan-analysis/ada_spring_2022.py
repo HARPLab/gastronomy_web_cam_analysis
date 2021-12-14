@@ -46,6 +46,9 @@ def parseXML(elanfile):
     return root
     print(root.tag)
 
+FLAG_EXPORT_ACTIVITY_LENGTH_STATS   = True
+FLAG_EXPORT_CM                      = True
+
 # Import the five annotated files
 filename_root = "8-21-18"
 filenames_all = ['8-13-18', '8-17-18', '8-18-18', '8-21-18', '8-9-18']
@@ -276,7 +279,7 @@ def import_meals():
         INDEX_TYPE = 3
 
         for event in timeline:
-            print(event)
+            # print(event)
             # if the waiter took a novel action, ex not a NO-OP, then hold onto it
             if prev_event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_TYPE] == TYPE_WAITER:
                 # if it's the unique waiter event
@@ -313,14 +316,15 @@ def import_meals():
 
     transition_log = pd.DataFrame(data_all, columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at'])
 
-    print("data")
-    print(data)
-    print("transition_log")
-    print(transition_log)
-    print("data individual meals")
-    print(data_individual_meals)
-    print("data all")
-    print(data_all)
+    if False:
+        print("data")
+        print(data)
+        print("transition_log")
+        print(transition_log)
+        print("data individual meals")
+        print(data_individual_meals)
+        print("data all")
+        print(data_all)
     return transition_log, data_individual_meals, data_all, customer_states, log
 
 
@@ -397,7 +401,7 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
     cm.columns.name = 'Person B'
     fig, ax = plt.subplots(figsize=figsize)
 
-    print(annot)
+    # print(annot)
     # print(max(annot))
     # vmin=0, vmax=100
     sns.heatmap(cm, annot=annot, fmt='', ax=ax, square=True, annot_kws={"size": 10}, cbar=False)
@@ -459,7 +463,7 @@ def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
 # from pydot_ng import Dot, Edge,Node
 
 def make_graph(data, graph_label, customer_states):
-    print(data)
+    # print(data)
     data_overview = []
 
     g = Dot()
@@ -598,15 +602,23 @@ if __name__ == "__main__":
     activity_labels = activitydict_display
     labels = list(activity_labels)
 
-    df_events_ts = copy.copy(df)
-    df_events_ts['ts_subgroup'] = (df_events_ts['table-state'] != df_events_ts['table-state'].shift(1)).cumsum()
+    df_events = copy.copy(df)
+    df_events['ts_subgroup'] = (df_events['table-state'] != df_events['table-state'].shift(1)).cumsum()
 
+    tablestate_subgroup_endtimes = {}
 
+    for subgroup in df_events['ts_subgroup'].unique():
+        block = df_events[df_events['ts_subgroup'] == subgroup]
+        act_len = block.shape[0]
+        event_datum = block.iloc[-1].to_dict()
+
+        tablestate_subgroup_endtimes[subgroup] = event_datum['timestamp']
+    
     # make analysis of lengths of different types of events
     # and how those change within different group states
 
-    df_events_a = copy.copy(df)
-    df_events_b = copy.copy(df)
+    df_events_a = copy.copy(df_events)
+    df_events_b = copy.copy(df_events)
 
     # TODO add cuts for meals
     # https://datascience.stackexchange.com/questions/41428/how-to-find-the-count-of-consecutive-same-string-values-in-a-pandas-dataframe/41431
@@ -623,8 +635,11 @@ if __name__ == "__main__":
         act_len = block.shape[0]
         event_datum = block.iloc[0].to_dict()
         event_datum['length'] = act_len
-        # removing key for B since this just addresses a streak of person a
         event_datum['activity'] = event_datum['person-A']
+        event_datum['time_from_start_to_end_of_groupstate'] = tablestate_subgroup_endtimes[event_datum['ts_subgroup']] - event_datum['timestamp']
+        event_datum['time_from_end_to_end_of_groupstate'] = tablestate_subgroup_endtimes[event_datum['ts_subgroup']] - event_datum['timestamp'] + act_len
+
+        # removing key for B since this just addresses a streak of person a
         event_datum.pop('person-B')
        
         event_datums.append(event_datum)
@@ -635,34 +650,35 @@ if __name__ == "__main__":
         event_datum = block.iloc[0].to_dict()
         event_datum['length'] = act_len
         event_datum['activity'] = event_datum['person-B']
+        event_datum['time_from_start_to_end_of_groupstate'] = tablestate_subgroup_endtimes[event_datum['ts_subgroup']] - event_datum['timestamp']
+        event_datum['time_from_end_to_end_of_groupstate'] = tablestate_subgroup_endtimes[event_datum['ts_subgroup']] - event_datum['timestamp'] + act_len
+
         # removing key for A since this just addresses a streak of person b
         event_datum.pop('person-A')
 
         event_datums.append(event_datum)
 
-    print("All events")
     df_events = pd.DataFrame(event_datums)
-    print(df_events)
-    print(df_events.columns)
 
+    if FLAG_EXPORT_ACTIVITY_LENGTH_STATS:
+        # https://towardsdatascience.com/violin-strip-swarm-and-raincloud-plots-in-python-as-better-sometimes-alternatives-to-a-boxplot-15019bdff8f8
+        # boxplot = df_events.boxplot(column=['length'], by=['activity']) #, sort=False)
+        boxplot = sns.stripplot(y='length', x='activity', data=df_events) 
+        boxplot.set_ylabel("Time in ms")
+        boxplot.set_xlabel("Activity")
+        boxplot.set_title("Lengths of Events")
+        plt.xticks(rotation=90)
+        plt.savefig(export_prefix + 'activity_length_histo.png', bbox_inches='tight', pad_inches=0.01)
+        plt.clf()
 
-    # https://towardsdatascience.com/violin-strip-swarm-and-raincloud-plots-in-python-as-better-sometimes-alternatives-to-a-boxplot-15019bdff8f8
-    # boxplot = df_events.boxplot(column=['length'], by=['activity']) #, sort=False)
-    boxplot = sns.stripplot(y='length', x='activity', data=df_events) 
-    boxplot.set_ylabel("Time in ms")
-    boxplot.set_xlabel("Activity")
-    boxplot.set_title("Lengths of Events")
-    plt.xticks(rotation=90)
-    plt.savefig(export_prefix + 'activity_length_histo.png', bbox_inches='tight', pad_inches=0.01)
-    plt.clf()
-
-    boxplot = df_events.boxplot(column=['length'], by=['activity']) #, sort=False)
-    boxplot.set_ylabel("Time in ms")
-    boxplot.set_xlabel("Activity")
-    boxplot.set_title("Lengths of Events")
-    plt.xticks(rotation=90)
-    plt.savefig(export_prefix + 'activity_length_boxplot.png', bbox_inches='tight', pad_inches=0.01)
-    plt.clf()
+        boxplot = df_events.boxplot(column=['length'], by=['activity']) #, sort=False)
+        boxplot.set_ylabel("Time in ms")
+        boxplot.set_xlabel("Activity")
+        boxplot.set_title("Lengths of Events")
+        plt.xticks(rotation=90)
+        plt.savefig(export_prefix + 'activity_length_boxplot.png', bbox_inches='tight', pad_inches=0.01)
+        plt.clf()
+        print("EXPORTED activity length graphs")
 
 
     # combinations of activity lengths and group states
