@@ -562,6 +562,24 @@ def clean_df(df):
 
     return df
 
+def make_scatter_of_var(df_events, type_of_graph, activity, fname):
+    activity_fn = activity.replace(":", "-")
+
+    plot = df_events.plot.scatter(x=type_of_graph, y='norm_length')#, c='table-state');
+    p = np.polyfit(df_events[type_of_graph], df_events['norm_length'], 1)
+    poly = np.poly1d(p)
+    x = np.linspace(df_events[type_of_graph].min(), df_events[type_of_graph].max())
+    plt.plot(x, poly(x),"r--")
+
+    plot.set_ylabel("Time compared to mean")
+    plot.set_xlabel("Time from end to end of interval")
+    plot.set_title("Event Length compared to Period Length\n" + activity)
+    plt.xticks(rotation=90)
+    plt.gca().invert_xaxis()
+
+    plt.savefig(export_prefix + fname + activity_fn + '.png', bbox_inches='tight', pad_inches=0.01)
+    plt.clf()
+
 if __name__ == "__main__":
     # transition log columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at']
     transition_log, data_individual_meals, data_all, customer_states, log = import_meals()
@@ -731,40 +749,15 @@ if __name__ == "__main__":
 
         for activity in activity_labels:
             df_single_activity = df_events.loc[(df_events['activity'] == activity)]
-            activity_fn = activity.replace(":", "-")
             # combinations of activity lengths and group states
             type_of_graph = 'time_from_start_to_end_of_groupstate'
-            plot = df_single_activity.plot.scatter(x=type_of_graph, y='norm_length')#, c='table-state');
-            p = np.polyfit(df_single_activity[type_of_graph], df_single_activity['norm_length'], 1)
-            poly = np.poly1d(p)
-            x = np.linspace(df_single_activity[type_of_graph].min(), df_single_activity[type_of_graph].max())
-            plt.plot(x, poly(x),"r--")
-
-            plot.set_ylabel("Time compared to mean")
-            plot.set_xlabel("Time from start to end of interval")
-            plot.set_title("Event Length compared to Period Length\n" + activity)
-            plt.xticks(rotation=90)
-            plt.gca().invert_xaxis()
-
-            plt.savefig(export_prefix + "tste-act-" + activity_fn + '.png', bbox_inches='tight', pad_inches=0.01)
-            plt.clf()
+            fname = 'tste-act-'
+            make_scatter_of_var(df_single_activity, type_of_graph, activity, fname)
 
             # combinations of activity lengths and group states
             type_of_graph = 'time_from_end_to_end_of_groupstate'
-            plot = df_single_activity.plot.scatter(x=type_of_graph, y='norm_length')#, c='table-state');
-            p = np.polyfit(df_single_activity[type_of_graph], df_single_activity['norm_length'], 1)
-            poly = np.poly1d(p)
-            x = np.linspace(df_single_activity[type_of_graph].min(), df_single_activity[type_of_graph].min())
-            plt.plot(x, poly(x),"g--")
-
-            plot.set_ylabel("Time compared to mean")
-            plot.set_xlabel("Time from end to end of interval")
-            plot.set_title("Event Length compared to Period Length\n" + activity)
-            plt.xticks(rotation=90)
-            plt.gca().invert_xaxis()
-
-            plt.savefig(export_prefix + "tete-act-" + activity_fn + '.png', bbox_inches='tight', pad_inches=0.01)
-            plt.clf()
+            fname = 'tete-act-'
+            make_scatter_of_var(df_single_activity, type_of_graph, activity, fname)
 
         print("EXPORTED scatter of time before end")
 
