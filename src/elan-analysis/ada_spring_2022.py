@@ -99,10 +99,13 @@ def import_meals():
     BLANK_LABELS = [LABEL_NONE, LABEL_NONE, LABEL_NONE]
     TYPE_WAITER = 'waiter_action'
     TYPE_CUSTOMER_STATE = 'customer_state'
+    TYPE_CUSTOMER_A = 'customer_a'
+    TYPE_CUSTOMER_B = 'customer_b'
 
 
 
     overall_flow = []
+    overall_flow_customer_events = []
     waiter_events = []
     customer_states = []
 
@@ -190,6 +193,8 @@ def import_meals():
                             # frame_to_poseact[f_id] = feature_data
                             # print("added personA " + str(f_id))
 
+                        overall_flow_customer_events.append((meal, beginning_frame, ending_frame, activity, TYPE_CUSTOMER_A))
+
 
             elif child.tag == 'TIER' and child.attrib['TIER_ID'] == 'PersonB':
                  for annotation in child:
@@ -212,6 +217,8 @@ def import_meals():
 
                                 # print(log[meal, f_id])
 
+                        overall_flow_customer_events.append((meal, beginning_frame, ending_frame, activity, TYPE_CUSTOMER_B))
+
                             
     # print(log)
 
@@ -227,17 +234,27 @@ def import_meals():
     for meal, start, end, event, e_type in overall_flow:
         flow_per_meal[meal].append([start, end, event, e_type])
 
-    for meal in filenames_all:
-        df = pd.DataFrame(flow_per_meal[meal], columns = ['start_time', 'end_time', 'event', 'event_type']) 
-        df.to_csv(export_prefix + 'readable_highlevel_' + str(meal) + '.csv')
+    # for meal in filenames_all:
+    #     df = pd.DataFrame(flow_per_meal[meal], columns = ['start_time', 'end_time', 'event_label', 'event_of']) 
+    #     df.to_csv(export_prefix + 'readable_highlevel_' + str(meal) + '.csv')
+
+    # # CUSTOMER EVENT LENGTH LOG
+    # customer_events_per_meal = {}
+    # for meal in filenames_all:
+    #     customer_events_per_meal[meal] =[]
+
+    # for meal, start, end, event, e_type in overall_flow:
+    #     customer_events_per_meal[meal].append([start, end, event, e_type])
+
+    # for meal in filenames_all:
+    #     df_events = pd.DataFrame(customer_events_per_meal[meal], columns = ['start_time', 'end_time', 'event_label', 'event_of', 'group_state']) 
+    #     df_events.to_csv(export_prefix + 'all_events_' + str(meal) + '.csv')
 
 
     waiter_events = list(set(waiter_events))
     customer_states = list(set(customer_states))
 
     no_op = (meal, None, 'NOP', TYPE_WAITER)
-
-
 
 
     data_individual_meals = []
@@ -407,6 +424,7 @@ def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     # sns.countplot(df['person-A'])
     # sns.countplot(df['person-B'])
     histo = df['value'].value_counts().reindex(labels, fill_value=0)
+    # cm_sum = np.sum(cm, axis=normal_axis)
 
     # print(histo)
     # print("~~~~~~")
@@ -563,11 +581,71 @@ if __name__ == "__main__":
     # print all the unique table state labels found
     # print(table_state_labels)
 
-
     data = []
     table_state_emissions = {}
     activity_labels = activitydict_display
     labels = list(activity_labels)
+
+    # make analysis of lengths of different types of events
+    # and how those change within different group states
+
+    df_events_a = copy.copy(df)
+    df_events_b = copy.copy(df)
+    print(df_events_a.columns)
+
+    # TODO add cuts for meals
+    # https://datascience.stackexchange.com/questions/41428/how-to-find-the-count-of-consecutive-same-string-values-in-a-pandas-dataframe/41431
+    df_events_a['subgroup'] = (df_events_a['person-A'] != df_events_a['person-A'].shift(1)).cumsum()
+    df_events_b['subgroup'] = (df_events_b['person-B'] != df_events_b['person-B'].shift(1)).cumsum()
+    
+    events_a = []
+    events_b = []
+
+    event_datums = []
+    # event_datum = [meal, start, length, person, group_state]
+    for subgroup in df_events_a['subgroup'].unique():
+        block = df_events_a[df_events_a['subgroup'] == subgroup]
+        act_len = block.shape[0]
+        event_datum = block.iloc[0].to_dict()
+        event_datum['length'] = act_len
+        # removing key for B since this just addresses a streak of person a
+        event_datum['activity'] = event_datum['person-A']
+        event_datum.pop('person-B')
+       
+        event_datums.append(event_datum)
+
+    for subgroup in df_events_b['subgroup'].unique():
+        block = df_events_b[df_events_b['subgroup'] == subgroup]
+        act_len = block.shape[0]
+        event_datum = block.iloc[0].to_dict()
+        event_datum['length'] = act_len
+        event_datum['activity'] = event_datum['person-B']
+        # removing key for A since this just addresses a streak of person b
+        event_datum.pop('person-A')
+
+        event_datums.append(event_datum)
+
+    print("All events")
+    df_events = pd.DataFrame(event_datums)
+    print(df_events)
+    print(df_events.columns)
+
+
+    boxplot = df_events.boxplot(column=['length'], by=['activity'])
+    boxplot.set_ylabel("Time in ms")
+    boxplot.set_xlabel("Activity")
+    boxplot.set_title("Lengths of Events")
+    plt.xticks(rotation=90)
+    plt.savefig(export_prefix + 'activity_length_histo.png', bbox_inches='tight', pad_inches=0.01)
+    plt.clf()
+
+
+    # combinations of activity lengths and group states
+    exit()
+
+
+
+
 
     cm_analysis(df['person-A'], df['person-B'], 'all', labels)
 
@@ -601,12 +679,12 @@ if __name__ == "__main__":
     cols_emi = ["table-state"] + list(activity_labels)
     # print(cols_emi)
 
-
     d_emi = pd.DataFrame(data, columns = cols_emi) 
     # print(d_emi.columns)
     d_emi.to_csv(export_prefix + 'observations.csv')
 
     df.to_csv(export_prefix + 'all_data.csv')
+
 
 
     print("Done")
