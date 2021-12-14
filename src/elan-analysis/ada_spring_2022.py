@@ -636,8 +636,15 @@ if __name__ == "__main__":
         event_datum = block.iloc[0].to_dict()
         event_datum['length'] = act_len
         event_datum['activity'] = event_datum['person-A']
-        event_datum['time_from_start_to_end_of_groupstate'] = tablestate_subgroup_endtimes[event_datum['ts_subgroup']] - event_datum['timestamp']
-        event_datum['time_from_end_to_end_of_groupstate'] = tablestate_subgroup_endtimes[event_datum['ts_subgroup']] - event_datum['timestamp'] + act_len
+        tste = tablestate_subgroup_endtimes[event_datum['ts_subgroup']] - event_datum['timestamp']
+        tete = tablestate_subgroup_endtimes[event_datum['ts_subgroup']] - event_datum['timestamp'] + act_len
+        if tete < 0:
+            tete = 0
+        if tste < 0:
+            tste = 0
+
+        event_datum['time_from_start_to_end_of_groupstate'] = tste
+        event_datum['time_from_end_to_end_of_groupstate']   = tete
 
         # removing key for B since this just addresses a streak of person a
         event_datum.pop('person-B')
@@ -650,8 +657,16 @@ if __name__ == "__main__":
         event_datum = block.iloc[0].to_dict()
         event_datum['length'] = act_len
         event_datum['activity'] = event_datum['person-B']
-        event_datum['time_from_start_to_end_of_groupstate'] = tablestate_subgroup_endtimes[event_datum['ts_subgroup']] - event_datum['timestamp']
-        event_datum['time_from_end_to_end_of_groupstate'] = tablestate_subgroup_endtimes[event_datum['ts_subgroup']] - event_datum['timestamp'] + act_len
+        tste = tablestate_subgroup_endtimes[event_datum['ts_subgroup']] - event_datum['timestamp']
+        tete = tablestate_subgroup_endtimes[event_datum['ts_subgroup']] - event_datum['timestamp'] + act_len
+        if tete < 0:
+            tete = 0
+        if tste < 0:
+            tste = 0
+
+        # TODO verify why this wrap is needed
+        event_datum['time_from_start_to_end_of_groupstate'] = tste
+        event_datum['time_from_end_to_end_of_groupstate']   = tete
 
         # removing key for A since this just addresses a streak of person b
         event_datum.pop('person-A')
@@ -664,8 +679,9 @@ if __name__ == "__main__":
     for activity in activity_labels:
         single_activity = df_events.loc[(df_events['activity'] == activity)]
         activity_length_dict[activity] = single_activity['length'].mean()
-        
+    
     df_events['norm_length'] = df_events.apply(lambda x: x['length'] / activity_length_dict[x['activity']], axis=1)
+    # print(df_events['norm_length'])
 
     if FLAG_EXPORT_ACTIVITY_LENGTH_STATS:
         # https://towardsdatascience.com/violin-strip-swarm-and-raincloud-plots-in-python-as-better-sometimes-alternatives-to-a-boxplot-15019bdff8f8
@@ -678,6 +694,14 @@ if __name__ == "__main__":
         plt.savefig(export_prefix + 'activity_length_histo.png', bbox_inches='tight', pad_inches=0.01)
         plt.clf()
 
+        boxplot = sns.stripplot(y='norm_length', x='activity', data=df_events) 
+        boxplot.set_ylabel("Time in ratio")
+        boxplot.set_xlabel("Activity")
+        boxplot.set_title("Lengths of Events")
+        plt.xticks(rotation=90)
+        plt.savefig(export_prefix + 'activity_norm_histo.png', bbox_inches='tight', pad_inches=0.01)
+        plt.clf()
+
         boxplot = df_events.boxplot(column=['length'], by=['activity']) #, sort=False)
         boxplot.set_ylabel("Time in ms")
         boxplot.set_xlabel("Activity")
@@ -687,12 +711,62 @@ if __name__ == "__main__":
         plt.clf()
         print("EXPORTED activity length graphs")
 
-        
+        # combinations of activity lengths and group states
+        plot = df_events.plot.scatter(x='time_from_start_to_end_of_groupstate', y='norm_length')#, c='table-state');
+        plot.set_ylabel("Time compared to mean")
+        plot.set_xlabel("Time from start to end of interval")
+        plot.set_title("Event Length compared to Period Length")
+        plt.xticks(rotation=90)
+        plt.savefig(export_prefix + 'time_start_to_end_scatter.png', bbox_inches='tight', pad_inches=0.01)
+        plt.clf()
 
+        # combinations of activity lengths and group states
+        plot = df_events.plot.scatter(x='time_from_end_to_end_of_groupstate', y='norm_length') #, c='table-state');
+        plot.set_ylabel("Time compared to mean")
+        plot.set_xlabel("Time from end to end of interval")
+        plot.set_title("Event Length compared to Period Length")
+        plt.xticks(rotation=90)
+        plt.savefig(export_prefix + 'time_end_to_end_scatter.png', bbox_inches='tight', pad_inches=0.01)
+        plt.clf()
 
-    # combinations of activity lengths and group states
-    
+        for activity in activity_labels:
+            df_single_activity = df_events.loc[(df_events['activity'] == activity)]
+            activity_fn = activity.replace(":", "-")
+            # combinations of activity lengths and group states
+            type_of_graph = 'time_from_start_to_end_of_groupstate'
+            plot = df_single_activity.plot.scatter(x=type_of_graph, y='norm_length')#, c='table-state');
+            p = np.polyfit(df_single_activity[type_of_graph], df_single_activity['norm_length'], 1)
+            poly = np.poly1d(p)
+            x = np.linspace(df_single_activity[type_of_graph].min(), df_single_activity[type_of_graph].max())
+            plt.plot(x, poly(x),"r--")
 
+            plot.set_ylabel("Time compared to mean")
+            plot.set_xlabel("Time from start to end of interval")
+            plot.set_title("Event Length compared to Period Length\n" + activity)
+            plt.xticks(rotation=90)
+            plt.gca().invert_xaxis()
+
+            plt.savefig(export_prefix + "tste-act-" + activity_fn + '.png', bbox_inches='tight', pad_inches=0.01)
+            plt.clf()
+
+            # combinations of activity lengths and group states
+            type_of_graph = 'time_from_end_to_end_of_groupstate'
+            plot = df_single_activity.plot.scatter(x=type_of_graph, y='norm_length')#, c='table-state');
+            p = np.polyfit(df_single_activity[type_of_graph], df_single_activity['norm_length'], 1)
+            poly = np.poly1d(p)
+            x = np.linspace(df_single_activity[type_of_graph].min(), df_single_activity[type_of_graph].min())
+            plt.plot(x, poly(x),"g--")
+
+            plot.set_ylabel("Time compared to mean")
+            plot.set_xlabel("Time from end to end of interval")
+            plot.set_title("Event Length compared to Period Length\n" + activity)
+            plt.xticks(rotation=90)
+            plt.gca().invert_xaxis()
+
+            plt.savefig(export_prefix + "tete-act-" + activity_fn + '.png', bbox_inches='tight', pad_inches=0.01)
+            plt.clf()
+
+        print("EXPORTED scatter of time before end")
 
 
 
