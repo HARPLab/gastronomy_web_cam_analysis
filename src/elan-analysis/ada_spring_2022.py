@@ -682,40 +682,39 @@ if __name__ == "__main__":
 
 
     # combinations of activity lengths and group states
-    exit()
+    
+
+    
 
 
+    if FLAG_EXPORT_CM:
+        cm_analysis(df['person-A'], df['person-B'], 'all', labels)
+
+        # Operations per-table-state
+        for ts in table_state_labels:
+            datum = [ts]
+
+            df_ts = df.loc[(df['table-state'] == ts)]
+            total = len(df_ts)
+
+            cm_analysis(df_ts['person-A'], df_ts['person-B'], ts, labels)
+            activity_fingerprint(df_ts, labels, ts)
+
+            for activity in activity_labels:
+                entries_A = df.loc[(df['person-A'] == activity) & (df['table-state'] == ts)]
+                entries_B = df.loc[(df['person-B'] == activity) & (df['table-state'] == ts)]
+                num_entries = len(entries_A) + len(entries_B)
+
+                if num_entries != 0:
+                    value = (num_entries / (1.0 * total))
+                else:
+                    value = 0
 
 
+                table_state_emissions[activity] = value
+                datum.append(value)
 
-    cm_analysis(df['person-A'], df['person-B'], 'all', labels)
-
-    # Operations per-table-state
-    for ts in table_state_labels:
-        datum = [ts]
-
-        df_ts = df.loc[(df['table-state'] == ts)]
-        total = len(df_ts)
-
-        cm_analysis(df_ts['person-A'], df_ts['person-B'], ts, labels)
-        activity_fingerprint(df_ts, labels, ts)
-
-        for activity in activity_labels:
-            entries_A = df.loc[(df['person-A'] == activity) & (df['table-state'] == ts)]
-            entries_B = df.loc[(df['person-B'] == activity) & (df['table-state'] == ts)]
-            num_entries = len(entries_A) + len(entries_B)
-
-            if num_entries != 0:
-                value = (num_entries / (1.0 * total))
-            else:
-                value = 0
-
-
-            table_state_emissions[activity] = value
-            datum.append(value)
-
-        data.append(datum)
-
+            data.append(datum)
 
     cols_emi = ["table-state"] + list(activity_labels)
     # print(cols_emi)
@@ -725,7 +724,7 @@ if __name__ == "__main__":
     d_emi.to_csv(export_prefix + 'observations.csv')
 
     df.to_csv(export_prefix + 'all_data.csv')
-
+    print("Exported csvs of all")
 
 
     print("Done")
