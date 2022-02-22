@@ -47,6 +47,7 @@ def parseXML(elanfile):
     print(root.tag)
 
 FLAG_EXPORT_ACTIVITY_LENGTH_STATS   = True
+FLAG_EXPORT_ACTIVITY_SCATTER        = False
 FLAG_EXPORT_CM                      = True
 
 # Import the five annotated files
@@ -54,6 +55,8 @@ filename_root = "8-21-18"
 filenames_all = ['8-13-18', '8-17-18', '8-18-18', '8-21-18', '8-9-18']
 
 export_prefix = 'outputs-2022/'
+
+time_multiplier_val = 33.3333
 
 timedict = {}
 activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'talking': 4, 'ordering': 5, 'standing':6,
@@ -87,6 +90,29 @@ def get_label_from_block(temp):
         activity_label = anno.text
 
     return activity_label
+
+def to_3sf(number):
+    to_str = "{:.2e}".format(number)
+    expon = int(to_str.split("e")[1])
+    if expon in [-1, -2, 0, 1]:
+        to_str = "{:.3f}".format(number)
+    if expon in [2, 3, 4, 5, 6, 7, 8, 9]:
+        to_str = to_str.split("e")[0] + "e" + str(expon)
+    if expon in [-2, -3, -4, -5, -6, -7, -8, -9]:
+        to_str = to_str.split("e")[0] + "e" + str(expon)
+    return to_str
+
+def to_1sf(number):
+    # to_str = "{:.1e}".format(number)
+    to_str = "{0:.1f}".format(number)
+    # expon = int(to_str.split("e")[1])
+    # if expon in [-1, -2, 0, 1]:
+    #     to_str = "{:.3f}".format(number)
+    # if expon in [2, 3, 4, 5, 6, 7, 8, 9]:
+    #     to_str = to_str.split("e")[0] + "e" + str(expon)
+    # if expon in [-2, -3, -4, -5, -6, -7, -8, -9]:
+    #     to_str = to_str.split("e")[0] + "e" + str(expon)
+    return to_str
 
 def import_meals():
     ## database initialization
@@ -130,8 +156,8 @@ def import_meals():
                     # print(annotation)
                     label = ""
                     for temp in annotation:
-                        beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
-                        ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+                        beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//time_multiplier_val)
+                        ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//time_multiplier_val)
                         # print(beginning_frame, ending_frame)
                        
                         label = LABEL_NONE
@@ -150,8 +176,8 @@ def import_meals():
                     # print(annotation)
                     label = ""
                     for temp in annotation:
-                        beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
-                        ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+                        beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//time_multiplier_val)
+                        ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//time_multiplier_val)
                         # print(beginning_frame, ending_frame)
                        
                         label = LABEL_NONE
@@ -176,8 +202,8 @@ def import_meals():
                     for temp in annotation: ## this should only loop once, couldnt figure out how to access a child xml tag without looping
                         #print(temp.attrib['TIME_SLOT_REF1'])
                         ## beginning frame
-                        beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
-                        ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+                        beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//time_multiplier_val)
+                        ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//time_multiplier_val)
                         
                         activity = LABEL_NONE
                         # for each of the labeled activities in this block of time
@@ -204,8 +230,8 @@ def import_meals():
                     # print("adding PersonB's annotations...")
                     for temp in annotation: ## this should only loop once, couldnt figure out how to access a child xml tag without looping
                         ## beginning frame
-                        beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//33.3333)
-                        ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//33.3333)
+                        beginning_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF1']])//time_multiplier_val)
+                        ending_frame = int(int(timedict[temp.attrib['TIME_SLOT_REF2']])//time_multiplier_val)
                         activity = LABEL_NONE
                         for anno in temp: ## another single iteration loop
                             activity = anno.text
@@ -411,6 +437,9 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
     plt.clf()
 
 
+def to_seconds(value):
+    return (value * time_multiplier_val) / 1000.0
+
 def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     # Update to normalize
     # https://stackoverflow.com/questions/35692781/python-plotting-percentage-in-seaborn-bar-plot
@@ -562,14 +591,18 @@ def clean_df(df):
 
     return df
 
-def make_scatter_of_var(df_events, type_of_graph, activity, fname):
+def make_scatter_of_var(df_events, x, y, activity, fname):
     activity_fn = activity.replace(":", "-")
 
-    plot = df_events.plot.scatter(x=type_of_graph, y='norm_length')#, c='table-state');
-    p = np.polyfit(df_events[type_of_graph], df_events['norm_length'], 1)
-    poly = np.poly1d(p)
-    x = np.linspace(df_events[type_of_graph].min(), df_events[type_of_graph].max())
-    plt.plot(x, poly(x),"r--")
+    type_of_graph = x
+
+    # print(df_events.columns)
+
+    plot = df_events.plot.scatter(x=type_of_graph, y=y)#, c='table-state');
+    # y1, r, *_ = np.polyfit(df_events[type_of_graph], df_events['norm_length'], 1)
+    # poly = np.poly1d(y1)
+    # x = np.linspace(df_events[type_of_graph].min(), df_events[type_of_graph].max())
+    # plt.plot(x, poly(x),"r--", label=f"linear (y = {y1:0.2f})")
 
     plot.set_ylabel("Time compared to mean")
     plot.set_xlabel("Time from end to end of interval")
@@ -747,24 +780,124 @@ if __name__ == "__main__":
         plt.savefig(export_prefix + 'time_end_to_end_scatter.png', bbox_inches='tight', pad_inches=0.01)
         plt.clf()
 
+        total_time = df_events['length'].sum()
+        all_means = []
+        all_percents = []
+
         for activity in activity_labels:
             df_single_activity = df_events.loc[(df_events['activity'] == activity)]
-            # combinations of activity lengths and group states
-            type_of_graph = 'time_from_start_to_end_of_groupstate'
-            fname = 'tste-act-'
-            make_scatter_of_var(df_single_activity, type_of_graph, activity, fname)
+            print(activity)
+            
+            mean_time = to_seconds(df_single_activity['length'].mean())
+            all_means.append(mean_time)
+            mean_time = to_1sf(mean_time)
 
-            # combinations of activity lengths and group states
-            type_of_graph = 'time_from_end_to_end_of_groupstate'
-            fname = 'tete-act-'
-            make_scatter_of_var(df_single_activity, type_of_graph, activity, fname)
+            # print("Avg time: ")
+            # print(str(mean_time) + " s")
+            # print(df_single_activity.shape)
+            percent_of_total = df_single_activity['length'].sum() / total_time
+            percent_of_total = percent_of_total * 100.0
+            all_percents.append(percent_of_total)
+            percent_of_total = to_1sf(percent_of_total)
+            # print(str(percent_of_total) + "\\%")
+
+            num_events = len(df_single_activity['Meal ID'].unique())
+
+            # output for latex
+            print(mean_time + "s" + "\t& " + percent_of_total + "\\% \t&" + str(num_events) + "\\\\")
+
+        print("TOTAL PERCENTS: " + str(sum(all_percents)))
+
+        if FLAG_EXPORT_ACTIVITY_SCATTER:
+            for activity in activity_labels:
+                # combinations of activity lengths and group states
+                type_of_graph = 'time_from_start_to_end_of_groupstate'
+                fname = 'tste-act-'
+                make_scatter_of_var(df_single_activity, type_of_graph, 'norm_length', activity, fname)
+
+                # combinations of activity lengths and group states
+                type_of_graph = 'time_from_end_to_end_of_groupstate'
+                fname = 'tete-act-'
+                make_scatter_of_var(df_single_activity, type_of_graph, 'norm_length', activity, fname)
 
         print("EXPORTED scatter of time before end")
+        # exit()
 
+    types_of_metric = ['norm_length', 'length']
+    type_of_y = ['time_from_start_to_end_of_groupstate', 'time_from_end_to_end_of_groupstate']
+
+    if FLAG_EXPORT_ACTIVITY_SCATTER:
+        all_datum = []
+        for ts in df_events['table-state'].unique():
+            for activity in activity_labels:
+                df_target = df_events.loc[(df_events['activity'] == activity) & (df_events['table-state'] == ts)]
+
+                # type_of_graph = 'time_from_start_to_end_of_groupstate'
+                # fname = 'cross-tste-'
+                # make_scatter_of_var(df_target, type_of_graph, 'norm_length', activity, fname)
+
+                # # combinations of activity lengths and group states
+                # type_of_graph = 'time_from_end_to_end_of_groupstate'
+                # fname = 'cross-tete-' + ts + "-" + activity.replace(":", '-')
+                # make_scatter_of_var(df_target, type_of_graph, 'norm_length', activity, fname)
+
+                for metric in types_of_metric:
+                    for y_type in type_of_y:
+                        try:
+                            y1, r, *_ = np.polyfit(df_target[y_type], df_target[metric], 1)
+                        except TypeError:
+                            y1 = 0
+
+                        polarity = int(0)
+                        if y1 < 0:
+                            polarity = int(-1)
+                        if y1 > 0:
+                            polarity = int(+1)
+
+                        datum = [ts, activity, metric, y_type, y1, polarity]
+                        all_datum.append(datum)
+
+        df_trends = pd.DataFrame(all_datum, columns = ['table-state', 'activity', 'metric', 'y_type', 'y1', 'polarity'])
+
+        # coloring = sns.color_palette("vlag", as_cmap=True)
+        coloring = sns.diverging_palette(250, 30, l=65, center="dark", as_cmap=True)
+        # coloring = sns.color_palette("coolwarm", as_cmap=True)
+        # coloring = sns.color_palette("Spectral", as_cmap=True)
+        # coloring = "YlOrRd_r"
+        # coloring = sns.color_palette("RdYlGn")
+        # https://stackoverflow.com/questions/56536419/how-to-set-center-color-in-heatmap
+
+        for metric in types_of_metric:
+            for y_type in type_of_y:
+                df_target = df_trends.loc[(df_trends['metric'] == metric) & (df_trends['y_type'] == y_type)]
+                df_target = df_target.pivot(index='activity', columns='table-state', values='polarity')
+
+                # cmap=coloring
+
+                res_labels = sns.heatmap(df_target, annot=True, square=True, annot_kws={"size": 6}, cbar=False)
+                for t in res_labels.texts: 
+                    if t.get_text() == "0":
+                        t.set_text("")
+
+                res_labels.xaxis.tick_top() # x axis on top
+                res_labels.xaxis.set_label_position('top')
+                res_labels.set_xticklabels(res_labels.get_xmajorticklabels(), rotation=90)
+
+                # plt.set_title("Trends over time")
+                plt.savefig(export_prefix + metric + y_type + "_impact.png", bbox_inches='tight', pad_inches=0.01)
+                plt.clf()
 
 
     if FLAG_EXPORT_CM:
-        cm_analysis(df['person-A'], df['person-B'], 'all', labels)
+        target_aux1 = copy.copy(df)
+        target_aux2 = copy.copy(df)
+        target_aux2['person-A'] = df['person-B']
+        target_aux2['person-B'] = df['person-A']
+        
+        target_aux = target_aux1.append(target_aux2)
+
+        cm_analysis(df['person-A'], df['person-B'], 'all-ab', labels)
+        cm_analysis(target_aux['person-A'], target_aux['person-B'], 'all-targetaux', labels)
 
         # Operations per-table-state
         for ts in table_state_labels:
