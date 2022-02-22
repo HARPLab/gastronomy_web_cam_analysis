@@ -185,11 +185,14 @@ def import_meals():
                         for anno in temp: ## another single iteration loop
                             label = anno.text
 
+                        # fill in with blank notes if we don't have something here
                         for f_id in range(beginning_frame, ending_frame):
                             if (meal, f_id) not in log.keys():
                                 log[(meal, f_id)] = copy.copy(BLANK_LABELS)
                             
                             log[(meal, f_id)][0] = label
+
+
 
                         overall_flow.append((meal, beginning_frame, ending_frame, label, TYPE_CUSTOMER_STATE))
                         customer_states.append(label)
@@ -255,13 +258,111 @@ def import_meals():
     # Process the overall flow
     # list of (meal_id, timestamp, label)
 
+    # Fill in weird gaps in overall_flow
+    # where there's places with no middle section between customer_states
+
+    overall_flow = sorted(overall_flow)
+    BLANK_SLATE_CUSTOMER_STATE = (meal, 0, 0, LABEL_NONE, TYPE_CUSTOMER_STATE)
+    BLANK_SLATE_WAITER_STATE = (meal, 0, 0, LABEL_NONE, TYPE_WAITER)
+
+    prev_meal = None
+    prev_customer_state = None
+
+    meal_prev, start_prev, end_prev, event_prev, e_type_prev = BLANK_SLATE_CUSTOMER_STATE
+    meal_waiter_prev, start_waiter_prev, end_waiter_prev, event_waiter_prev, e_type_waiter_prev = BLANK_SLATE_WAITER_STATE
+
+    new_overall_flow = []
+    for o in overall_flow:
+        is_no_edit = True
+
+        m_current, start_current, end_current, event_current, e_type_current = o
+
+        if m_current != prev_meal:
+            print("New meal to parse!")
+            prev_meal = m_current
+            prev_customer_state = BLANK_SLATE_CUSTOMER_STATE
+
+        if e_type_current == TYPE_WAITER:
+            meal_waiter_prev, start_waiter_prev, end_waiter_prev, event_waiter_prev, e_type_waiter_prev = o
+
+        elif e_type_current == TYPE_CUSTOMER_STATE:
+            meal_cs_prev, start_cs_prev, end_cs_prev, event_cs_prev, e_type_cs_prev = prev_customer_state
+
+            # print()
+            # print(event_cs_prev + " -> " + event_current)
+            # print(e_type_current + "\t: " + event_current)
+            
+            if event_current == 'table-waiting':
+                is_no_edit = False
+
+                if event_cs_prev == 'reading-menus':
+                    new_event_name = 'ready-to-order'
+                elif event_cs_prev == 'ready-to-order':
+                    new_event_name = 'waiting-for-food'
+                elif event_cs_prev == 'ready-for-cleanup':
+                    new_event_name = 'waiting-for-bill'    
+                elif event_cs_prev == 'ready-for-bill':
+                    new_event_name = 'paying-bill'
+                elif event_cs_prev == 'eating':
+                    new_event_name = 'ready-for-cleanup'
+                elif event_cs_prev == 'ready-for-final-check':
+                    new_event_name = 'paying-final-check'
+                elif event_cs_prev == 'ready-to-leave':
+                    new_event_name = 'leaving'
+                else:
+                    new_event_name = 'testy'
+                    print("Needs a change!")
+
+                customer_states.append(new_event_name)
+
+                new_o = (m_current, start_current, end_current, new_event_name, e_type_current)
+                prev_customer_state = new_o
+            
+            else:
+                prev_customer_state = o
+
+            if False:
+                gap_size = start_current - end_prev
+                if gap_size > 1000:
+                    print("Hey we need something here!")
+                    print(gap_size)
+                    print(e_type_current)
+                    print(event_prev + " -> " + event_current)
+                    print(str(start_current) + " -> " + str(end_prev))
+
+        if is_no_edit:
+            new_overall_flow.append(o)
+        else:
+            # print("Added new guy!")
+            new_overall_flow.append(new_o)
+
+
+    # print("-------------------------------")
+    
+    print("***Labeling unlabeled table-waiting events")
+    overall_flow = new_overall_flow
+    
+    # for o in overall_flow:
+    #     m_current, start_current, end_current, event_current, e_type_current = o
+    #     if e_type_current == TYPE_CUSTOMER_STATE:
+    #         meal_cs_prev, start_cs_prev, end_cs_prev, event_cs_prev, e_type_cs_prev = prev_customer_state
+    #         # print(o)
+    #     else:
+    #         # print(e_type_current + "\t: " + event_current + "\t" + str(start_current) + " - " + str(end_current))
+        
+    #         # print(event_cs_prev + " -> " + event_current)
+    #         # print(e_type_current + "\t: " + event_current)
+    #         pass
+
     # print(overall_flow)
     flow_per_meal = {}
     for meal in filenames_all:
-        flow_per_meal[meal] =[]
+        flow_per_meal[meal] = []
 
     for meal, start, end, event, e_type in overall_flow:
         flow_per_meal[meal].append([start, end, event, e_type])
+
+
 
     # for meal in filenames_all:
     #     df = pd.DataFrame(flow_per_meal[meal], columns = ['start_time', 'end_time', 'event_label', 'event_of']) 
@@ -283,7 +384,10 @@ def import_meals():
     waiter_events = list(set(waiter_events))
     customer_states = list(set(customer_states))
 
-    no_op = (meal, None, 'NOP', TYPE_WAITER)
+    print(waiter_events)
+    print(customer_states)
+
+    no_op = 'NOP'
 
 
     data_individual_meals = []
@@ -294,46 +398,69 @@ def import_meals():
         print("Adding timeline info for " + meal)
         timeline = list(filter(lambda entry: entry[0] == meal, overall_flow))
         timeline.sort(key=lambda x: x[1])
-        prev_event = (meal, 0, 'NONE', TYPE_CUSTOMER_STATE)
-        prev_action = no_op
+        prev_event = (meal, 0, 0, 'NONE', TYPE_CUSTOMER_STATE)
+        prev_action = (meal, 0, 0, no_op, TYPE_WAITER)
         data = []
 
         # Constants for reading/interpreting each of the entries
         INDEX_MEALID = 0
-        INDEX_TIMESTAMP = 1
-        INDEX_LABEL = 2
-        INDEX_TYPE = 3
+        INDEX_TIMESTAMP_START = 1
+        INDEX_TIMESTAMP_END = 2
+        INDEX_LABEL = 3
+        INDEX_TYPE = 4
 
         for event in timeline:
             # print(event)
             # if the waiter took a novel action, ex not a NO-OP, then hold onto it
+            print("===")
+            print(prev_event)
+            print(prev_action)
+            print(event)
+            
+
             if prev_event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_TYPE] == TYPE_WAITER:
                 # if it's the unique waiter event
                 if event[INDEX_LABEL] not in ['arriving', 'leaving']:
                     prev_action = event
+                    datum = [meal, prev_event[INDEX_LABEL], prev_action[INDEX_LABEL], prev_event[INDEX_LABEL], event[INDEX_TIMESTAMP_START], event[INDEX_TIMESTAMP_END]]
+                    data.append(datum)
+                    print("!!1 pushed back waiter event")
 
             # if we have a transition between two events
             elif prev_event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_TYPE] == TYPE_CUSTOMER_STATE:
                 # read it off and record it 
                 # into a list of tuples, for future parsing
-                datum = [meal, prev_event[INDEX_LABEL], prev_action[INDEX_LABEL], event[INDEX_LABEL], prev_event[INDEX_TIMESTAMP], event[INDEX_TIMESTAMP]]
+
+                #TODO verify the stamps are all good
+                datum = [meal, prev_event[INDEX_LABEL], prev_action[INDEX_LABEL], event[INDEX_LABEL], prev_event[INDEX_TIMESTAMP_END], event[INDEX_TIMESTAMP_START]]
                 data.append(datum)
-                # print("added " + str(prev_event[INDEX_LABEL]) + " --" + prev_action[INDEX_LABEL] + "--> " + event[INDEX_LABEL])
+                print("added " + str(prev_event[INDEX_LABEL]) + " --" + prev_action[INDEX_LABEL] + "--> " + event[INDEX_LABEL])
 
-                prev_event = event
-                prev_action = no_op
+                prev_event  = event
+                new_nop     = (meal, start, end, no_op, TYPE_WAITER)
+                prev_action = new_nop
 
-            elif prev_event[INDEX_LABEL] == 'NONE':
-                prev_event = event
-
+            elif prev_action[INDEX_TYPE] == TYPE_WAITER and event[INDEX_TYPE] == TYPE_WAITER:
+                if event[INDEX_LABEL] not in ['arriving', 'leaving']:
+                    prev_action = event
+                    #TODO record a no-op
+                    print("!!2 pushed back waiter event")
             else:
-                # print("ERR")
-                # print(prev_event)
-                # print(prev_action)
-                # print(event)
-                # print("~~~")
+                print("ERR")
+                print(prev_event)
+                print(prev_action)
+                print(event)
+                print("~~~")
                 pass
 
+            if prev_event[INDEX_LABEL] == 'NONE' and event[INDEX_TYPE] == TYPE_CUSTOMER_STATE:
+                prev_event = event
+                print("Replaced event NONE")
+
+
+        print("~~~~~~~~~~~~~~")
+        print(data)
+        # exit()
         data_individual_meals.append(data)
         data_all.extend(data)
 
@@ -488,14 +615,14 @@ def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     # sns.barplot(x = "class", y = "survived", hue = "embark_town", data = titanic_dataset)
 
 # Make nice graph
-# import pydot_ng as pydot
-# from pydot_ng import Dot, Edge,Node
+import pydot as pydot
+# from pydot import Dot, Edge, Node
 
 def make_graph(data, graph_label, customer_states):
     # print(data)
     data_overview = []
 
-    g = Dot()
+    g = pydot.Dot()
     g.set_node_defaults(color='lightgray',
                         style='filled',
                         shape='box',
@@ -508,7 +635,7 @@ def make_graph(data, graph_label, customer_states):
         label = customer_states[i]
         label = label.replace(':', "-")
 
-        new_node = Node(label)
+        new_node = pydot.Node(label)
         col = colors_viridis(i)
         col = matplotlib.colors.rgb2hex(col)
         new_node.set_color(col)
@@ -616,9 +743,10 @@ def make_scatter_of_var(df_events, x, y, activity, fname):
 if __name__ == "__main__":
     # transition log columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at']
     transition_log, data_individual_meals, data_all, customer_states, log = import_meals()
-
+    
     graph_data = data_individual_meals
     graph_data.append(data_all)
+
 
     graph_names = filenames_all
     graph_names.append("all")
@@ -626,7 +754,7 @@ if __name__ == "__main__":
     for i in range(len(graph_data)):
         data_list = graph_data[i]
         graph_name = graph_names[i]
-        # make_graph(data_list, graph_name, customer_states)
+        make_graph(data_list, graph_name, customer_states)
 
 
     data = []
@@ -645,6 +773,7 @@ if __name__ == "__main__":
 
     # POST ANALYSIS
     table_state_labels = df['table-state'].unique()
+    print(table_state_labels)
     # print all the unique table state labels found
     # print(table_state_labels)
 
