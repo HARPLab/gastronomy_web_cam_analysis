@@ -46,9 +46,9 @@ def parseXML(elanfile):
     return root
     print(root.tag)
 
-FLAG_EXPORT_ACTIVITY_LENGTH_STATS   = True
+FLAG_EXPORT_ACTIVITY_LENGTH_STATS   = False
 FLAG_EXPORT_ACTIVITY_SCATTER        = False
-FLAG_EXPORT_CM                      = True
+FLAG_EXPORT_CM                      = False
 
 # Import the five annotated files
 filename_root = "8-21-18"
@@ -261,6 +261,8 @@ def import_meals():
     # Fill in weird gaps in overall_flow
     # where there's places with no middle section between customer_states
 
+    customer_states = []
+
     overall_flow = sorted(overall_flow)
     BLANK_SLATE_CUSTOMER_STATE = (meal, 0, 0, LABEL_NONE, TYPE_CUSTOMER_STATE)
     BLANK_SLATE_WAITER_STATE = (meal, 0, 0, LABEL_NONE, TYPE_WAITER)
@@ -270,6 +272,8 @@ def import_meals():
 
     meal_prev, start_prev, end_prev, event_prev, e_type_prev = BLANK_SLATE_CUSTOMER_STATE
     meal_waiter_prev, start_waiter_prev, end_waiter_prev, event_waiter_prev, e_type_waiter_prev = BLANK_SLATE_WAITER_STATE
+
+    i_meal, i_start, i_end, i_label, i_type = 0,1,2,3,4
 
     new_overall_flow = []
     for o in overall_flow:
@@ -295,20 +299,27 @@ def import_meals():
             if event_current == 'table-waiting':
                 is_no_edit = False
 
-                if event_cs_prev == 'reading-menus':
-                    new_event_name = 'ready-to-order'
-                elif event_cs_prev == 'ready-to-order':
-                    new_event_name = 'waiting-for-food'
-                elif event_cs_prev == 'ready-for-cleanup':
-                    new_event_name = 'waiting-for-bill'    
-                elif event_cs_prev == 'ready-for-bill':
-                    new_event_name = 'paying-bill'
-                elif event_cs_prev == 'eating':
-                    new_event_name = 'ready-for-cleanup'
-                elif event_cs_prev == 'ready-for-final-check':
-                    new_event_name = 'paying-final-check'
+                # if event_cs_prev == 'reading-menus':
+                #     new_event_name = 'ready-to-order'
+
+                if event_cs_prev == 'ready-to-order':
+                    new_event_name = 'ready-for-food' #for-food'
+                
+                # elif event_cs_prev == 'eating':
+                #     new_event_name = 'waiting-2' # 'ready-for-cleanup'
+                
+                # elif event_cs_prev == 'ready-for-cleanup':
+                #     new_event_name = 'waiting-3' #'waiting-for-bill'    
+                
+                # elif event_cs_prev == 'ready-for-bill':
+                #     new_event_name = 'paying-bill'
+                
+                # elif event_cs_prev == 'ready-for-final-check':
+                #     new_event_name = 'paying-final-check'
+                
                 elif event_cs_prev == 'ready-to-leave':
                     new_event_name = 'leaving'
+                
                 else:
                     new_event_name = 'testy'
                     print("Needs a change!")
@@ -332,9 +343,13 @@ def import_meals():
 
         if is_no_edit:
             new_overall_flow.append(o)
+            if o[i_type] == TYPE_CUSTOMER_STATE:
+                customer_states.append(o[i_label])
         else:
             # print("Added new guy!")
             new_overall_flow.append(new_o)
+            if new_o[i_type] == TYPE_CUSTOMER_STATE:
+                customer_states.append(new_o[i_label])
 
 
     # print("-------------------------------")
@@ -363,6 +378,43 @@ def import_meals():
         flow_per_meal[meal].append([start, end, event, e_type])
 
 
+    def pick_dominant_waiter_action(action_list):
+        all_others = []
+        best_action = None
+        best_action_label = None
+
+        dom_order = [None, 'NOP', 'take:info']
+        
+        for act in action_list:
+            if best_action == None:
+                best_action = act
+                best_action_label = act[3]
+
+            act_label = act[3]
+            if act_label in dom_order:
+                act_index       = dom_order.index(act_label)
+            else:
+                act_index       = 100
+
+            if best_action_label in dom_order:
+                best_index      = dom_order.index(best_action_label)
+            else:
+                best_index      = 100
+
+            if act_index > best_index:
+                # print(act_label + " beats " + best_action_label)
+                if best_action_label != 'NOP':
+                    all_others.append(best_action)
+    
+                best_action = act
+                best_action_label = act[3]
+            else:
+                # print("Tie between " + act_label + " & " + best_action_label)
+                # print(act_index)
+                # print(best_index)
+                all_others.append(best_action)
+
+        return best_action, all_others
 
     # for meal in filenames_all:
     #     df = pd.DataFrame(flow_per_meal[meal], columns = ['start_time', 'end_time', 'event_label', 'event_of']) 
@@ -384,11 +436,10 @@ def import_meals():
     waiter_events = list(set(waiter_events))
     customer_states = list(set(customer_states))
 
-    print(waiter_events)
-    print(customer_states)
+    # print(waiter_events)
+    # print(customer_states)
 
     no_op = 'NOP'
-
 
     data_individual_meals = []
     data_all = []
@@ -399,8 +450,11 @@ def import_meals():
         timeline = list(filter(lambda entry: entry[0] == meal, overall_flow))
         timeline.sort(key=lambda x: x[1])
         prev_event = (meal, 0, 0, 'NONE', TYPE_CUSTOMER_STATE)
-        prev_action = (meal, 0, 0, no_op, TYPE_WAITER)
+        prev_actions = [(meal, 0, 0, no_op, TYPE_WAITER)]
         data = []
+
+        action_block_start  = 0
+        action_block_end    = 0
 
         # Constants for reading/interpreting each of the entries
         INDEX_MEALID = 0
@@ -414,37 +468,98 @@ def import_meals():
             # if the waiter took a novel action, ex not a NO-OP, then hold onto it
             print("===")
             print(prev_event)
-            print(prev_action)
+            transition_action, all_others = pick_dominant_waiter_action(prev_actions)
+            print(transition_action)
             print(event)
+            is_event_transition = False
             
 
-            if prev_event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_TYPE] == TYPE_WAITER:
-                # if it's the unique waiter event
+            if event[INDEX_TYPE] == TYPE_WAITER:
+
+                gap_from_prev_action = event[INDEX_TIMESTAMP_START] - action_block_end
+                # if we're not part of the current waiter block, then handle it
+                if gap_from_prev_action < 1000:
+                    action_block_end = event[INDEX_TIMESTAMP_END]
+
+                # if these events passed without comment...
+                else:
+                    for pa in prev_actions:
+                        pa_m, pa_s, pa_e, pa_label, pa_type = pa
+                        if pa_label != 'NOP':
+                            datum = [meal, prev_event[INDEX_LABEL], pa[INDEX_LABEL], prev_event[INDEX_LABEL], pa[INDEX_TIMESTAMP_START], pa[INDEX_TIMESTAMP_END]]
+                            print('waiter events within a thing 2')
+                            print(datum)
+                            data.append(datum)
+
+                    action_block_start = event[INDEX_TIMESTAMP_START]
+
+
+                 # if it's the unique waiter event
                 if event[INDEX_LABEL] not in ['arriving', 'leaving']:
-                    prev_action = event
-                    datum = [meal, prev_event[INDEX_LABEL], prev_action[INDEX_LABEL], prev_event[INDEX_LABEL], event[INDEX_TIMESTAMP_START], event[INDEX_TIMESTAMP_END]]
-                    data.append(datum)
-                    print("!!1 pushed back waiter event")
+                    prev_actions.append(event)
+            
+                action_block_end = event[INDEX_TIMESTAMP_END]
+
+
+                # # Add the best waiter event
+                # datum = [meal, prev_event[INDEX_LABEL], prev_action[INDEX_LABEL], transition_event[INDEX_LABEL], event[INDEX_TIMESTAMP_START], event[INDEX_TIMESTAMP_END]]
+                # data.append(datum)
+                # print("!!1 pushed back waiter event")
 
             # if we have a transition between two events
-            elif prev_event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_TYPE] == TYPE_CUSTOMER_STATE:
+            elif event[INDEX_TYPE] == TYPE_CUSTOMER_STATE:
                 # read it off and record it 
                 # into a list of tuples, for future parsing
 
-                #TODO verify the stamps are all good
-                datum = [meal, prev_event[INDEX_LABEL], prev_action[INDEX_LABEL], event[INDEX_LABEL], prev_event[INDEX_TIMESTAMP_END], event[INDEX_TIMESTAMP_START]]
-                data.append(datum)
-                print("added " + str(prev_event[INDEX_LABEL]) + " --" + prev_action[INDEX_LABEL] + "--> " + event[INDEX_LABEL])
+                new_pa = []
+                for pa in prev_actions:
+                    pa_m, pa_s, pa_e, pa_label, pa_type = pa
+                    offset_before_next_event = event[INDEX_TIMESTAMP_START] - pa_e
 
-                prev_event  = event
-                new_nop     = (meal, start, end, no_op, TYPE_WAITER)
-                prev_action = new_nop
+                    if pa_s > prev_event[INDEX_TIMESTAMP_START] and pa_e < prev_event[INDEX_TIMESTAMP_END] and offset_before_next_event > 1000:
+                        if pa_label != 'NOP':
+                            datum = [meal, prev_event[INDEX_LABEL], pa_label, prev_event[INDEX_LABEL], pa[INDEX_TIMESTAMP_START], pa[INDEX_TIMESTAMP_END]]
+                            print('waiter events within a thing')
+                            print(datum)
+                            data.append(datum)
+                    else:
+                        new_pa.append(pa)
 
-            elif prev_action[INDEX_TYPE] == TYPE_WAITER and event[INDEX_TYPE] == TYPE_WAITER:
-                if event[INDEX_LABEL] not in ['arriving', 'leaving']:
-                    prev_action = event
-                    #TODO record a no-op
-                    print("!!2 pushed back waiter event")
+                prev_actions = new_pa
+
+                transition_action, all_others = pick_dominant_waiter_action(prev_actions)
+
+                # Add all the no-op events
+                for ao in all_others:
+                    if ao[INDEX_LABEL] != 'NOP':
+                        datum = [meal, event[INDEX_LABEL], ao[INDEX_LABEL], event[INDEX_LABEL], ao[INDEX_TIMESTAMP_START], ao[INDEX_TIMESTAMP_END]]
+                        data.append(datum)
+
+
+                is_filler_event = False
+                if event[INDEX_LABEL] == 'testy': # and event[INDEX_TIMESTAMP_START] and event[INDEX_TIMESTAMP_END]:
+                    print("I think this is a false event")
+                    event_length = event[INDEX_TIMESTAMP_END] - event[INDEX_TIMESTAMP_START]
+                    print(event_length)
+                    is_filler_event = True
+
+                    if event_length < 3000:
+                        is_filler_event = True
+                    print(event)
+                    print((action_block_start, action_block_end, transition_action[INDEX_LABEL]))
+
+                    
+
+                if not is_filler_event:
+                    #TODO verify the stamps are all good
+                    datum = [meal, prev_event[INDEX_LABEL], transition_action[INDEX_LABEL], event[INDEX_LABEL], transition_action[INDEX_TIMESTAMP_END], transition_action[INDEX_TIMESTAMP_START]]
+                    data.append(datum)
+                    print("added " + str(prev_event[INDEX_LABEL]) + " --" + transition_action[INDEX_LABEL] + "--> " + event[INDEX_LABEL])
+
+                    prev_event  = event
+                    new_nop     = (meal, event[2], event[2], no_op, TYPE_WAITER)
+                    prev_actions = [new_nop]
+
             else:
                 print("ERR")
                 print(prev_event)
