@@ -275,6 +275,7 @@ def import_meals():
 
     i_meal, i_start, i_end, i_label, i_type = 0,1,2,3,4
 
+    waiter_events_fill = []
     new_overall_flow = []
     for o in overall_flow:
         is_no_edit = True
@@ -287,7 +288,10 @@ def import_meals():
             prev_customer_state = BLANK_SLATE_CUSTOMER_STATE
 
         if e_type_current == TYPE_WAITER:
-            meal_waiter_prev, start_waiter_prev, end_waiter_prev, event_waiter_prev, e_type_waiter_prev = o
+            meal_waiter_prev, start_waiter_prev, end_waiter_prev, label_waiter_prev, e_type_waiter_prev = o
+
+            waiter_events_fill.append(label_waiter_prev)
+
 
         elif e_type_current == TYPE_CUSTOMER_STATE:
             meal_cs_prev, start_cs_prev, end_cs_prev, event_cs_prev, e_type_cs_prev = prev_customer_state
@@ -296,6 +300,8 @@ def import_meals():
             # print(event_cs_prev + " -> " + event_current)
             # print(e_type_current + "\t: " + event_current)
             
+            gap = end_current - start_current
+
             if event_current == 'table-waiting':
                 is_no_edit = False
 
@@ -311,14 +317,16 @@ def import_meals():
                 # elif event_cs_prev == 'ready-for-cleanup':
                 #     new_event_name = 'waiting-3' #'waiting-for-bill'    
                 
-                # elif event_cs_prev == 'ready-for-bill':
-                #     new_event_name = 'paying-bill'
+                # AND is after bring-bill
+                elif event_cs_prev == 'ready-for-bill' and 'bring:bill' in waiter_events_fill:
+                    print("Gap length " + str(gap))
+                    new_event_name = 'paying-bill'
                 
-                # elif event_cs_prev == 'ready-for-final-check':
-                #     new_event_name = 'paying-final-check'
+                elif event_cs_prev == 'ready-for-final-check':
+                    new_event_name = 'paying-final-check'
                 
-                elif event_cs_prev == 'ready-to-leave':
-                    new_event_name = 'leaving'
+                # elif event_cs_prev == 'ready-to-leave':
+                #     new_event_name = 'leaving'
                 
                 else:
                     new_event_name = 'testy'
@@ -443,6 +451,7 @@ def import_meals():
 
     data_individual_meals = []
     data_all = []
+    table_state_big_list = []
 
     # Import all the meals on the list
     for meal in filenames_all:
@@ -541,9 +550,9 @@ def import_meals():
                     print("I think this is a false event")
                     event_length = event[INDEX_TIMESTAMP_END] - event[INDEX_TIMESTAMP_START]
                     print(event_length)
-                    is_filler_event = True
+                    is_filler_event = False
 
-                    if event_length < 3000:
+                    if event_length < 200:
                         is_filler_event = True
                     print(event)
                     print((action_block_start, action_block_end, transition_action[INDEX_LABEL]))
@@ -555,6 +564,8 @@ def import_meals():
                     datum = [meal, prev_event[INDEX_LABEL], transition_action[INDEX_LABEL], event[INDEX_LABEL], transition_action[INDEX_TIMESTAMP_END], transition_action[INDEX_TIMESTAMP_START]]
                     data.append(datum)
                     print("added " + str(prev_event[INDEX_LABEL]) + " --" + transition_action[INDEX_LABEL] + "--> " + event[INDEX_LABEL])
+
+                    table_state_big_list.append(event)
 
                     prev_event  = event
                     new_nop     = (meal, event[2], event[2], no_op, TYPE_WAITER)
@@ -593,7 +604,7 @@ def import_meals():
         print(data_individual_meals)
         print("data all")
         print(data_all)
-    return transition_log, data_individual_meals, data_all, customer_states, log
+    return transition_log, data_individual_meals, data_all, customer_states, log, table_state_big_list
 
 
 
@@ -652,27 +663,41 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
                 # s = cm_sum[i]
                 # annot[i, j] = '%.1f%%\n%d/%d' % (p, c, s)
                 if not np.isnan(p) and p != 0:
-                    annot[i, j] = '%.1f%%' % (p)
+                    if p > .1:
+                        annot[i, j] = '%.1f%%' % (p)
+                    elif p > .01:
+                        annot[i, j] = '%.2f%%' % (p)
+                    else:
+                        annot[i,j] = ''
                 else:
                     annot[i, j] = ''
             elif c == 0:
                 annot[i, j] = ''
             else:
                 if p is not np.nan:
-                    annot[i, j] = '%.1f%%' % (p)
+                    if p > .1:
+                        annot[i, j] = '%.1f%%' % (p)
+                    elif p > .01:
+                        annot[i, j] = '%.2f%%' % (p)
+                    else:
+                        annot[i,j] = ''
                 else:
                     annot[i,j] = ''
                 # annot[i, j] = '%.1f%%\n%d' % (p, c)
 
     cm = pd.DataFrame(cm, index=labels, columns=labels)
-    cm.index.name = 'Person A'
-    cm.columns.name = 'Person B'
+    cm.index.name = 'Target Person'
+    cm.columns.name = 'Auxillary Person'
     fig, ax = plt.subplots(figsize=figsize)
+
+    coloring = sns.color_palette("light:b", as_cmap=True)
 
     # print(annot)
     # print(max(annot))
     # vmin=0, vmax=100
-    sns.heatmap(cm, annot=annot, fmt='', ax=ax, square=True, annot_kws={"size": 10}, cbar=False)
+    sns.heatmap(cm, annot=annot, fmt='', ax=ax, cmap=coloring, square=True, annot_kws={"size": 9, "weight":'bold'}, cbar=False)
+
+    title = "Distribution of Target and Auxillary Activities"
 
     ax.set_title(title)
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01)
@@ -681,6 +706,9 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
 
 def to_seconds(value):
     return (value * time_multiplier_val) / 1000.0
+
+def to_minutes(value):
+    return (value * time_multiplier_val) / (1000.0 * 60.0)
 
 def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     # Update to normalize
@@ -734,6 +762,14 @@ import pydot as pydot
 # from pydot import Dot, Edge, Node
 
 def make_graph(data, graph_label, customer_states):
+    print("LINK DATA")
+    print(data)
+    print()
+    print("CUSTOMER STATES")
+    print(customer_states)
+
+    # data = [['8-13-18', 'NONE', 'bring:menus', 'reading-menus', 1490, 1426], ['8-13-18', 'reading-menus', 'take:info', 'reading-menus', 10699, 11298], ['8-13-18', 'reading-menus', 'bring:drinks', 'reading-menus', 15478, 15989],['8-13-18', 'ready-for-food', 'take:order', 'ready-for-food', 27672, 28254], ['8-13-18', 'reading-menus', 'NOP', 'ready-to-order', 27240, 27240], ['8-13-18', 'ready-to-order', 'take:order', 'ready-for-food', 27660, 27660], ['8-13-18', 'ready-for-food', 'take:dishes', 'ready-for-food', 52830, 52893], ['8-13-18', 'ready-for-food', 'take:info', 'ready-for-food', 27672, 28254], ['8-13-18', 'ready-for-food', 'take:dishes', 'ready-for-food', 52830, 52893], ['8-13-18', 'ready-for-food', 'take:info', 'ready-for-food', 67746, 67188], ['8-13-18', 'ready-for-food', 'bring:food', 'eating', 66336, 66426], ['8-13-18', 'eating', 'bring:drinks', 'eating', 69465, 69885], ['8-13-18', 'eating', 'bring:food', 'eating', 70180, 70323], ['8-13-18', 'eating', 'bring:drinks', 'eating', 69465, 69885], ['8-13-18', 'eating', 'bring:food', 'eating', 70180, 70323], ['8-13-18', 'eating', 'take:info', 'eating', 81615, 81993], ['8-13-18', 'eating', 'take:info', 'eating', 81996, 82080], ['8-13-18', 'eating', 'take:dishes', 'eating', 82092, 82140], ['8-13-18', 'eating', 'bring:drinks', 'eating', 69465, 69885], ['8-13-18', 'eating', 'bring:food', 'eating', 70180, 70323], ['8-13-18', 'eating', 'take:info', 'eating', 81615, 81993], ['8-13-18', 'eating', 'take:info', 'eating', 81996, 82080], ['8-13-18', 'eating', 'take:dishes', 'eating', 82092, 82140], ['8-13-18', 'eating', 'take:info', 'eating', 88321, 88385], ['8-13-18', 'eating', 'take:info', 'eating', 92250, 92250], ['8-13-18', 'eating', 'NOP', 'ready-for-cleanup', 99510, 105180], ['8-13-18', 'ready-for-cleanup', 'take:dishes', 'ready-for-bill', 105768, 105250], ['8-13-18', 'ready-for-bill', 'bring:bill', 'paying:bill', 109380, 109380], ['8-13-18', 'paying:bill', 'take:bill', 'ready-for-final-check', 112282, 112301], ['8-13-18', 'ready-for-final-check', 'bring:check', 'paying-final-check', 113910, 113910], ['8-13-18', 'paying-final-check', 'NOP', 'ready-to-leave', 116100, 116100], ['8-13-18', 'ready-to-leave', 'NOP', 'table-empty', 116940, 116940], ['8-13-18', 'table-empty', 'take:check', 'table-empty', 117090, 117244]]
+
     # print(data)
     data_overview = []
 
@@ -745,6 +781,15 @@ def make_graph(data, graph_label, customer_states):
                         fontsize='10',
                         fontcolor='white')
     colors_viridis = cm.get_cmap('viridis', len(customer_states))
+
+
+    customer_states = []
+    for link in data:
+        m, la, op, lb, at, bt = link
+        customer_states.append(la)
+        customer_states.append(lb)
+
+    customer_states = list(set(customer_states))
 
     for i in range(len(customer_states)):
         label = customer_states[i]
@@ -775,6 +820,8 @@ def make_graph(data, graph_label, customer_states):
         lb = lb.replace(':', "-")
         op = op.replace(':', "-")
 
+        op_l = "   " + op + "   "
+
         this_edge = (la, op, lb)
         if this_edge not in checklist:
             checklist.add(this_edge)
@@ -795,7 +842,15 @@ def make_graph(data, graph_label, customer_states):
             datum = [la, op, lb, prob]
             data_overview.append(datum)
 
-            edge.set_label(op + "\nP=" + str(prob))
+            edge.set_label(op_l) # + "\nP=" + str(prob))
+
+            if la == lb:
+                edge.set_tailport('se')
+                edge.set_headport('ne')
+            else:
+                edge.set_tailport('s')
+                edge.set_headport('n')
+            # minlen=2, tailport=n, headport=n
             g.add_edge(edge)
 
 
@@ -833,6 +888,39 @@ def clean_df(df):
 
     return df
 
+def do_table_state_stats(ts_list, data_all):
+    df_events = pd.DataFrame(ts_list, columns = ['Meal ID', 'start', 'end', 'table-state', 'ts_type'])
+    # df_events = pd.DataFrame(data_all, columns = ['Meal ID', 'a', 'action', 'b', 't1', 't2'])
+    df_events['length'] = df_events['end'] - df_events['start']
+    
+    total_time = df_events['length'].sum()
+    all_means = []
+    all_percents = []
+
+    print("TABLE STATE STATS")
+    for ts in list(df_events['table-state'].unique()):
+        df_single_ts = df_events.loc[(df_events['table-state'] == ts)]
+        
+        mean_time = to_minutes(df_single_ts['length'].mean())
+        all_means.append(mean_time)
+        mean_time = to_1sf(mean_time)
+
+        # print("Avg time: ")
+        # print(str(mean_time) + " s")
+        # print(df_single_activity.shape)
+        percent_of_total = df_single_ts['length'].sum() / total_time
+        percent_of_total = percent_of_total * 100.0
+        all_percents.append(percent_of_total)
+        percent_of_total = to_1sf(percent_of_total)
+        # print(str(percent_of_total) + "\\%")
+
+        num_events = len(df_single_ts['Meal ID'].unique())
+
+        # output for latex
+        print(ts + '\t&' + mean_time + "min" + "\t& " + percent_of_total + "\\% \t&" + str(num_events) + "\\\\")
+
+    print("TABLE TOTAL PERCENTS: " + str(sum(all_percents)))
+
 def make_scatter_of_var(df_events, x, y, activity, fname):
     activity_fn = activity.replace(":", "-")
 
@@ -857,11 +945,10 @@ def make_scatter_of_var(df_events, x, y, activity, fname):
 
 if __name__ == "__main__":
     # transition log columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at']
-    transition_log, data_individual_meals, data_all, customer_states, log = import_meals()
-    
+    transition_log, data_individual_meals, data_all, customer_states, log, ts_list = import_meals()
+
     graph_data = data_individual_meals
     graph_data.append(data_all)
-
 
     graph_names = filenames_all
     graph_names.append("all")
@@ -870,6 +957,9 @@ if __name__ == "__main__":
         data_list = graph_data[i]
         graph_name = graph_names[i]
         make_graph(data_list, graph_name, customer_states)
+
+
+    do_table_state_stats(ts_list, data_all)
 
 
     data = []
@@ -1052,6 +1142,7 @@ if __name__ == "__main__":
 
         print("TOTAL PERCENTS: " + str(sum(all_percents)))
 
+        # oops, this is doubled somehow
         if FLAG_EXPORT_ACTIVITY_SCATTER:
             for activity in activity_labels:
                 # combinations of activity lengths and group states
