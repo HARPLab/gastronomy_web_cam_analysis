@@ -141,7 +141,7 @@ def import_meals():
     simple_timeline = {}
 
     for meal in filenames_all:
-        root = parseXML('../../Annotations/' + meal + '-michael.eaf')
+        root = parseXML('../../Annotations/' + meal + '-michael-gs.eaf')
         print("Processing meal annotations for " + meal)
         timeline = []
 
@@ -192,10 +192,11 @@ def import_meals():
                             
                             log[(meal, f_id)][0] = label
 
+                        if label is not None:
+                            label = label.strip()
 
-
-                        overall_flow.append((meal, beginning_frame, ending_frame, label, TYPE_CUSTOMER_STATE))
-                        customer_states.append(label)
+                            overall_flow.append((meal, beginning_frame, ending_frame, label, TYPE_CUSTOMER_STATE))
+                            customer_states.append(label)
 
 
             # LOGGING PERSON A AND B ACTIVITIES
@@ -332,6 +333,7 @@ def import_meals():
                     new_event_name = 'testy'
                     print("Needs a change!")
 
+                new_event_name = 'testy'
                 customer_states.append(new_event_name)
 
                 new_o = (m_current, start_current, end_current, new_event_name, e_type_current)
@@ -362,6 +364,9 @@ def import_meals():
 
     # print("-------------------------------")
     
+    print("OVERALL FLOW")
+    print(overall_flow)
+
     print("***Labeling unlabeled table-waiting events")
     overall_flow = new_overall_flow
     
@@ -483,7 +488,7 @@ def import_meals():
             is_event_transition = False
             
 
-            if event[INDEX_TYPE] == TYPE_WAITER:
+            if event[INDEX_TYPE] == TYPE_WAITER and event[INDEX_LABEL] is not None:
 
                 gap_from_prev_action = event[INDEX_TIMESTAMP_START] - action_block_end
                 # if we're not part of the current waiter block, then handle it
@@ -516,7 +521,7 @@ def import_meals():
                 # print("!!1 pushed back waiter event")
 
             # if we have a transition between two events
-            elif event[INDEX_TYPE] == TYPE_CUSTOMER_STATE:
+            elif event[INDEX_TYPE] == TYPE_CUSTOMER_STATE and event[INDEX_LABEL] is not None:
                 # read it off and record it 
                 # into a list of tuples, for future parsing
 
@@ -563,7 +568,7 @@ def import_meals():
                     #TODO verify the stamps are all good
                     datum = [meal, prev_event[INDEX_LABEL], transition_action[INDEX_LABEL], event[INDEX_LABEL], transition_action[INDEX_TIMESTAMP_END], transition_action[INDEX_TIMESTAMP_START]]
                     data.append(datum)
-                    print("added " + str(prev_event[INDEX_LABEL]) + " --" + transition_action[INDEX_LABEL] + "--> " + event[INDEX_LABEL])
+                    print("added " + str(prev_event[INDEX_LABEL]) + " --" + str(transition_action[INDEX_LABEL]) + "--> " + str(event[INDEX_LABEL]))
 
                     table_state_big_list.append(event)
 
@@ -574,7 +579,7 @@ def import_meals():
             else:
                 print("ERR")
                 print(prev_event)
-                print(prev_action)
+                print(prev_actions)
                 print(event)
                 print("~~~")
                 pass
