@@ -36,6 +36,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 
+# from sklearn.neighbors import KNeighborsClassifier
+# from sklearn.ensemble import AdaBoostClassifier
+# from sklearn.linear_model import SGDClassifier
+# from sklearn.svm import LinearSVC
+# from sklearn.tree import DecisionTreeClassifier
+# # from tensorflow import keras
+# # from keras.models import Sequential
+# # from tensorflow.keras.layers import LSTM
+# # from tensorflow.keras.layers import Dense
+# # from tensorflow.keras.layers import Dropout
+# import tensorflow as tf
+# import tensorflow.keras as keras
+# from tensorflow.keras.models import Sequential
+# from tensorflow.keras.layers import LSTM
+# from tensorflow.keras.layers import Dense
+# from tensorflow.keras.layers import Dropout
+# from tensorflow.keras.utils import to_categorical
+
 import sys
 sys.path.append("..")
 import arconsts
@@ -710,6 +728,7 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
     ax.set_title(title)
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01)
     plt.clf()
+    plt.close()
 
 
 def to_seconds(value):
@@ -721,7 +740,8 @@ def to_minutes(value):
 def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     # Update to normalize
     # https://stackoverflow.com/questions/35692781/python-plotting-percentage-in-seaborn-bar-plot
-    title = title.strip()
+    if title is None:
+        title = "NONE"
 
     sns.set(font_scale=2)
     filename = export_prefix + 'fp-act-bars-' + title
@@ -779,6 +799,7 @@ def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     plt.tight_layout()
     plt.savefig(filename + "_count.png")
     plt.clf()
+    plt.close()
 
 
     # sns.catplot(x="value", y=['person-A', 'person-B'], hue="variable", kind="box", data=df)
@@ -976,6 +997,7 @@ def make_scatter_of_var(df_events, x, y, activity, fname):
 
     plt.savefig(export_prefix + fname + activity_fn + '.png', bbox_inches='tight', pad_inches=0.01)
     plt.clf()
+    plt.close()
 
 if __name__ == "__main__":
     # transition log columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at']
@@ -1112,6 +1134,7 @@ if __name__ == "__main__":
         plt.xticks(rotation=90)
         plt.savefig(export_prefix + 'activity_length_histo.png', bbox_inches='tight', pad_inches=0.01)
         plt.clf()
+        plt.close()
 
         boxplot = sns.stripplot(y='norm_length', x='activity', order=labels, data=df_events) 
         boxplot.set_ylabel("Time in ratio", fontweight='bold')
@@ -1120,6 +1143,7 @@ if __name__ == "__main__":
         plt.xticks(rotation=90)
         plt.savefig(export_prefix + 'activity_norm_histo.png', bbox_inches='tight', pad_inches=0.01)
         plt.clf()
+        plt.close()
 
         boxplot = df_events.boxplot(column=['length'], by=['activity']) #, sort=False)
         boxplot.set_ylabel("Time in ms", fontweight='bold')
@@ -1128,6 +1152,7 @@ if __name__ == "__main__":
         plt.xticks(rotation=90)
         plt.savefig(export_prefix + 'activity_length_boxplot.png', bbox_inches='tight', pad_inches=0.01)
         plt.clf()
+        plt.close()
         print("EXPORTED activity length graphs")
 
         # combinations of activity lengths and group states
@@ -1138,6 +1163,7 @@ if __name__ == "__main__":
         plt.xticks(rotation=90)
         plt.savefig(export_prefix + 'time_start_to_end_scatter.png', bbox_inches='tight', pad_inches=0.01)
         plt.clf()
+        plt.close()
 
         # combinations of activity lengths and group states
         plot = df_events.plot.scatter(x='time_from_end_to_end_of_groupstate', y='norm_length') #, c='table-state');
@@ -1147,6 +1173,7 @@ if __name__ == "__main__":
         plt.xticks(rotation=90)
         plt.savefig(export_prefix + 'time_end_to_end_scatter.png', bbox_inches='tight', pad_inches=0.01)
         plt.clf()
+        plt.close()
 
         total_time = df_events['length'].sum()
         all_means = []
@@ -1254,6 +1281,7 @@ if __name__ == "__main__":
                 # plt.set_title("Trends over time")
                 plt.savefig(export_prefix + metric + y_type + "_impact.png", bbox_inches='tight', pad_inches=0.01)
                 plt.clf()
+                plt.close()
 
 
     if FLAG_EXPORT_CM:
