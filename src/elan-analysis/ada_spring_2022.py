@@ -34,6 +34,7 @@ import matplotlib
 from sklearn.metrics import confusion_matrix
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 
 import sys
 sys.path.append("..")
@@ -46,9 +47,9 @@ def parseXML(elanfile):
     return root
     print(root.tag)
 
-FLAG_EXPORT_ACTIVITY_LENGTH_STATS   = False
+FLAG_EXPORT_ACTIVITY_LENGTH_STATS   = True
 FLAG_EXPORT_ACTIVITY_SCATTER        = False
-FLAG_EXPORT_CM                      = False
+FLAG_EXPORT_CM                      = True
 
 # Import the five annotated files
 filename_root = "8-21-18"
@@ -588,10 +589,9 @@ def import_meals():
                 prev_event = event
                 print("Replaced event NONE")
 
-
         print("~~~~~~~~~~~~~~")
         print(data)
-        # exit()
+
         data_individual_meals.append(data)
         data_all.extend(data)
 
@@ -629,6 +629,9 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
                  Caution: original y_true, y_pred and labels must align.
       figsize:   the size of the figure plotted.
     """
+
+    if title is None:
+        title = "None"
 
     filename = export_prefix + 'cm-' + title
 
@@ -718,9 +721,11 @@ def to_minutes(value):
 def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     # Update to normalize
     # https://stackoverflow.com/questions/35692781/python-plotting-percentage-in-seaborn-bar-plot
+    title = title.strip()
 
     sns.set(font_scale=2)
-    filename = export_prefix + 'act-bars-' + title
+    filename = export_prefix + 'fp-act-bars-' + title
+    filename_histo = export_prefix + 'fp-histo-' + title
     # df.columns = ['Meal ID', 'timestamp', 'table-state', 'person-A', 'person-B']
 
     # sns.set_palette(sns.color_palette("colorblind", len(labels)))
@@ -732,21 +737,45 @@ def activity_fingerprint(df, labels, title, ymap=None, figsize=(14,10)):
     # sns.countplot(df['person-A'])
     # sns.countplot(df['person-B'])
     histo = df['value'].value_counts().reindex(labels, fill_value=0)
+    histo = (100.0 * histo) / sum(histo)
+
+    #change units to be reasonable
+
     # cm_sum = np.sum(cm, axis=normal_axis)
 
     # print(histo)
     # print("~~~~~~")
-    f = open(filename + "_histo.txt", "w")
+    f = open(filename_histo + "_histo.txt", "w")
     f.write(str(histo))
     f.close()
 
+    percentage = lambda i: len(i) / float(len(x)) * 100
+
     # df['value'].value_counts().plot(kind='bar', rot=0)
 
-    ax = sns.countplot(x='value', order=labels, data=df)
-    ax.set_xticklabels(rotation=90, labels=labels)
-    ax.set_title(title)
-    ax.set_ylabel("Count")
-    ax.set_xlabel("Activity Label")
+    title_label = "Distribution of Individual Activities\nwithin Group State " + title.upper()
+    # ax = sns.countplot(x='value', order=labels, data=df)
+
+    # print(df)
+    # exit()
+
+
+    new_df = df['value'].value_counts(normalize=True)
+    new_df = new_df.mul(100).rename('Percent').reset_index()
+    # df_new = df.groupby('value')[y].value_counts(normalize=True).mul(100).rename('percent').reset_index().pipe((sns.catplot,'data'), x=x,y='percent',hue=y,kind='bar')
+    # print(df_new)
+
+    ax = sns.barplot(x='index', y='Percent', order=labels, data=new_df)
+    
+    # ax = sns.barplot(x='value', y='x', data=df, order=labels, estimator=lambda x: len(x) / len(df) * 100)
+    
+    # ax.set_yticklabels(ax.get_yticks(), rotation=90, fontweight='bold')
+    ax.yaxis.set_major_formatter(mtick.PercentFormatter())
+    ax.set(ylim=[0,100.0])
+    ax.set_xticklabels(rotation=90, labels=labels, fontweight='bold')
+    ax.set_title(title_label, fontweight='bold')
+    ax.set_ylabel("Percent", fontweight='bold')
+    ax.set_xlabel("Activity Label", fontweight='bold')
     plt.tight_layout()
     plt.savefig(filename + "_count.png")
     plt.clf()
@@ -1076,26 +1105,26 @@ if __name__ == "__main__":
     if FLAG_EXPORT_ACTIVITY_LENGTH_STATS:
         # https://towardsdatascience.com/violin-strip-swarm-and-raincloud-plots-in-python-as-better-sometimes-alternatives-to-a-boxplot-15019bdff8f8
         # boxplot = df_events.boxplot(column=['length'], by=['activity']) #, sort=False)
-        boxplot = sns.stripplot(y='length', x='activity', data=df_events) 
-        boxplot.set_ylabel("Time in ms")
-        boxplot.set_xlabel("Activity")
-        boxplot.set_title("Lengths of Events")
+        boxplot = sns.stripplot(y='length', x='activity', order=labels, data=df_events) 
+        boxplot.set_ylabel("Time in ms", fontweight='bold')
+        boxplot.set_xlabel("Activity", fontweight='bold')
+        boxplot.set_title("Lengths of Events", fontweight='bold')
         plt.xticks(rotation=90)
         plt.savefig(export_prefix + 'activity_length_histo.png', bbox_inches='tight', pad_inches=0.01)
         plt.clf()
 
-        boxplot = sns.stripplot(y='norm_length', x='activity', data=df_events) 
-        boxplot.set_ylabel("Time in ratio")
-        boxplot.set_xlabel("Activity")
-        boxplot.set_title("Lengths of Events")
+        boxplot = sns.stripplot(y='norm_length', x='activity', order=labels, data=df_events) 
+        boxplot.set_ylabel("Time in ratio", fontweight='bold')
+        boxplot.set_xlabel("Activity", fontweight='bold')
+        boxplot.set_title("Lengths of Events", fontweight='bold')
         plt.xticks(rotation=90)
         plt.savefig(export_prefix + 'activity_norm_histo.png', bbox_inches='tight', pad_inches=0.01)
         plt.clf()
 
         boxplot = df_events.boxplot(column=['length'], by=['activity']) #, sort=False)
-        boxplot.set_ylabel("Time in ms")
-        boxplot.set_xlabel("Activity")
-        boxplot.set_title("Lengths of Events")
+        boxplot.set_ylabel("Time in ms", fontweight='bold')
+        boxplot.set_xlabel("Activity", fontweight='bold')
+        boxplot.set_title("Lengths of Events", fontweight='bold')
         plt.xticks(rotation=90)
         plt.savefig(export_prefix + 'activity_length_boxplot.png', bbox_inches='tight', pad_inches=0.01)
         plt.clf()
@@ -1125,7 +1154,6 @@ if __name__ == "__main__":
 
         for activity in activity_labels:
             df_single_activity = df_events.loc[(df_events['activity'] == activity)]
-            print(activity)
             
             mean_time = to_seconds(df_single_activity['length'].mean())
             all_means.append(mean_time)
@@ -1143,7 +1171,7 @@ if __name__ == "__main__":
             num_events = len(df_single_activity['Meal ID'].unique())
 
             # output for latex
-            print(mean_time + "s" + "\t& " + percent_of_total + "\\% \t&" + str(num_events) + "\\\\")
+            print(activity +  "\t& " + mean_time + "s" + "\t& " + percent_of_total + "\\% \t&" + str(num_events) + "\\\\")
 
         print("TOTAL PERCENTS: " + str(sum(all_percents)))
 
@@ -1160,7 +1188,7 @@ if __name__ == "__main__":
                 fname = 'tete-act-'
                 make_scatter_of_var(df_single_activity, type_of_graph, 'norm_length', activity, fname)
 
-        print("EXPORTED scatter of time before end")
+            print("EXPORTED scatter of time before end")
         # exit()
 
     types_of_metric = ['norm_length', 'length']
