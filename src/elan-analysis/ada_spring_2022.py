@@ -678,6 +678,7 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
     else:
         cm_sum = np.sum(cm, axis=normal_axis)
     
+    np.seterr(invalid='ignore')
     cm_perc = cm / cm_sum.astype(float) * 100
     annot = np.empty_like(cm).astype(str)
     nrows, ncols = cm.shape
