@@ -35,6 +35,7 @@ from sklearn.metrics import confusion_matrix
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+from hmmlearn import hmm
 
 # from sklearn.neighbors import KNeighborsClassifier
 # from sklearn.ensemble import AdaBoostClassifier
@@ -57,6 +58,7 @@ import matplotlib.ticker as mtick
 import sys
 sys.path.append("..")
 import arconsts
+import ada_spring_hmm_analysis as ada_hmm
 
 
 def parseXML(elanfile):
@@ -84,7 +86,7 @@ activitydict = {'away-from-table': 0, 'idle': 1, 'eating': 2, 'drinking': 3, 'ta
             'using:wallet': 17, 'looking:PersonA': 18, 'looking:PersonB':19, 'takeoutfood':20, 'NONE': 21}
 
 
-activity_shorterdict = {'away-from-table': 'away', 'idle': 'idle', 'eating': 'eating', 'drinking': 'drinking', 'talking': 'talking', 'ordering': 'ordering', 
+activity_shorterdict = {'away-from-table': 'away', 'idle': 'idle', 'eating': 'eating', 'drinking': 'drinking', 'talking': 'talking', 'ordering': 'talk:waiter', 
             'standing':'standing','talking:waiter': 'talk:waiter', 'looking:window': 'look:window', 'looking:waiter': 'look:waiter', 
             'reading:bill':'read:bill', 'reading:menu': 'read:menu',
             'paying:check': 'pay:check', 'using:phone': 'use:phone', 'using:napkin': 'use:napkin', 'using:purse': 'use:purse', 'using:glasses': 'use:glasses',
@@ -93,6 +95,14 @@ activity_shorterdict = {'away-from-table': 'away', 'idle': 'idle', 'eating': 'ea
 activitydict_display = ['away', 'idle', 'eating', 'drinking', 'talking', 'ordering', 'standing', 'talk:waiter', 'look:window',
             'look:waiter', 'read:bill', 'read:menu', 'pay:check', 'use:phone', 'use:napkin', 'use:purse', 'use:glasses',
             'use:wallet', 'look:partner', 'takeout', 'NONE']
+
+    #             # removed  'ordering', 
+    # # remove talk:waiter sections stronger
+    # activitydict_display = ['away', 'idle', 'eating', 'drinking', 'talking', 'standing', 'talk:waiter', 'look:window', 'look:waiter', 'read:bill', 'read:menu', 'pay:check', 'use:phone', 'use:napkin', 'use:purse', 'use:glasses', 'use:wallet', 'look:partner', 'takeout', 'NONE']
+
+activitydict_display = ['read:menu', 'eating', 'read:bill', 'pay:check', 'takeout', 'talking', 'idle', 'look:partner', 'look:window', 'drinking', 'talk:waiter', 'look:waiter',  'use:phone', 'use:napkin', 'use:purse', 'use:glasses', 'use:wallet', 'standing', 'away', 'NONE']
+activitydict_display = ['read:menu', 'use:glasses', 'eating', 'use:napkin', 'read:bill', 'pay:check', 'use:wallet', 'use:purse', 'takeout', 'use:phone', 'talk:waiter', 'talking', 'idle', 'look:partner', 'drinking', 'look:window', 'look:waiter', 'standing', 'away', 'NONE']
+
 
 def getFeatureObj(currentframe):
     feature_data = {}
@@ -184,8 +194,10 @@ def import_meals():
                         for anno in temp: ## another single iteration loop
                             label = anno.text
 
-                        overall_flow.append((meal, beginning_frame, ending_frame, label, TYPE_WAITER))
-                        waiter_events.append(label)
+                        if label is not None:
+                            label = label.strip()
+                            overall_flow.append((meal, beginning_frame, ending_frame, label, TYPE_WAITER))
+                            waiter_events.append(label)
 
 
             # initial setup happens here
@@ -209,10 +221,10 @@ def import_meals():
                             if (meal, f_id) not in log.keys():
                                 log[(meal, f_id)] = copy.copy(BLANK_LABELS)
                             
+                            if label is not None:
+                                label = label.strip()
+    
                             log[(meal, f_id)][0] = label
-
-                        if label is not None:
-                            label = label.strip()
 
                             overall_flow.append((meal, beginning_frame, ending_frame, label, TYPE_CUSTOMER_STATE))
                             customer_states.append(label)
@@ -383,8 +395,8 @@ def import_meals():
 
     # print("-------------------------------")
     
-    print("OVERALL FLOW")
-    print(overall_flow)
+    # print("OVERALL FLOW")
+    # print(overall_flow)
 
     print("***Labeling unlabeled table-waiting events")
     overall_flow = new_overall_flow
@@ -499,11 +511,11 @@ def import_meals():
         for event in timeline:
             # print(event)
             # if the waiter took a novel action, ex not a NO-OP, then hold onto it
-            print("===")
-            print(prev_event)
-            transition_action, all_others = pick_dominant_waiter_action(prev_actions)
-            print(transition_action)
-            print(event)
+            # print("===")
+            # print(prev_event)
+            # transition_action, all_others = pick_dominant_waiter_action(prev_actions)
+            # print(transition_action)
+            # print(event)
             is_event_transition = False
             
 
@@ -587,7 +599,7 @@ def import_meals():
                     #TODO verify the stamps are all good
                     datum = [meal, prev_event[INDEX_LABEL], transition_action[INDEX_LABEL], event[INDEX_LABEL], transition_action[INDEX_TIMESTAMP_END], transition_action[INDEX_TIMESTAMP_START]]
                     data.append(datum)
-                    print("added " + str(prev_event[INDEX_LABEL]) + " --" + str(transition_action[INDEX_LABEL]) + "--> " + str(event[INDEX_LABEL]))
+                    # print("added " + str(prev_event[INDEX_LABEL]) + " --" + str(transition_action[INDEX_LABEL]) + "--> " + str(event[INDEX_LABEL]))
 
                     table_state_big_list.append(event)
 
@@ -607,8 +619,8 @@ def import_meals():
                 prev_event = event
                 print("Replaced event NONE")
 
-        print("~~~~~~~~~~~~~~")
-        print(data)
+        # print("~~~~~~~~~~~~~~")
+        # print(data)
 
         data_individual_meals.append(data)
         data_all.extend(data)
@@ -682,6 +694,7 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
     cm_perc = cm / cm_sum.astype(float) * 100
     annot = np.empty_like(cm).astype(str)
     nrows, ncols = cm.shape
+
     for i in range(nrows):
         for j in range(ncols):
             c = cm[i, j]
@@ -695,11 +708,11 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
                     elif p > .01:
                         annot[i, j] = '%.2f%%' % (p)
                     else:
-                        annot[i,j] = ''
+                        annot[i,j] = '%.1f%%' % (0)
                 else:
-                    annot[i, j] = ''
+                    annot[i, j] = '%.1f%%' % (0)
             elif c == 0:
-                annot[i, j] = ''
+                annot[i, j] = '%.1f%%' % (0)
             else:
                 if p is not np.nan:
                     if p > .1:
@@ -707,9 +720,9 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
                     elif p > .01:
                         annot[i, j] = '%.2f%%' % (p)
                     else:
-                        annot[i,j] = ''
+                        annot[i,j] = '%.1f%%' % (0)
                 else:
-                    annot[i,j] = ''
+                    annot[i,j] = '%.1f%%' % (0)
                 # annot[i, j] = '%.1f%%\n%d' % (p, c)
 
     cm = pd.DataFrame(cm, index=labels, columns=labels)
@@ -717,16 +730,24 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
     cm.columns.name = 'Auxillary Person'
     fig, ax = plt.subplots(figsize=figsize)
 
-    coloring = sns.color_palette("light:b", as_cmap=True)
+    coloring = sns.color_palette("light:#6a4c93", as_cmap=True) #sns.color_palette("light:black", as_cmap=True)
 
     # print(annot)
     # print(max(annot))
     # vmin=0, vmax=100
-    sns.heatmap(cm, annot=annot, fmt='', ax=ax, cmap=coloring, square=True, annot_kws={"size": 9, "weight":'bold'}, cbar=False)
+    # vmin=0, vmax=11, 
+    sns.set_style("white",  {'figure.facecolor': 'white'})
+    ax = sns.heatmap(cm, mask=(cm <= 0.01), annot=annot, fmt='', ax=ax, cmap=coloring, square=True, annot_kws={"size": 10, "weight":'bold'}, cbar=False)
+    ax2 = sns.heatmap(cm, mask=(cm > 0.01), cmap='Greys', square=True, annot=False, vmin=-0, vmax=0, annot_kws={"size": 9, "weight":'bold'}, cbar=False, ax=ax)
 
     title = "Distribution of Target and Auxillary Activities"
 
-    ax.set_title(title)
+    ax.set_xlabel('Target Person', fontsize=14, weight='bold')
+    ax.set_ylabel('Auxillary Person', fontsize=14, weight='bold')  
+    ax.set_xticklabels(ax.get_xticklabels(), size=10, fontweight='bold')
+    ax.set_yticklabels(ax.get_yticklabels(), size=10, fontweight='bold')
+
+    ax.set_title(title, fontweight='bold')
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01)
     plt.clf()
     plt.close()
@@ -819,10 +840,11 @@ import pydot as pydot
 
 def make_graph(data, graph_label, customer_states):
     print("LINK DATA")
-    print(data)
-    print()
-    print("CUSTOMER STATES")
-    print(customer_states)
+    # print(data)
+    print("END LINK DATA")
+    # print()
+    # print("CUSTOMER STATES")
+    # print(customer_states)
 
     # data = [['8-13-18', 'NONE', 'bring:menus', 'reading-menus', 1490, 1426], ['8-13-18', 'reading-menus', 'take:info', 'reading-menus', 10699, 11298], ['8-13-18', 'reading-menus', 'bring:drinks', 'reading-menus', 15478, 15989],['8-13-18', 'ready-for-food', 'take:order', 'ready-for-food', 27672, 28254], ['8-13-18', 'reading-menus', 'NOP', 'ready-to-order', 27240, 27240], ['8-13-18', 'ready-to-order', 'take:order', 'ready-for-food', 27660, 27660], ['8-13-18', 'ready-for-food', 'take:dishes', 'ready-for-food', 52830, 52893], ['8-13-18', 'ready-for-food', 'take:info', 'ready-for-food', 27672, 28254], ['8-13-18', 'ready-for-food', 'take:dishes', 'ready-for-food', 52830, 52893], ['8-13-18', 'ready-for-food', 'take:info', 'ready-for-food', 67746, 67188], ['8-13-18', 'ready-for-food', 'bring:food', 'eating', 66336, 66426], ['8-13-18', 'eating', 'bring:drinks', 'eating', 69465, 69885], ['8-13-18', 'eating', 'bring:food', 'eating', 70180, 70323], ['8-13-18', 'eating', 'bring:drinks', 'eating', 69465, 69885], ['8-13-18', 'eating', 'bring:food', 'eating', 70180, 70323], ['8-13-18', 'eating', 'take:info', 'eating', 81615, 81993], ['8-13-18', 'eating', 'take:info', 'eating', 81996, 82080], ['8-13-18', 'eating', 'take:dishes', 'eating', 82092, 82140], ['8-13-18', 'eating', 'bring:drinks', 'eating', 69465, 69885], ['8-13-18', 'eating', 'bring:food', 'eating', 70180, 70323], ['8-13-18', 'eating', 'take:info', 'eating', 81615, 81993], ['8-13-18', 'eating', 'take:info', 'eating', 81996, 82080], ['8-13-18', 'eating', 'take:dishes', 'eating', 82092, 82140], ['8-13-18', 'eating', 'take:info', 'eating', 88321, 88385], ['8-13-18', 'eating', 'take:info', 'eating', 92250, 92250], ['8-13-18', 'eating', 'NOP', 'ready-for-cleanup', 99510, 105180], ['8-13-18', 'ready-for-cleanup', 'take:dishes', 'ready-for-bill', 105768, 105250], ['8-13-18', 'ready-for-bill', 'bring:bill', 'paying:bill', 109380, 109380], ['8-13-18', 'paying:bill', 'take:bill', 'ready-for-final-check', 112282, 112301], ['8-13-18', 'ready-for-final-check', 'bring:check', 'paying-final-check', 113910, 113910], ['8-13-18', 'paying-final-check', 'NOP', 'ready-to-leave', 116100, 116100], ['8-13-18', 'ready-to-leave', 'NOP', 'table-empty', 116940, 116940], ['8-13-18', 'table-empty', 'take:check', 'table-empty', 117090, 117244]]
 
@@ -869,9 +891,18 @@ def make_graph(data, graph_label, customer_states):
 
         transition_types[(la, op)].append(lb)
 
+        tidy_data = []
+        tidy_data.append((la, op, lb))
+
+    tidy_data = list(set(tidy_data))
+    print("TIDY DATA")
+    print(tidy_data)
+    print("END TIDY DATA")
+
     checklist = set()
-    for link in data:
-        m, la, op, lb, at, bt = link
+    for link in tidy_data:
+        # m, la, op, lb, at, bt = link
+        la, op, lb = link
         la = la.replace(':', "-")
         lb = lb.replace(':', "-")
         op = op.replace(':', "-")
@@ -879,7 +910,7 @@ def make_graph(data, graph_label, customer_states):
         op_l = "   " + op + "   "
 
         this_edge = (la, op, lb)
-        if this_edge not in checklist:
+        if this_edge not in checklist and not ((la == lb) and op == "NOP"):
             checklist.add(this_edge)
 
             edge = pydot.Edge(la, lb)
@@ -900,7 +931,7 @@ def make_graph(data, graph_label, customer_states):
 
             edge.set_label(op_l) # + "\nP=" + str(prob))
 
-            if la == lb:
+            if False and la == lb:
                 edge.set_tailport('se')
                 edge.set_headport('ne')
             else:
@@ -910,6 +941,8 @@ def make_graph(data, graph_label, customer_states):
             g.add_edge(edge)
 
 
+    print(checklist)
+    # g.add_edge(pydot.Edge('ready-to-leave', 'NONE'))
     
     g.write_png("graphs/table_states-" + graph_label + ".png")
     print("Output graph " + graph_label)
@@ -940,7 +973,6 @@ def clean_df(df):
     for state in unique_states_b:
         if state not in activitydict_display:
             print("Extra states in B " + state)
-
 
     return df
 
@@ -1000,6 +1032,14 @@ def make_scatter_of_var(df_events, x, y, activity, fname):
     plt.clf()
     plt.close()
 
+
+def export_hmm_analysis_group_from_individual(df_in):
+    ada_hmm.create_heatmap_activity_to_groupstate(df_in, activitydict_display)
+
+    ada_hmm.hmm_analyze(df_in, activitydict_display)
+    
+
+
 if __name__ == "__main__":
     # transition log columns = ['Meal ID', 'before', 'operation', 'after', 'bt', 'at']
     transition_log, data_individual_meals, data_all, customer_states, log, ts_list = import_meals()
@@ -1035,6 +1075,7 @@ if __name__ == "__main__":
 
     # POST ANALYSIS
     table_state_labels = df['table-state'].unique()
+    print("Table state labels")
     print(table_state_labels)
     # print all the unique table state labels found
     # print(table_state_labels)
@@ -1122,16 +1163,44 @@ if __name__ == "__main__":
         single_activity = df_events.loc[(df_events['activity'] == activity)]
         activity_length_dict[activity] = single_activity['length'].mean()
     
+    print(activity_length_dict)
     df_events['norm_length'] = df_events.apply(lambda x: x['length'] / activity_length_dict[x['activity']], axis=1)
     # print(df_events['norm_length'])
 
     if FLAG_EXPORT_ACTIVITY_LENGTH_STATS:
+        df_events_histo = copy.copy(df_events)
+        df_events_histo['length'] = df_events_histo['length'] * (33.333 / 1000)
+
+        labels = activitydict_display
+
+        fig = plt.figure(constrained_layout=True)
+        fig.set_size_inches(12, 8)
+
+        # coloring = sns.cubehelix_palette(start=.5, rot=-.75, as_cmap=True)
+
         # https://towardsdatascience.com/violin-strip-swarm-and-raincloud-plots-in-python-as-better-sometimes-alternatives-to-a-boxplot-15019bdff8f8
         # boxplot = df_events.boxplot(column=['length'], by=['activity']) #, sort=False)
-        boxplot = sns.stripplot(y='length', x='activity', order=labels, data=df_events) 
-        boxplot.set_ylabel("Time in ms", fontweight='bold')
-        boxplot.set_xlabel("Activity", fontweight='bold')
-        boxplot.set_title("Lengths of Events", fontweight='bold')
+        boxplot = sns.stripplot(y='length', x='activity', order=labels, data=df_events_histo, jitter=0.3, linewidth=1) 
+        # boxplot = sns.boxplot(showmeans=True,
+        #     # meanline=True,
+        #     meanprops={'color': 'white', 'ls': '-', 'lw': 2},
+        #     medianprops={'visible': False},
+        #     whiskerprops={'visible': False},
+        #     zorder=10,
+        #     order=labels, 
+        #     y='length', x='activity',
+        #     data=df_events_histo,
+        #     showfliers=False,
+        #     showbox=False,
+        #     showcaps=False,
+        #     ax=boxplot)
+
+        boxplot.set_ylabel("Time in seconds", fontweight='bold', size=18)
+        boxplot.set_xlabel("Activity", fontweight='bold', size=18)
+        boxplot.set_title("Lengths of Events", fontweight='bold', size=18)
+        boxplot.set_xticklabels(boxplot.get_xticklabels(), size=16, fontweight='bold')
+        # boxplot.set_yticklabels(boxplot.get_yticklabels(), size=16, fontweight='bold')
+
         plt.xticks(rotation=90)
         plt.savefig(export_prefix + 'activity_length_histo.png', bbox_inches='tight', pad_inches=0.01)
         plt.clf()
@@ -1331,6 +1400,8 @@ if __name__ == "__main__":
 
     df.to_csv(export_prefix + 'all_data.csv')
     print("Exported csvs of all")
+
+    export_hmm_analysis_group_from_individual(df)
 
 
     print("Done")
