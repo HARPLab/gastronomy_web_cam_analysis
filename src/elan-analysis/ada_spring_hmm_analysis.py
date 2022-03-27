@@ -20,7 +20,7 @@ def create_heatmap_activity_to_groupstate(df, activitydict_display):
 	labels = list(activitydict_display)
 
 	fig = plt.figure(constrained_layout=True)
-	fig.set_size_inches(20, 10)
+	fig.set_size_inches(12, 7)
 
 	df_m = pd.melt(df, id_vars=['Meal ID', 'timestamp', 'table-state'], value_vars=['person-A', 'person-B'])
 
@@ -36,27 +36,90 @@ def create_heatmap_activity_to_groupstate(df, activitydict_display):
 	# print(num_b / len(df))
 	# print(num_all / len(df))
 	
-	y_label = "Individual Activity"
-	x_label = "Group State"
+	y_label = "Group State"
+	x_label = "Individual Activity"
+
+	# PRETTY NAMES
+	y_tick_labels = ['reading-menus', 'ready-to-order', 'ready-for-food', 'eating', 'ready-for-cleanup', 'ready-for-bill', 'paying-bill', 'ready-for-final-check', 'paying-check', 'packing-takeout', 'ready-to-leave', 'NONE']
+	x_tick_labels = list(activitydict_display)
+
+	# UNDERLYING ORDERING
+	x_tick_index = ['reading-menus', 'ready-to-order', 'ready-for-food', 'eating', 'ready-for-cleanup', 'ready-for-bill', 'paying-bill', 'ready-for-final-check', 'paying-check', 'packing-takeout', 'ready-to-leave', 'NONE']
+	y_tick_index = list(activitydict_display)
+
 	df_histo = df_m.groupby(['value', 'table-state']).size().unstack(fill_value=0)
 
 	cm_sum = np.sum(df_histo, axis=0)
 	np.seterr(invalid='ignore')
 	df_histo = (df_histo / cm_sum.astype(float)) * 100.0
 	df_histo = df_histo.T
+	# tab_n = tab.div(tab.max(axis=1), axis=0)
 
-	coloring = sns.color_palette("light:b", as_cmap=True)
-	ax = sns.heatmap(df_histo, annot=True, cmap=coloring, fmt = '.1f', square=True, vmin=-0, vmax=100.0, annot_kws={"size": 14, "weight":'bold'}, cbar=False)
-	ax = sns.heatmap(df_histo, mask=df_histo != 0, cmap='Greys', square=True, annot=False, vmin=-0, vmax=100.0, annot_kws={"size": 14, "weight":'bold'}, cbar=False, ax=ax)
+	# SORT IN THE CORRECT ORDER FOR DISPLAY
+	df_histo = df_histo.reindex(index=x_tick_index, columns=y_tick_index)
+
+	all_cols = list(df_histo.columns)
+
+	group1 = ['read:menu', 'use:glasses', 'drinking', 'eating', 'use:napkin', 'read:bill', 'pay:check', 'use:wallet', 'use:purse', 'takeout']
+	coloring1 = sns.dark_palette("#FF0000", reverse=True, as_cmap=True)
+	coloring1 = sns.color_palette("light:#8ac926", as_cmap=True)
+	df_histo1 = copy.copy(df_histo)
+	to_remove1 = [x for x in all_cols if x not in group1]
+	df_histo1[to_remove1] = 0
+
+
+	# Do operations that require per-group-state operations
+	group2 = ['use:phone', 'talk:waiter', 'talking', 'idle', 'look:partner', 'look:window', 'look:waiter']
+	coloring2 = sns.color_palette("light:#1982c4", as_cmap=True)
+	# coloring = sns.dark_palette("#FFFFFF", reverse=True, as_cmap=True)
+	df_histo2 = copy.copy(df_histo)
+	to_remove2 = [x for x in all_cols if x not in group2]
+	df_histo2[to_remove2] = 0
+
+	group3 = []
+	coloring3 = sns.color_palette("light:#6a4c93", as_cmap=True)
+	df_histo3 = copy.copy(df_histo)
+	to_remove3 = [x for x in all_cols if x not in group3]
+	df_histo3[to_remove3] = 0
+
+	group4 = ['standing', 'away', 'NONE']
+	coloring4 = sns.color_palette("light:grey", as_cmap=True)
+	df_histo4 = copy.copy(df_histo)
+	to_remove4 = [x for x in all_cols if x not in group4]
+	df_histo4[to_remove4] = 0
+	
+	coloring = sns.color_palette("light:b",as_cmap=True)
+	coloring = sns.dark_palette("#FFFFFF", reverse=True, as_cmap=True)
+	# coloring = sns.color_palette("mako", as_cmap=True)
+
+	annot_size = 10
+
+	ax = sns.heatmap(df_histo, mask=(df_histo == 0.0), alpha=0.0, annot=True, cmap='Greys', fmt = '.1f', square=True, vmin=0, vmax=0, annot_kws={"size": annot_size, "weight":'bold'}, cbar=False, xticklabels=x_tick_labels, yticklabels=y_tick_labels)
+	# ax = sns.heatmap(df_histo, mask=df_histo != 0.0, cmap='Greys', square=True, annot=False, vmin=-0, vmax=100.0, annot_kws={"size": 9, "weight":'bold'}, cbar=False, ax=ax, xticklabels=x_tick_labels, yticklabels=y_tick_labels)
 	for t in ax.texts: t.set_text(t.get_text() + "%")
 
-	ax.set_xlabel(x_label, fontsize=20, weight='bold')
-	ax.set_ylabel(y_label, fontsize=20, weight='bold')	
-	ax.set_title("Distribution of Individual Activities within Group States", fontsize=22, weight='bold')
+	ax1 = sns.heatmap(df_histo1, mask=(df_histo1 == 0.0), annot=False, cmap=coloring1, square=True, vmin=-0, vmax=10.0, annot_kws={"size": annot_size, "weight":'bold'}, cbar=False, ax=ax, xticklabels=x_tick_labels, yticklabels=y_tick_labels)
+	ax2 = sns.heatmap(df_histo2, mask=(df_histo2 == 0.0), annot=False, cmap=coloring2, square=True, vmin=-0, vmax=10.0, annot_kws={"size": annot_size, "weight":'bold'}, cbar=False, ax=ax, xticklabels=x_tick_labels, yticklabels=y_tick_labels)
+	# ax3 = sns.heatmap(df_histo3, mask=(df_histo3 == 0.0), annot=False, cmap=coloring3, square=True, vmin=-0, vmax=10.0, annot_kws={"size": 9, "weight":'bold'}, cbar=False, ax=ax, xticklabels=x_tick_labels, yticklabels=y_tick_labels)
+	ax4 = sns.heatmap(df_histo4, mask=(df_histo4 == 0.0), annot=False, cmap=coloring4, square=True, vmin=-0, vmax=10.0, annot_kws={"size": annot_size, "weight":'bold'}, cbar=False, ax=ax, xticklabels=x_tick_labels, yticklabels=y_tick_labels)
 
-	plt.tight_layout()
-	plt.savefig("outputs-2022/relationship_overview.png")
+	# coloring1 = sns.color_palette("light:g", as_cmap=True)
+	# ax = sns.heatmap(df_histo1, mask=df_histo1 != 0, cmap=coloring1, square=True, annot=False, vmin=-0, vmax=100.0, annot_kws={"size": 9, "weight":'bold'}, cbar=False, ax=ax, xticklabels=x_tick_labels, yticklabels=y_tick_labels)
+
+	ax = sns.heatmap(df_histo, mask=(df_histo != 0.0), annot=False, cmap='Greys', fmt = '.1f', square=True, vmin=0, vmax=0, annot_kws={"size": annot_size, "weight":'bold'}, cbar=False, xticklabels=x_tick_labels, yticklabels=y_tick_labels)
+
+	ax.set_xlabel(x_label, fontsize=14, weight='bold')
+	ax.set_ylabel(y_label, fontsize=14, weight='bold')	
+	ax.set_xticklabels(ax.get_xticklabels(), size=12, fontweight='bold')
+	ax.set_yticklabels(ax.get_yticklabels(), size=12, fontweight='bold')
+
+	ax.set_title("Distribution of Individual Activities within Group States", fontsize=16, weight='bold')
+
+	# plt.tight_layout()
+	plt.savefig("outputs-2022/relationship_overview.png", bbox_inches='tight', pad_inches=0.01)
 	plt.clf()
+
+	df_histo.to_csv("outputs-2022/relationship_overview_table" + '.csv')
 
 	print("Relationship Overview")
 
@@ -137,8 +200,8 @@ def hmm_analyze(df_in, activitydict_display):
 		# 	outcome=["group-state"])
 		# model.view_model(layout="dot")
 
-		identified_estimand = model.identify_effect(proceed_when_unidentifiable=True)
-		print(identified_estimand)
+		# identified_estimand = model.identify_effect(proceed_when_unidentifiable=True)
+		# print(identified_estimand)
 
 		# calculate the emission probabilities
 
@@ -146,19 +209,19 @@ def hmm_analyze(df_in, activitydict_display):
 
 
 		# Given individual A and B, predict the group state
-		hmm_all = hmm.MultinomialHMM(n_components=8)
-		model_all = hmm_all.fit(train_X)
-		prediction_all = hmm_all.predict(test_X)
+		# hmm_all = hmm.MultinomialHMM(n_components=8)
+		# model_all = hmm_all.fit(train_X)
+		# prediction_all = hmm_all.predict(test_X)
 
-		# Given individual A, predict the group state
-		hmm_a = hmm.MultinomialHMM(n_components=8)
-		model_a = hmm_a.fit(train_A)
-		prediction_a = hmm_a.predict(test_A)
+		# # Given individual A, predict the group state
+		# hmm_a = hmm.MultinomialHMM(n_components=8)
+		# model_a = hmm_a.fit(train_A)
+		# prediction_a = hmm_a.predict(test_A)
 
-		# Given individual B, predict the group state
-		hmm_b = hmm.MultinomialHMM(n_components=8)
-		model_b = hmm_b.fit(train_B)
-		prediction_b = hmm_b.predict(test_B)
+		# # Given individual B, predict the group state
+		# hmm_b = hmm.MultinomialHMM(n_components=8)
+		# model_b = hmm_b.fit(train_B)
+		# prediction_b = hmm_b.predict(test_B)
 
 
 
