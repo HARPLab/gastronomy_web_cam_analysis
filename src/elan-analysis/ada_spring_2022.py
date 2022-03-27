@@ -36,6 +36,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from hmmlearn import hmm
+from matplotlib.colors import LogNorm, Normalize
 
 # from sklearn.neighbors import KNeighborsClassifier
 # from sklearn.ensemble import AdaBoostClassifier
@@ -101,7 +102,7 @@ activitydict_display = ['away', 'idle', 'eating', 'drinking', 'talking', 'orderi
     # activitydict_display = ['away', 'idle', 'eating', 'drinking', 'talking', 'standing', 'talk:waiter', 'look:window', 'look:waiter', 'read:bill', 'read:menu', 'pay:check', 'use:phone', 'use:napkin', 'use:purse', 'use:glasses', 'use:wallet', 'look:partner', 'takeout', 'NONE']
 
 activitydict_display = ['read:menu', 'eating', 'read:bill', 'pay:check', 'takeout', 'talking', 'idle', 'look:partner', 'look:window', 'drinking', 'talk:waiter', 'look:waiter',  'use:phone', 'use:napkin', 'use:purse', 'use:glasses', 'use:wallet', 'standing', 'away', 'NONE']
-activitydict_display = ['read:menu', 'use:glasses', 'eating', 'use:napkin', 'read:bill', 'pay:check', 'use:wallet', 'use:purse', 'takeout', 'use:phone', 'talk:waiter', 'talking', 'idle', 'look:partner', 'drinking', 'look:window', 'look:waiter', 'standing', 'away', 'NONE']
+activitydict_display = ['read:menu', 'use:glasses', 'drinking', 'eating', 'use:napkin', 'read:bill', 'use:wallet', 'use:purse', 'pay:check', 'takeout', 'talking', 'look:partner', 'idle', 'look:window', 'use:phone', 'talk:waiter', 'look:waiter', 'standing', 'away', 'NONE']
 
 
 def getFeatureObj(currentframe):
@@ -664,6 +665,7 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
         title = "None"
 
     filename = export_prefix + 'cm-' + title
+    print(filename)
 
     if ymap is not None:
         y_pred = [ymap[yi] for yi in y_pred]
@@ -736,16 +738,27 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
     # print(max(annot))
     # vmin=0, vmax=100
     # vmin=0, vmax=11, 
+    # print(cm_perc.columns)
+    normFn = LogNorm(vmin=.001, vmax=100.0)
+
+    labels = activitydict_display
+
+    with_norm = True
     sns.set_style("white",  {'figure.facecolor': 'white'})
-    ax = sns.heatmap(cm, mask=(cm <= 0.01), annot=annot, fmt='', ax=ax, cmap=coloring, square=True, annot_kws={"size": 10, "weight":'bold'}, cbar=False)
-    ax2 = sns.heatmap(cm, mask=(cm > 0.01), cmap='Greys', square=True, annot=False, vmin=-0, vmax=0, annot_kws={"size": 9, "weight":'bold'}, cbar=False, ax=ax)
+    if with_norm:
+        ax = sns.heatmap(cm_perc, mask=(cm_perc <= 0.01), annot=False, fmt='', ax=ax, norm=normFn, cmap=coloring, vmin=.01, vmax=100.0, square=True, annot_kws={"size": 10, "weight":'bold'}, cbar=True, xticklabels=labels, yticklabels=labels)
+        ax2 = sns.heatmap(cm_perc, mask=(cm_perc > 0.01), cmap='Greys', square=True, annot=False, vmin=-0, vmax=0, annot_kws={"size": 10, "weight":'bold'}, cbar=False, ax=ax, xticklabels=labels, yticklabels=labels)
+    else:
+        ax = sns.heatmap(cm_perc, mask=(cm_perc <= 0.01), annot=annot, fmt='', ax=ax, cmap=coloring, square=True, annot_kws={"size": 10, "weight":'bold'}, cbar=True, xticklabels=labels, yticklabels=labels)
+        ax2 = sns.heatmap(cm_perc, mask=(cm_perc > 0.01), cmap='Greys', square=True, annot=False, vmin=-0, vmax=0, annot_kws={"size": 10, "weight":'bold'}, cbar=False, ax=ax, xticklabels=labels, yticklabels=labels)
+    # ax = sns.heatmap(df_histo, mask=(df_histo != 0.0), annot=False, cmap='Greys', fmt = '.1f', square=True, vmin=0, vmax=0, annot_kws={"size": annot_size, "weight":'bold'}, cbar=False, xticklabels=x_tick_labels, yticklabels=y_tick_labels)
 
     title = "Distribution of Target and Auxillary Activities"
 
-    ax.set_xlabel('Target Person', fontsize=14, weight='bold')
-    ax.set_ylabel('Auxillary Person', fontsize=14, weight='bold')  
-    ax.set_xticklabels(ax.get_xticklabels(), size=10, fontweight='bold')
-    ax.set_yticklabels(ax.get_yticklabels(), size=10, fontweight='bold')
+    ax.set_xlabel('Target Person', fontsize=16, weight='bold')
+    ax.set_ylabel('Auxillary Person', fontsize=16, weight='bold')  
+    ax.set_xticklabels(ax.get_xticklabels(), size=14, fontweight='bold')
+    ax.set_yticklabels(ax.get_yticklabels(), size=14, fontweight='bold')
 
     ax.set_title(title, fontweight='bold')
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01)
@@ -1005,7 +1018,7 @@ def do_table_state_stats(ts_list, data_all):
         num_events = len(df_single_ts['Meal ID'].unique())
 
         # output for latex
-        print(ts + '\t&' + mean_time + "min" + "\t& " + percent_of_total + "\\% \t&" + str(num_events) + "\\\\")
+        print("\t& " + ts + '\t&' + mean_time + "min" + "\t& " + percent_of_total + "\\%" + "\\\\") # \t&" + str(num_events)
 
     print("TABLE TOTAL PERCENTS: " + str(sum(all_percents)))
 
@@ -1268,7 +1281,7 @@ if __name__ == "__main__":
             num_events = len(df_single_activity['Meal ID'].unique())
 
             # output for latex
-            print(activity +  "\t& " + mean_time + "s" + "\t& " + percent_of_total + "\\% \t&" + str(num_events) + "\\\\")
+            print("\t& " + activity +  "\t& " + mean_time + "s" + "\t& " + percent_of_total + "\\%" + "\\\\") #\t&" + str(num_events) 
 
         print("TOTAL PERCENTS: " + str(sum(all_percents)))
 
