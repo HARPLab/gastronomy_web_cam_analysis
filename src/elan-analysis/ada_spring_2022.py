@@ -37,6 +37,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from hmmlearn import hmm
 from matplotlib.colors import LogNorm, Normalize
+from matplotlib import rc,rcParams
 
 # from sklearn.neighbors import KNeighborsClassifier
 # from sklearn.ensemble import AdaBoostClassifier
@@ -729,7 +730,7 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
 
     cm = pd.DataFrame(cm, index=labels, columns=labels)
     cm.index.name = 'Target Person'
-    cm.columns.name = 'Auxillary Person'
+    cm.columns.name = 'Auxiliary Person'
     fig, ax = plt.subplots(figsize=figsize)
 
     coloring = sns.color_palette("light:#6a4c93", as_cmap=True) #sns.color_palette("light:black", as_cmap=True)
@@ -753,10 +754,10 @@ def cm_analysis(y_true, y_pred, title, labels, ymap=None, figsize=(14,10), norma
         ax2 = sns.heatmap(cm_perc, mask=(cm_perc > 0.01), cmap='Greys', square=True, annot=False, vmin=-0, vmax=0, annot_kws={"size": 10, "weight":'bold'}, cbar=False, ax=ax, xticklabels=labels, yticklabels=labels)
     # ax = sns.heatmap(df_histo, mask=(df_histo != 0.0), annot=False, cmap='Greys', fmt = '.1f', square=True, vmin=0, vmax=0, annot_kws={"size": annot_size, "weight":'bold'}, cbar=False, xticklabels=x_tick_labels, yticklabels=y_tick_labels)
 
-    title = "Distribution of Target and Auxillary Activities"
+    title = "Distribution of Target and Auxiliary Activities"
 
     ax.set_xlabel('Target Person', fontsize=16, weight='bold')
-    ax.set_ylabel('Auxillary Person', fontsize=16, weight='bold')  
+    ax.set_ylabel('Auxiliary Person', fontsize=16, weight='bold')  
     ax.set_xticklabels(ax.get_xticklabels(), size=14, fontweight='bold')
     ax.set_yticklabels(ax.get_yticklabels(), size=14, fontweight='bold')
 
@@ -1187,7 +1188,12 @@ if __name__ == "__main__":
         labels = activitydict_display
 
         fig = plt.figure(constrained_layout=True)
-        fig.set_size_inches(12, 8)
+        fig.set_size_inches(12, 7.5)
+
+        import matplotlib as mpl
+        mpl.rcParams["axes.spines.right"] = False
+        mpl.rcParams["axes.spines.top"] = False
+
 
         # coloring = sns.cubehelix_palette(start=.5, rot=-.75, as_cmap=True)
 
@@ -1210,9 +1216,14 @@ if __name__ == "__main__":
 
         boxplot.set_ylabel("Time in seconds", fontweight='bold', size=18)
         boxplot.set_xlabel("Activity", fontweight='bold', size=18)
-        boxplot.set_title("Lengths of Events", fontweight='bold', size=18)
+        boxplot.set_title("Lengths of Events", fontweight='bold', size=22)
         boxplot.set_xticklabels(boxplot.get_xticklabels(), size=16, fontweight='bold')
         # boxplot.set_yticklabels(boxplot.get_yticklabels(), size=16, fontweight='bold')
+
+        labels = boxplot.get_xticklabels() + boxplot.get_yticklabels()
+        for label in labels:
+            label.set_fontweight('bold')
+
 
         plt.xticks(rotation=90)
         plt.savefig(export_prefix + 'activity_length_histo.png', bbox_inches='tight', pad_inches=0.01)
